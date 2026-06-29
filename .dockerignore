@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtualenv
+venv/
+.venv/
+env/
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Banco SQLite
+db.sqlite3
+
+# Logs
+*.log
+
+# Cache
+.pytest_cache/
+.mypy_cache/
+
+# Arquivos temporários
+*.tmp
+
+# Media (se não quiser copiar para a imagem)
+media/
+
+# Docker
+docker-compose.yml
+
+# Variáveis de ambiente
+.env

@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 ASGI_APPLICATION = "core.asgi.application"
 
@@ -91,11 +91,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': "projeto",
-        'USER':"root",
-        "PASSWORD":"root",
-        'HOST': 'mysql',
-        'PORT': '3306'
+        'NAME': os.getenv("MYSQL_DATABASE"),
+        'USER': os.getenv("MYSQL_USER"),
+        "PASSWORD": os.getenv("MYSQL_PASSWORD"),
+        'HOST': os.getenv("MYSQL_HOST"),
+        'PORT': os.getenv("MYSQL_PORT"),
         
     }
 }
