@@ -3,10 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <title>DataCenterSimulator</title>
+    <style>
+        /* ÚNICO CSS NECESSÁRIO: Transição suave compatível com BS 5.0 */
+        .sidebar-transition { transition: width 0.3s ease; }
+        body { overflow-x: hidden; }
+    </style>
 </head>
-<body>
-    <div id="message-container"></div>
-</body>
+<body class="bg-black text-white">
+    <div class="d-flex min-vh-100">
+        {% include "navbar.html" %}
+        
+        <main class="flex-grow-1 p-4">
+            {% block content %}{% endblock content %}
+        </main>
+    </div>
 
+    {% block extra_js %}{% endblock extra_js %}
+</body>
 </html>
