@@ -7,16 +7,17 @@
 
     <!-- Container das Baias (Servidores) -->
     <div class="flex-grow-1 d-flex flex-column gap-1">
-        
-        <!-- Baia 1 -->
-        <div class="w-100 rounded-1 d-flex align-items-center px-2" style="height: 18%; background: linear-gradient(90deg, #111 0%, #1a1a1a 50%, #111 100%); border: 1px solid #222; box-shadow: inset 0 0 5px #000;">
-            <div class="rounded-circle me-2" style="width: 6px; height: 6px; background-color: #00ff00; box-shadow: 0 0 5px #00ff00;"></div>
-            <div class="rounded-circle me-2" style="width: 6px; height: 6px; background-color: #333;"></div>
-            <div class="ms-auto" style="width: 30px; height: 4px; background: #222; border-radius: 2px;"></div>
-            <div class="ms-auto d-flex align-items-center gap-1">
-                <span class="badge bg-dark border border-secondary" style="font-size: 8px; color: #555;">ACTIVE</span>
+        {% for bay in hack.bays.all %}
+            <!-- Baia  -->
+            <div class="w-100 rounded-1 d-flex align-items-center px-2" style="height: 18%; background: linear-gradient(90deg, #111 0%, #1a1a1a 50%, #111 100%); border: 1px solid #222; box-shadow: inset 0 0 5px #000;">
+                <div class="rounded-circle me-2" style="width: 6px; height: 6px; background-color: #00ff00; box-shadow: 0 0 5px #00ff00;"></div>
+                <div class="rounded-circle me-2" style="width: 6px; height: 6px; background-color: #333;"></div>
+                <div class="ms-auto" style="width: 30px; height: 4px; background: #222; border-radius: 2px;"></div>
+                <div class="ms-auto d-flex align-items-center gap-1">
+                    <span class="badge bg-dark border border-secondary" style="font-size: 8px; color: #555;">ACTIVE</span>
+                </div>
             </div>
-        </div>
+        {% endfor %}
         
         
     </div>
