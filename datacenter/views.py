@@ -13,6 +13,5 @@ class HomeView(TemplateView):
 
 class GetBayDetail(View):
     def get(self, request, id):
-        print("ok")
         bay = Bay.objects.filter(id=id).first()
         return render(request, template_name="partials/modal_bay.html", context={"bay": bay})

@@ -1,5 +1,7 @@
+
 {% extends "base.html" %}
 {% block content %}
+{%load static%}
     <div class="row col-24 mx-auto gap-3 justify-content-center">
         {% for hack in hacks %}
             {% include "partials/rack.html" %}
@@ -24,23 +26,5 @@
             </div>
         </div>
     </div>
-
-    <script>
-        document.querySelectorAll("[data-active='True']").forEach(el => {
-            el.classList.add("blink-green")
-        })
-
-        function openModal() {
-            document.getElementById("ModalBay").style.display = "block";
-        }
-        function closeModal() {
-            document.getElementById("ModalBay").style.display = "none";
-        }
-
-        document.body.addEventListener('htmx:afterSwap', (e) => {
-            if (e.detail.target.id === "ModalBayBody") {
-                openModal();
-            }
-        });
-    </script>
+    <script src="{% static 'scripts.js' %}"></script>
 {% endblock content %}
