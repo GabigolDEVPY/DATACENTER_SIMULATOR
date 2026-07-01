@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import View, TemplateView
-from .models import DataCenterHack
+from .models import DataCenterHack, Bay
 
 class HomeView(TemplateView):
     template_name = 'datacenter/index.html'     
@@ -11,3 +11,8 @@ class HomeView(TemplateView):
         return context
 
 
+class GetBayDetail(View):
+    def get(self, request, id):
+        print("ok")
+        bay = Bay.objects.filter(id=id).first()
+        return render(request, template_name="partials/modal_bay.html", context={"bay": bay})
