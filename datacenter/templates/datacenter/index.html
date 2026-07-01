@@ -1,28 +1,65 @@
-
 {% extends "base.html" %}
 {% block content %}
-{%load static%}
-    <div class="row col-24 mx-auto gap-3 justify-content-center">
-        {% for hack in hacks %}
-            {% include "partials/rack.html" %}
-        {% endfor %}
-    </div>
+{% load static %}
 
-    <div id="ModalBay"
-        class="position-fixed top-0 start-0 w-100 h-100"
-        style="display:none; z-index:1050; background:rgba(0,0,0,0.5);"
-        onclick="if(event.target.id==='ModalBay') closeModal()">
+<style>
+    .wire {
+        width: 40px;
+        height: 7px;
+        align-self: center;
+        background: linear-gradient(90deg, #062233, #00aaff, #062233);
+        background-size: 200% 100%;
+        box-shadow: 0 0 8px #00aaff, 0 0 3px #00aaff;
+        animation: energyFlow 1.5s linear infinite;
+        flex-shrink: 0;
+    }
 
-        <div class="position-relative bg-white text-dark border rounded-3 p-4 mx-auto shadow-lg"
-            style="max-width:500px; margin-top:10vh;">
+    @keyframes energyFlow {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+</style>
 
-            <button type="button"class="btn-close position-absolute top-0 end-0 m-3" aria-label="Close" onclick="closeModal()"></button>
-            <div id="ModalBayBody"><!-- conteúdo injetado pelo htmx --></div>
+<div class="row col-24 mx-auto justify-content-center align-items-center">
+    {% for hack in hacks %}
+        {% include "partials/rack.html" %}
+        {% if not forloop.last %}
+            <div class="wire"></div>
+        {% endif %}
+    {% endfor %}
+</div>
 
-            <!-- botão ok -->
-            <button type="button"class="btn-primary position-absolute top-0 end-0 m-3"aria-label="Close"onclick="closeModal()">Close</button>
+<div id="ModalBay"
+     class="position-fixed top-0 start-0 w-100 h-100"
+     style="display:none; z-index:1050; background:rgba(0,0,0,0.5);"
+     onclick="if(event.target.id==='ModalBay') closeModal()">
+
+    <div class="position-relative bg-white text-dark border rounded-3 p-4 mx-auto shadow-lg d-flex flex-column"
+         style="max-width:500px; min-height:300px; margin-top:10vh;">
+
+        <button
+            type="button"
+            class="btn-close position-absolute top-0 end-0 m-3"
+            aria-label="Close"
+            onclick="closeModal()">
+        </button>
+
+        <div id="ModalBayBody" class="flex-grow-1">
+            <!-- conteúdo injetado pelo htmx -->
         </div>
-    </div>
 
-    <script src="{% static 'scripts.js' %}"></script>
+        <div class="mt-auto d-flex justify-content-end pt-3">
+            <button
+                type="button"
+                class="btn btn-primary"
+                onclick="closeModal()">
+                Close
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script src="{% static 'scripts.js' %}"></script>
+
 {% endblock content %}

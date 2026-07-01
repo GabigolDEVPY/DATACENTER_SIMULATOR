@@ -1,33 +1,122 @@
-<div class="p-1">
+<div class="p-3">
+
     <!-- Cabeçalho -->
-    <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+    <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
         <div>
-            <h5 class="fw-bold text-dark mb-1">Bay #{{ bay.id }}</h5>
-            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">{{ bay.name }}</span>
+            <h4 class="fw-bold mb-1 text-dark">Bay #{{ bay.id }}</h4>
+        </div>
+
+        <div class="text-end">
+            <label class="form-label fw-semibold mb-1 text-secondary small text-uppercase">ON/OFF</label>
+            <div class="form-check form-switch fs-5 d-flex justify-content-end">
+                <input class="form-check-input" type="checkbox" role="switch" id="baySwitch">
+            </div>
         </div>
     </div>
 
-    <!-- Informações em grid -->
+    <!-- Informações -->
     <div class="row g-3">
-        <div class="col-6">
-            <div class="bg-light rounded-3 p-3 text-center h-100">
-                <div class="text-muted small text-uppercase fw-semibold mb-1">
-                    ⚡ Potência
-                </div>
-                <p class="fw-bold text-dark fs-2 mb-0">
-                    {{ bay.watts }}<span class="fs-6 text-muted">W</span>
-                </p>
+
+        <div class="col-md-6">
+            <div class="rounded-3 p-3 h-100 bg-white shadow-sm">
+                <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-lightning"></i> Consumo/hora
+                </span>
+                <h3 class="fw-bold mb-0 text-dark mt-2">{{ bay.watts }} <small class="text-muted"></small></h3>
             </div>
         </div>
-        <div class="col-6">
-            <div class="bg-light rounded-3 p-3 text-center h-100">
-                <div class="text-muted small text-uppercase fw-semibold mb-1">
-                    💰 Preço
+
+        <div class="col-md-6">
+            <div class="rounded-3 p-3 h-100 bg-white shadow-sm">
+                <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-currency-dollar"></i> Valor
+                </span>
+                <h3 class="fs-5 mb-0 text-dark mt-2">${{ bay.price }}</h3>
+            </div>
+        </div>
+
+        <!-- Cards selecionáveis -->
+        <div class="col-md-6">
+            <div class="rounded-3 p-3 h-100 bg-white selectable-card">
+                <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-server"></i> RAM
+                </span>
+                <select class="form-select border-0 p-0 fw-semibold fs-6 text-dark mt-2 shadow-none">
+                    <option>{{ bay.name }}</option>
+                    <option>Rack B</option>
+                    <option>Rack C</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="rounded-3 p-3 h-100 bg-white selectable-card">
+                <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-gpu-card"></i> GPU
+                </span>
+                <select class="form-select border-0 p-0 fw-semibold fs-6 text-dark mt-2 shadow-none">
+                    <option>Aguardando Desligamento</option>
+                    <option>RTX 4090</option>
+                    <option>A100</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="rounded-3 p-3 h-100 bg-white selectable-card">
+                <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-cpu"></i> CPU
+                </span>
+                <select class="form-select border-0 fs-6 p-0 fw-semibold text-dark mt-2 shadow-none">
+                    <option>Equipe de Infraestrutura</option>
+                    <option>Equipe de Redes</option>
+                    <option>Equipe DevOps</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="rounded-3 p-3 h-100 bg-white selectable-card">
+                <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-hdd-stack"></i> Armazenamento
+                </span>
+                <select class="form-select border-0 fs-6 p-0 fw-semibold text-dark mt-2 shadow-none">
+                    <option>15 minutos</option>
+                    <option>30 minutos</option>
+                    <option>1 hora</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="rounded-3 p-3 bg-white shadow-sm">
+                <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-exclamation"></i> Impacto Operacional
+                </span>
+                <div class="mt-2 text-dark">
+                    Durante a baixa os serviços hospedados nesta Bay poderão ficar
+                    indisponíveis. Certifique-se de que todos os procedimentos de
+                    redundância e backup foram executados antes de liberar o
+                    desligamento.
                 </div>
-                <p class="fw-bold text-success fs-2 mb-0">
-                    ${{ bay.price }}
-                </p>
             </div>
         </div>
     </div>
+
 </div>
+
+<style>
+    .selectable-card {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .selectable-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-label {
+        font-size: 0.8rem;
+    }
+</style>
