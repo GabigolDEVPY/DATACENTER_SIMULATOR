@@ -1,4 +1,33 @@
-<div>{{ bay.id }}</div>
-<div>{{ bay.name }}</div>
-<div>{{ bay.watts }}</div>
-<div>{{ bay.price }}</div>
+<div class="p-1">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+        <div>
+            <h5 class="fw-bold text-dark mb-1">Bay #{{ bay.id }}</h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">{{ bay.name }}</span>
+        </div>
+    </div>
+
+    <!-- Informações em grid -->
+    <div class="row g-3">
+        <div class="col-6">
+            <div class="bg-light rounded-3 p-3 text-center h-100">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">
+                    ⚡ Potência
+                </div>
+                <p class="fw-bold text-dark fs-2 mb-0">
+                    {{ bay.watts }}<span class="fs-6 text-muted">W</span>
+                </p>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="bg-light rounded-3 p-3 text-center h-100">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">
+                    💰 Preço
+                </div>
+                <p class="fw-bold text-success fs-2 mb-0">
+                    ${{ bay.price }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

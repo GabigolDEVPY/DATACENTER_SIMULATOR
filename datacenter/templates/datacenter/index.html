@@ -8,23 +8,21 @@
         {% endfor %}
     </div>
 
-    <!-- Modal único, fixo na página -->
     <div id="ModalBay"
-         class="position-fixed top-0 start-0 w-100 h-100"
-         style="display:none; z-index:1050; background:rgba(0,0,0,0.6);"
-         onclick="if(event.target.id==='ModalBay') closeModal()">
+        class="position-fixed top-0 start-0 w-100 h-100"
+        style="display:none; z-index:1050; background:rgba(0,0,0,0.5);"
+        onclick="if(event.target.id==='ModalBay') closeModal()">
 
-        <div class="position-relative bg-dark border border-secondary rounded-3 p-4 mx-auto"
-             style="max-width:500px; margin-top:10vh;">
+        <div class="position-relative bg-white text-dark border rounded-3 p-4 mx-auto shadow-lg"
+            style="max-width:500px; margin-top:10vh;">
 
-            <button type="button"
-                    class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
-                    onclick="closeModal()"></button>
+            <button type="button"class="btn-close position-absolute top-0 end-0 m-3" aria-label="Close" onclick="closeModal()"></button>
+            <div id="ModalBayBody"><!-- conteúdo injetado pelo htmx --></div>
 
-            <div id="ModalBayBody">
-                <!-- conteúdo injetado pelo htmx -->
-            </div>
+            <!-- botão ok -->
+            <button type="button"class="btn-primary position-absolute top-0 end-0 m-3"aria-label="Close"onclick="closeModal()">Close</button>
         </div>
     </div>
+
     <script src="{% static 'scripts.js' %}"></script>
 {% endblock content %}
