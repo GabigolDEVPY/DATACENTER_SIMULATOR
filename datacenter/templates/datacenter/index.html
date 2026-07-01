@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-    {% for hack in hacks %}
-        {% include "partials/rack.html" %}
-    {% endfor %}
+    <div class="row col-24 mx-auto gap-3 justify-content-center">
+        {% for hack in hacks %}
+            {% include "partials/rack.html" %}
+        {% endfor %}
+    </div>
 
     <!-- Modal único, fixo na página -->
     <div id="ModalBay"
