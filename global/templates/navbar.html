@@ -51,31 +51,31 @@
     <!-- Links -->
     <ul class="nav flex-column px-2 w-100">
         <li class="nav-item mb-2">
-            <a href="#" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 active">
+            <a href="#" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'dashboard' %} active {% endif %}">
                 <i class="bi bi-house-door fs-5 text-center" style="min-width: 24px;"></i>
                 <span class="sidebar-text d-none">Dashboard</span>
             </a>
         </li>
         <li class="nav-item mb-2">
-            <a href="{% url "datacenter:home" %}" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3">
+            <a href="{% url "datacenter:home" %}" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'servers' %} active {% endif %}">
                 <i class="bi bi-hdd-rack fs-5 text-center" style="min-width: 24px;"></i>
-                <span class="sidebar-text d-none">Servidores</span>
+                <span class="sidebar-text d-none">Server</span>
             </a>
         </li>
         <li class="nav-item mb-2">
-            <a href="{% url "datacenter:home" %}" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3">
+            <a href="{% url "datacenter:home" %}" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'shop' %} active {% endif %}">
                 <i class="bi bi-cart fs-5 text-center" style="min-width: 24px;"></i>
                 <span class="sidebar-text d-none">Loja</span>
             </a>
         </li>
         <li class="nav-item mb-2">
-            <a href="#" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3">
+            <a href="#" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'security' %} active {% endif %}">
                 <i class="bi bi-shield-lock fs-5 text-center" style="min-width: 24px;"></i>
                 <span class="sidebar-text d-none">Segurança</span>
             </a>
         </li>
         <li class="nav-item mt-auto">
-            <a href="#" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3">
+            <a href="#" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'config' %} active {% endif %}">
                 <i class="bi bi-gear fs-5 text-center" style="min-width: 24px;"></i>
                 <span class="sidebar-text d-none">Config</span>
             </a>
