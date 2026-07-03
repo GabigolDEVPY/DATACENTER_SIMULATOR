@@ -7,9 +7,9 @@
         </div>
 
         <div class="text-end">
-            <label class="form-label fw-semibold mb-1 text-secondary small text-uppercase">ON/OFF</label>
+            <label class="form-label fw-semibold mb-1 text-secondary small text-uppercase">OFF/ON</label>
             <div class="form-check form-switch fs-5 d-flex justify-content-end">
-                <input class="form-check-input" type="checkbox" role="switch" id="baySwitch">
+                <input hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-post="{% url "datacenter:change_status_bay" bay.id %}" hx-target="#bay-id-{{ bay.id }}" hx-swap="outerHTML" class="form-check-input" type="checkbox" role="switch" id="baySwitch" {% if bay.is_active %}checked{% endif %}>
             </div>
         </div>
     </div>
