@@ -36,6 +36,61 @@
         transform: scale(1.03);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
+
+    /* Status bar no rodapé */
+    #sidebarStatus {
+        border-top: 1px solid #e9ecef;
+        border-bottom: 1px solid #e9ecef;
+        padding: 10px 0;
+        margin-bottom: 8px;
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        transition: background-color .2s ease, transform .2s ease;
+        border-radius: 8px;
+    }
+
+    .status-item:hover {
+        background-color: #f1f3f5;
+        transform: scale(1.03);
+    }
+
+    /* Estado fechado: coluna, ícone + número pequeno embaixo */
+    .status-item.collapsed-mode {
+        flex-direction: column;
+        gap: 1px;
+        padding: 4px 2px;
+    }
+
+    .status-item.collapsed-mode .status-value {
+        font-size: 10px;
+        line-height: 1;
+        color: #6c757d;
+        font-weight: 600;
+    }
+
+    /* Estado aberto: linha, ícone + label + valor */
+    .status-item.expanded-mode {
+        justify-content: space-between;
+        padding: 6px 10px;
+        width: 100%;
+    }
+
+    .status-item.expanded-mode .status-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #6c757d;
+    }
+
+    .status-item.expanded-mode .status-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: #212529;
+    }
 </style>
 
 <nav id="sidebar" 
@@ -74,13 +129,54 @@
                 <span class="sidebar-text d-none">Segurança</span>
             </a>
         </li>
-        <li class="nav-item mt-auto">
-            <a href="#" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'config' %} active {% endif %}">
-                <i class="bi bi-gear fs-5 text-center" style="min-width: 24px;"></i>
-                <span class="sidebar-text d-none">Config</span>
-            </a>
-        </li>
     </ul>
+
+    <!-- Empurra o resto pro rodapé -->
+    <div class="mt-auto w-100 px-2">
+
+        <!-- Status bar -->
+        <div id="sidebarStatus" class="d-flex flex-column w-100">
+
+            <!-- Fechado: ícones empilhados com número embaixo -->
+            <div class="sidebar-status-collapsed d-flex flex-column align-items-center gap-1">
+                <div class="status-item collapsed-mode" title="Dinheiro">
+                    <i class="bi bi-coin text-warning" style="font-size: 16px;"></i>
+                    <span class="status-value">1.2k</span>
+                </div>
+                <div class="status-item collapsed-mode" title="Energia">
+                    <i class="bi bi-lightning-charge-fill text-primary" style="font-size: 16px;"></i>
+                    <span class="status-value">87</span>
+                </div>
+                <div class="status-item collapsed-mode" title="Servers">
+                    <i class="bi bi-hdd-rack text-success" style="font-size: 16px;"></i>
+                    <span class="status-value">12</span>
+                </div>
+            </div>
+
+            <!-- Aberto: linhas com label e valor completo -->
+            <div class="sidebar-status-expanded d-none flex-column w-100 gap-1">
+                <div class="status-item expanded-mode">
+                    <span class="status-label"><i class="bi bi-coin text-warning"></i>Dinheiro</span>
+                    <span class="status-value">1.240</span>
+                </div>
+                <div class="status-item expanded-mode">
+                    <span class="status-label"><i class="bi bi-lightning-charge-fill text-primary"></i>Energia</span>
+                    <span class="status-value">87 / 100</span>
+                </div>
+                <div class="status-item expanded-mode">
+                    <span class="status-label"><i class="bi bi-hdd-rack text-success"></i>Servers</span>
+                    <span class="status-value">12</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Config -->
+        <a href="#" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'config' %} active {% endif %}">
+            <i class="bi bi-gear fs-5 text-center" style="min-width: 24px;"></i>
+            <span class="sidebar-text d-none">Config</span>
+        </a>
+    </div>
 </nav>
 
 <script>
@@ -89,6 +185,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('toggleBtn');
     const icon = toggleBtn.querySelector('i');
     const texts = document.querySelectorAll('.sidebar-text');
+    const statusCollapsed = document.querySelector('.sidebar-status-collapsed');
+    const statusExpanded = document.querySelector('.sidebar-status-expanded');
     let expanded = false;
 
     toggleBtn.addEventListener('click', () => {
@@ -99,11 +197,19 @@ document.addEventListener('DOMContentLoaded', function() {
             sidebar.style.minWidth = '250px';
             icon.classList.replace('bi-chevron-right', 'bi-chevron-left');
             texts.forEach(t => t.classList.remove('d-none'));
+
+            statusCollapsed.classList.add('d-none');
+            statusExpanded.classList.remove('d-none');
+            statusExpanded.classList.add('d-flex');
         } else {
             sidebar.style.width = '80px';
             sidebar.style.minWidth = '80px';
             icon.classList.replace('bi-chevron-left', 'bi-chevron-right');
             texts.forEach(t => t.classList.add('d-none'));
+
+            statusExpanded.classList.add('d-none');
+            statusExpanded.classList.remove('d-flex');
+            statusCollapsed.classList.remove('d-none');
         }
     });
 });

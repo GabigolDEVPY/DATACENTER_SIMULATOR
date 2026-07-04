@@ -37,7 +37,7 @@
     }
 
 </style>
-<div hx-get="{% url 'datacenter:get_bay_detail' bay.id %}"
+<div hx-get="{% url 'server:get_bay_detail' bay.id %}"
         hx-target="#ModalBayBody"
         hx-swap="innerHTML"
         class="rounded-1 d-flex align-items-center px-2 bay-card"
