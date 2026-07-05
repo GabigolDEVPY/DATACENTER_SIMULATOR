@@ -1,3 +1,32 @@
 from django.db import models
 
 # Create your models here.
+class CPU(models.Model):
+    type = models.CharField(max_length=300)
+    model = models.CharField(max_length=100)
+    brand = models.CharField(max_length=80)
+    price = models.IntegerField()
+    watts = models.IntegerField()
+    score_bottleneck = models.IntegerField()
+    
+class GPU(models.Model):
+    type = models.CharField(max_length=300)
+    model = models.CharField(max_length=100)
+    brand = models.CharField(max_length=80)
+    price = models.IntegerField()
+    watts = models.IntegerField()
+    score_bottleneck = models.IntegerField()
+    
+class RAM(models.Model):
+    type = models.CharField(max_length=300)
+    model = models.CharField(max_length=100)
+    brand = models.CharField(max_length=80)
+    price = models.IntegerField()
+    watts = models.IntegerField()
+    
+class SSD(models.Model):
+    type = models.CharField(max_length=300)
+    model = models.CharField(max_length=100)
+    brand = models.CharField(max_length=80)
+    price = models.IntegerField()
+    watts = models.IntegerField()
