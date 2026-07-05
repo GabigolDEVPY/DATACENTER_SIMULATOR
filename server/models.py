@@ -2,7 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 # Create your models here.
-class DataCenterHack(models.Model):
+class Rack(models.Model):
     name = models.CharField(max_length=80, blank=False)
     bay = models.IntegerField(blank=False, null=False)
     
@@ -13,7 +13,7 @@ class DataCenterHack(models.Model):
 
 class Bay(models.Model):
     name = models.CharField(max_length=80, blank=False)
-    data_center_hack = models.ForeignKey(DataCenterHack, on_delete=models.CASCADE, related_name="bays")
+    rack = models.ForeignKey(Rack, on_delete=models.CASCADE, related_name="bays")
     
     class WattsTier(models.TextChoices):
         VERY_LOW = "1KW", "Very Low (1KW)" 

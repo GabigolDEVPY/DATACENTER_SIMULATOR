@@ -4,7 +4,7 @@ from django.db import models
 class CPU(models.Model):
     type = models.CharField(max_length=300)
     model = models.CharField(max_length=100)
-    brand = models.CharField(max_length=80)
+    brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
     price = models.IntegerField()
     watts = models.IntegerField()
     score_bottleneck = models.IntegerField()
@@ -12,7 +12,7 @@ class CPU(models.Model):
 class GPU(models.Model):
     type = models.CharField(max_length=300)
     model = models.CharField(max_length=100)
-    brand = models.CharField(max_length=80)
+    brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
     price = models.IntegerField()
     watts = models.IntegerField()
     score_bottleneck = models.IntegerField()
@@ -20,13 +20,16 @@ class GPU(models.Model):
 class RAM(models.Model):
     type = models.CharField(max_length=300)
     model = models.CharField(max_length=100)
-    brand = models.CharField(max_length=80)
+    brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
     price = models.IntegerField()
     watts = models.IntegerField()
     
 class SSD(models.Model):
     type = models.CharField(max_length=300)
     model = models.CharField(max_length=100)
-    brand = models.CharField(max_length=80)
+    brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
     price = models.IntegerField()
     watts = models.IntegerField()
+
+class Brand(models.Model):
+    name = models.CharField(max_length=100, null=False)

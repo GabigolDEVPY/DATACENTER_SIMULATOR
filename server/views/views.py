@@ -2,14 +2,14 @@ import sys
 sys.dont_write_bytecode = True
 from django.shortcuts import render
 from django.views.generic import View, TemplateView
-from ..models import DataCenterHack, Bay
+from ..models import Rack, Bay
 
 class HomeView(TemplateView):
     template_name = 'datacenter/index.html'     
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["hacks"] = DataCenterHack.objects.all()
+        context["hacks"] = Rack.objects.all()
         return context
 
 

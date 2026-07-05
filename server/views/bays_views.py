@@ -2,7 +2,7 @@ import sys
 sys.dont_write_bytecode = True
 from django.shortcuts import render
 from django.views.generic import View, TemplateView
-from ..models import DataCenterHack, Bay
+from ..models import Rack, Bay
 
 
 class ChangeStatusBay(View):

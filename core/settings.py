@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'notify',
     'server',
-    'shop'
+    'shop',
+    'hardware',
 ]
 
 MIDDLEWARE = [

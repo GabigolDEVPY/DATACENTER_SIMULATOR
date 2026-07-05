@@ -1,11 +1,11 @@
 from django.contrib import admin
-from .models import DataCenterHack, Bay
+from .models import Rack, Bay
 
 # Register your models here.
-@admin.register(DataCenterHack)
-class DataCenterHackAdmin(admin.ModelAdmin):
-    list_display = ["bay"]
+@admin.register(Rack)
+class RackAdmin(admin.ModelAdmin):
+    list_display = ["name"]
     
 @admin.register(Bay)
 class BayAdmin(admin.ModelAdmin):
-    list_display = ["name", "data_center_hack", "watts"]
+    list_display = ["name", "rack", "watts"]
