@@ -43,7 +43,7 @@
                 </span>
                 <select class="form-select border-0 p-0 fw-semibold fs-6 text-dark mt-2 shadow-none">
                     {% for ram in rams %}
-                        <option>{{ ram.name }}</option>
+                        <option>{{ ram.model }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -56,7 +56,7 @@
                 </span>
                 <select class="form-select border-0 p-0 fw-semibold fs-6 text-dark mt-2 shadow-none">
                     {% for gpu in gpus %}
-                        <option>{{ gpu.name }}</option>
+                        <option>{{ gpu.model }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -68,8 +68,8 @@
                     <i class="bi bi-cpu"></i> CPU
                 </span>
                 <select class="form-select border-0 fs-6 p-0 fw-semibold text-dark mt-2 shadow-none">
-                    {% for gpu in gpus %}
-                        <option>{{ cpu.name }}</option>
+                    {% for cpu in cpus %}
+                        <option>{{ cpu.model }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -82,7 +82,7 @@
                 </span>
                 <select class="form-select border-0 fs-6 p-0 fw-semibold text-dark mt-2 shadow-none">
                     {% for ssd in ssds %}
-                        <option>{{ ssd.name }}</option>
+                        <option>{{ ssd.model }}</option>
                     {% endfor %}
                 </select>
             </div>

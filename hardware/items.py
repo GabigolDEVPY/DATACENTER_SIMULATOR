@@ -1,3 +1,4 @@
+from .models import CPU, GPU, RAM, SSD, Brand
 
 brands = {
     "NVIDIA": 1,
@@ -12,307 +13,385 @@ brands = {
     "Kingston": 10,
 }
 
+# Cria as Brands no banco (id fixo pra bater com o dict acima)
+Brand.objects.bulk_create(
+    [Brand(id=brand_id, name=name) for name, brand_id in brands.items()],
+    ignore_conflicts=True,
+)
+
 pecas = [
+
     {
-        "tipo": "gpu",
-        "modelo": "NVIDIA GB200 Grace Blackwell",
-        "marca": brands["NVIDIA"],
-        "preco_usd": 70000,
-        "consumo_w": 2700,
-        "score_bottleneck": 3000
+        "type": "GPU",
+        "model": "NVIDIA GB200 Grace Blackwell",
+        "brand": brands["NVIDIA"],
+        "price": 70000,
+        "watts": 2700,
+        "is_active": True,
+        "score_bottleneck": 3000,
     },
     {
-        "tipo": "gpu",
-        "modelo": "NVIDIA B200",
-        "marca": brands["NVIDIA"],
-        "preco_usd": 35000,
-        "consumo_w": 1000,
-        "score_bottleneck": 2500
+        "type": "GPU",
+        "model": "NVIDIA B200",
+        "brand": brands["NVIDIA"],
+        "price": 35000,
+        "watts": 1000,
+        "is_active": True,
+        "score_bottleneck": 2500,
     },
     {
-        "tipo": "gpu",
-        "modelo": "NVIDIA H200 SXM",
-        "marca": brands["NVIDIA"],
-        "preco_usd": 40000,
-        "consumo_w": 700,
-        "score_bottleneck": 2000
+        "type": "GPU",
+        "model": "NVIDIA H200 SXM",
+        "brand": brands["NVIDIA"],
+        "price": 40000,
+        "watts": 700,
+        "is_active": True,
+        "score_bottleneck": 2000,
     },
     {
-        "tipo": "gpu",
-        "modelo": "AMD Instinct MI325X",
-        "marca": brands["AMD"],
-        "preco_usd": 30000,
-        "consumo_w": 750,
-        "score_bottleneck": 2000
+        "type": "GPU",
+        "model": "AMD Instinct MI325X",
+        "brand": brands["AMD"],
+        "price": 30000,
+        "watts": 750,
+        "is_active": True,
+        "score_bottleneck": 2000,
     },
     {
-        "tipo": "gpu",
-        "modelo": "AMD Instinct MI300X",
-        "marca": brands["AMD"],
-        "preco_usd": 25000,
-        "consumo_w": 750,
-        "score_bottleneck": 1800
+        "type": "GPU",
+        "model": "AMD Instinct MI300X",
+        "brand": brands["AMD"],
+        "price": 25000,
+        "watts": 750,
+        "is_active": True,
+        "score_bottleneck": 1800,
     },
     {
-        "tipo": "gpu",
-        "modelo": "NVIDIA H100 SXM",
-        "marca": brands["NVIDIA"],
-        "preco_usd": 30000,
-        "consumo_w": 700,
-        "score_bottleneck": 1800
+        "type": "GPU",
+        "model": "NVIDIA H100 SXM",
+        "brand": brands["NVIDIA"],
+        "price": 30000,
+        "watts": 700,
+        "is_active": True,
+        "score_bottleneck": 1800,
     },
     {
-        "tipo": "gpu",
-        "modelo": "NVIDIA H100 PCIe",
-        "marca": brands["NVIDIA"],
-        "preco_usd": 27000,
-        "consumo_w": 350,
-        "score_bottleneck": 1600
+        "type": "GPU",
+        "model": "NVIDIA H100 PCIe",
+        "brand": brands["NVIDIA"],
+        "price": 27000,
+        "watts": 350,
+        "is_active": True,
+        "score_bottleneck": 1600,
     },
     {
-        "tipo": "gpu",
-        "modelo": "NVIDIA A100 80GB",
-        "marca": brands["NVIDIA"],
-        "preco_usd": 18000,
-        "consumo_w": 400,
-        "score_bottleneck": 1200
+        "type": "GPU",
+        "model": "NVIDIA A100 80GB",
+        "brand": brands["NVIDIA"],
+        "price": 18000,
+        "watts": 400,
+        "is_active": True,
+        "score_bottleneck": 1200,
     },
     {
-        "tipo": "gpu",
-        "modelo": "AMD Instinct MI250X",
-        "marca": brands["AMD"],
-        "preco_usd": 15000,
-        "consumo_w": 560,
-        "score_bottleneck": 1200
+        "type": "GPU",
+        "model": "AMD Instinct MI250X",
+        "brand": brands["AMD"],
+        "price": 15000,
+        "watts": 560,
+        "is_active": True,
+        "score_bottleneck": 1200,
     },
     {
-        "tipo": "gpu",
-        "modelo": "NVIDIA L40S",
-        "marca": brands["NVIDIA"],
-        "preco_usd": 9000,
-        "consumo_w": 350,
-        "score_bottleneck": 800
+        "type": "GPU",
+        "model": "NVIDIA L40S",
+        "brand": brands["NVIDIA"],
+        "price": 9000,
+        "watts": 350,
+        "is_active": True,
+        "score_bottleneck": 800,
+    },
+
+    # ===========================
+    # CPUs
+    # ===========================
+
+    {
+        "type": "CPU",
+        "model": "AMD EPYC 9965",
+        "brand": brands["AMD"],
+        "price": 15000,
+        "watts": 500,
+        "is_active": True,
+        "score_bottleneck": 3000,
     },
     {
-        "tipo": "cpu",
-        "modelo": "AMD EPYC 9965",
-        "marca": brands["AMD"],
-        "preco_usd": 15000,
-        "consumo_w": 500,
-        "score_bottleneck": 3000
+        "type": "CPU",
+        "model": "AMD EPYC 9755",
+        "brand": brands["AMD"],
+        "price": 13000,
+        "watts": 500,
+        "is_active": True,
+        "score_bottleneck": 2500,
     },
     {
-        "tipo": "cpu",
-        "modelo": "AMD EPYC 9755",
-        "marca": brands["AMD"],
-        "preco_usd": 13000,
-        "consumo_w": 500,
-        "score_bottleneck": 2500
+        "type": "CPU",
+        "model": "Intel Xeon 6980P",
+        "brand": brands["Intel"],
+        "price": 13000,
+        "watts": 500,
+        "is_active": True,
+        "score_bottleneck": 2500,
     },
     {
-        "tipo": "cpu",
-        "modelo": "Intel Xeon 6980P",
-        "marca": brands["Intel"],
-        "preco_usd": 13000,
-        "consumo_w": 500,
-        "score_bottleneck": 2500
+        "type": "CPU",
+        "model": "AMD EPYC 9655",
+        "brand": brands["AMD"],
+        "price": 11500,
+        "watts": 400,
+        "is_active": True,
+        "score_bottleneck": 2000,
     },
     {
-        "tipo": "cpu",
-        "modelo": "AMD EPYC 9655",
-        "marca": brands["AMD"],
-        "preco_usd": 11500,
-        "consumo_w": 400,
-        "score_bottleneck": 2000
+        "type": "CPU",
+        "model": "AMD EPYC 9654",
+        "brand": brands["AMD"],
+        "price": 11000,
+        "watts": 360,
+        "is_active": True,
+        "score_bottleneck": 1900,
     },
     {
-        "tipo": "cpu",
-        "modelo": "AMD EPYC 9654",
-        "marca": brands["AMD"],
-        "preco_usd": 11000,
-        "consumo_w": 360,
-        "score_bottleneck": 1900
+        "type": "CPU",
+        "model": "Intel Xeon Platinum 8592+",
+        "brand": brands["Intel"],
+        "price": 10000,
+        "watts": 350,
+        "is_active": True,
+        "score_bottleneck": 1600,
     },
     {
-        "tipo": "cpu",
-        "modelo": "Intel Xeon Platinum 8592+",
-        "marca": brands["Intel"],
-        "preco_usd": 10000,
-        "consumo_w": 350,
-        "score_bottleneck": 1600
+        "type": "CPU",
+        "model": "AMD EPYC 9554",
+        "brand": brands["AMD"],
+        "price": 8500,
+        "watts": 360,
+        "is_active": True,
+        "score_bottleneck": 1600,
     },
     {
-        "tipo": "cpu",
-        "modelo": "AMD EPYC 9554",
-        "marca": brands["AMD"],
-        "preco_usd": 8500,
-        "consumo_w": 360,
-        "score_bottleneck": 1600
+        "type": "CPU",
+        "model": "Intel Xeon Platinum 8480+",
+        "brand": brands["Intel"],
+        "price": 8000,
+        "watts": 350,
+        "is_active": True,
+        "score_bottleneck": 1400,
     },
     {
-        "tipo": "cpu",
-        "modelo": "Intel Xeon Platinum 8480+",
-        "marca": brands["Intel"],
-        "preco_usd": 8000,
-        "consumo_w": 350,
-        "score_bottleneck": 1400
+        "type": "CPU",
+        "model": "AMD EPYC 9454",
+        "brand": brands["AMD"],
+        "price": 6000,
+        "watts": 290,
+        "is_active": True,
+        "score_bottleneck": 1200,
     },
     {
-        "tipo": "cpu",
-        "modelo": "AMD EPYC 9454",
-        "marca": brands["AMD"],
-        "preco_usd": 6000,
-        "consumo_w": 290,
-        "score_bottleneck": 1200
+        "type": "CPU",
+        "model": "Intel Xeon Gold 6548Y+",
+        "brand": brands["Intel"],
+        "price": 4200,
+        "watts": 250,
+        "is_active": True,
+        "score_bottleneck": 800,
+    },
+
+    # ===========================
+    # RAMs
+    # ===========================
+
+    {
+        "type": "RAM",
+        "model": "DDR5 ECC RDIMM 512GB",
+        "brand": brands["Samsung"],
+        "price": 4500,
+        "watts": 18,
+        "is_active": True,
     },
     {
-        "tipo": "cpu",
-        "modelo": "Intel Xeon Gold 6548Y+",
-        "marca": brands["Intel"],
-        "preco_usd": 4200,
-        "consumo_w": 250,
-        "score_bottleneck": 800
+        "type": "RAM",
+        "model": "DDR5 ECC RDIMM 512GB",
+        "brand": brands["Micron"],
+        "price": 4400,
+        "watts": 18,
+        "is_active": True,
     },
     {
-        "tipo": "ram",
-        "modelo": "DDR5 ECC RDIMM 512GB",
-        "marca": brands["Samsung"],
-        "preco_usd": 4500,
-        "consumo_w": 18
+        "type": "RAM",
+        "model": "DDR5 ECC RDIMM 256GB",
+        "brand": brands["SK Hynix"],
+        "price": 2400,
+        "watts": 15,
+        "is_active": True,
     },
     {
-        "tipo": "ram",
-        "modelo": "DDR5 ECC RDIMM 512GB",
-        "marca": brands["Micron"],
-        "preco_usd": 4400,
-        "consumo_w": 18
+        "type": "RAM",
+        "model": "DDR5 ECC RDIMM 256GB",
+        "brand": brands["Samsung"],
+        "price": 2350,
+        "watts": 15,
+        "is_active": True,
     },
     {
-        "tipo": "ram",
-        "modelo": "DDR5 ECC RDIMM 256GB",
-        "marca": brands["SK Hynix"],
-        "preco_usd": 2400,
-        "consumo_w": 15
+        "type": "RAM",
+        "model": "DDR5 ECC RDIMM 128GB",
+        "brand": brands["Micron"],
+        "price": 1200,
+        "watts": 12,
+        "is_active": True,
     },
     {
-        "tipo": "ram",
-        "modelo": "DDR5 ECC RDIMM 256GB",
-        "marca": brands["Samsung"],
-        "preco_usd": 2350,
-        "consumo_w": 15
+        "type": "RAM",
+        "model": "DDR5 ECC RDIMM 128GB",
+        "brand": brands["Samsung"],
+        "price": 1150,
+        "watts": 12,
+        "is_active": True,
     },
     {
-        "tipo": "ram",
-        "modelo": "DDR5 ECC RDIMM 128GB",
-        "marca": brands["Micron"],
-        "preco_usd": 1200,
-        "consumo_w": 12
+        "type": "RAM",
+        "model": "DDR5 ECC RDIMM 96GB",
+        "brand": brands["SK Hynix"],
+        "price": 850,
+        "watts": 11,
+        "is_active": True,
     },
     {
-        "tipo": "ram",
-        "modelo": "DDR5 ECC RDIMM 128GB",
-        "marca": brands["Samsung"],
-        "preco_usd": 1150,
-        "consumo_w": 12
+        "type": "RAM",
+        "model": "DDR5 ECC RDIMM 64GB",
+        "brand": brands["Micron"],
+        "price": 450,
+        "watts": 10,
+        "is_active": True,
     },
     {
-        "tipo": "ram",
-        "modelo": "DDR5 ECC RDIMM 96GB",
-        "marca": brands["SK Hynix"],
-        "preco_usd": 850,
-        "consumo_w": 11
+        "type": "RAM",
+        "model": "DDR5 ECC RDIMM 64GB",
+        "brand": brands["Samsung"],
+        "price": 430,
+        "watts": 10,
+        "is_active": True,
     },
     {
-        "tipo": "ram",
-        "modelo": "DDR5 ECC RDIMM 64GB",
-        "marca": brands["Micron"],
-        "preco_usd": 450,
-        "consumo_w": 10
+        "type": "RAM",
+        "model": "DDR5 ECC RDIMM 32GB",
+        "brand": brands["Kingston Server"],
+        "price": 220,
+        "watts": 8,
+        "is_active": True,
+    },
+
+    # ===========================
+    # SSDs
+    # ===========================
+
+    {
+        "type": "SSD",
+        "model": "Solidigm D5-P5336 122TB",
+        "brand": brands["Solidigm"],
+        "price": 12000,
+        "watts": 25,
+        "is_active": True,
     },
     {
-        "tipo": "ram",
-        "modelo": "DDR5 ECC RDIMM 64GB",
-        "marca": brands["Samsung"],
-        "preco_usd": 430,
-        "consumo_w": 10
+        "type": "SSD",
+        "model": "Micron 6550 ION 122TB",
+        "brand": brands["Micron"],
+        "price": 11500,
+        "watts": 25,
+        "is_active": True,
     },
     {
-        "tipo": "ram",
-        "modelo": "DDR5 ECC RDIMM 32GB",
-        "marca": brands["Kingston Server"],
-        "preco_usd": 220,
-        "consumo_w": 8
+        "type": "SSD",
+        "model": "Samsung PM1743 30.72TB",
+        "brand": brands["Samsung"],
+        "price": 4500,
+        "watts": 20,
+        "is_active": True,
     },
     {
-        "tipo": "ssd",
-        "modelo": "Solidigm D5-P5336 122TB",
-        "marca": brands["Solidigm"],
-        "preco_usd": 12000,
-        "consumo_w": 25
+        "type": "SSD",
+        "model": "Kioxia CM7 30.72TB",
+        "brand": brands["Kioxia"],
+        "price": 4300,
+        "watts": 20,
+        "is_active": True,
     },
     {
-        "tipo": "ssd",
-        "modelo": "Micron 6550 ION 122TB",
-        "marca": brands["Micron"],
-        "preco_usd": 11500,
-        "consumo_w": 25
+        "type": "SSD",
+        "model": "Micron 7450 PRO 30.72TB",
+        "brand": brands["Micron"],
+        "price": 4100,
+        "watts": 18,
+        "is_active": True,
     },
     {
-        "tipo": "ssd",
-        "modelo": "Samsung PM1743 30.72TB",
-        "marca": brands["Samsung"],
-        "preco_usd": 4500,
-        "consumo_w": 20
+        "type": "SSD",
+        "model": "Samsung PM9A3 15.36TB",
+        "brand": brands["Samsung"],
+        "price": 2200,
+        "watts": 14,
+        "is_active": True,
     },
     {
-        "tipo": "ssd",
-        "modelo": "Kioxia CM7 30.72TB",
-        "marca": brands["Kioxia"],
-        "preco_usd": 4300,
-        "consumo_w": 20
+        "type": "SSD",
+        "model": "Solidigm D7-P5520 15.36TB",
+        "brand": brands["Solidigm"],
+        "price": 2100,
+        "watts": 14,
+        "is_active": True,
     },
     {
-        "tipo": "ssd",
-        "modelo": "Micron 7450 PRO 30.72TB",
-        "marca": brands["Micron"],
-        "preco_usd": 4100,
-        "consumo_w": 18
+        "type": "SSD",
+        "model": "Micron 7450 PRO 7.68TB",
+        "brand": brands["Micron"],
+        "price": 1100,
+        "watts": 12,
+        "is_active": True,
     },
     {
-        "tipo": "ssd",
-        "modelo": "Samsung PM9A3 15.36TB",
-        "marca": brands["Samsung"],
-        "preco_usd": 2200,
-        "consumo_w": 14
+        "type": "SSD",
+        "model": "Samsung PM893 3.84TB",
+        "brand": brands["Samsung"],
+        "price": 550,
+        "watts": 6,
+        "is_active": True,
     },
     {
-        "tipo": "ssd",
-        "modelo": "Solidigm D7-P5520 15.36TB",
-        "marca": brands["Solidigm"],
-        "preco_usd": 2100,
-        "consumo_w": 14
+        "type": "SSD",
+        "model": "Kingston DC600M 1.92TB",
+        "brand": brands["Kingston"],
+        "price": 280,
+        "watts": 4,
+        "is_active": True,
     },
-    {
-        "tipo": "ssd",
-        "modelo": "Micron 7450 PRO 7.68TB",
-        "marca": brands["Micron"],
-        "preco_usd": 1100,
-        "consumo_w": 12
-    },
-    {
-        "tipo": "ssd",
-        "modelo": "Samsung PM893 3.84TB",
-        "marca": brands["Samsung"],
-        "preco_usd": 550,
-        "consumo_w": 6
-    },
-    {
-        "tipo": "ssd",
-        "modelo": "Kingston DC600M 1.92TB",
-        "marca": brands["Kingston"],
-        "preco_usd": 280,
-        "consumo_w": 4
-    }
 ]
 
+def clean(peca, extra_fields=()):
+    """Remove chaves que não são campos do model (type + campos exclusivos de outro model)."""
+    peca = peca.copy()
+    peca.pop("type", None)
+    for field in extra_fields:
+        peca.pop(field, None)
+    return peca
 
+GPU_DICT = [clean(gpu) for gpu in pecas if gpu["type"] == "GPU"]
+CPU_DICT = [clean(cpu) for cpu in pecas if cpu["type"] == "CPU"]
+SSD_DICT = [clean(ssd) for ssd in pecas if ssd["type"] == "SSD"]
+RAM_DICT = [clean(ram) for ram in pecas if ram["type"] == "RAM"]
+
+GPU.objects.bulk_create([GPU(**gpu) for gpu in GPU_DICT])
+CPU.objects.bulk_create([CPU(**cpu) for cpu in CPU_DICT])
+SSD.objects.bulk_create([SSD(**ssd) for ssd in SSD_DICT])
+RAM.objects.bulk_create([RAM(**ram) for ram in RAM_DICT])

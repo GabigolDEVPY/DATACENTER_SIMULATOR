@@ -7,6 +7,7 @@ class CPU(models.Model):
     brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
     price = models.IntegerField()
     watts = models.IntegerField()
+    is_active = models.BooleanField(default=False)
     score_bottleneck = models.IntegerField()
     
 class GPU(models.Model):
@@ -15,6 +16,7 @@ class GPU(models.Model):
     brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
     price = models.IntegerField()
     watts = models.IntegerField()
+    is_active = models.BooleanField(default=False)
     score_bottleneck = models.IntegerField()
     
 class RAM(models.Model):
@@ -22,6 +24,7 @@ class RAM(models.Model):
     model = models.CharField(max_length=100)
     brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
     price = models.IntegerField()
+    is_active = models.BooleanField(default=False)
     watts = models.IntegerField()
     
 class SSD(models.Model):
@@ -29,6 +32,7 @@ class SSD(models.Model):
     model = models.CharField(max_length=100)
     brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
     price = models.IntegerField()
+    is_active = models.BooleanField(default=False)
     watts = models.IntegerField()
 
 class Brand(models.Model):
