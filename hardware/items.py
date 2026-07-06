@@ -1,4 +1,6 @@
-[
+
+
+pecas = [
     {
         "tipo": "gpu",
         "modelo": "NVIDIA GB200 Grace Blackwell",
@@ -300,3 +302,5 @@
         "consumo_w": 4
     }
 ]
+
+

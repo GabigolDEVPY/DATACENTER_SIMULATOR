@@ -42,9 +42,9 @@
                     <i class="bi bi-server"></i> RAM
                 </span>
                 <select class="form-select border-0 p-0 fw-semibold fs-6 text-dark mt-2 shadow-none">
-                    <option>{{ bay.name }}</option>
-                    <option>Rack B</option>
-                    <option>Rack C</option>
+                    {% for ram in rams %}
+                        <option>{{ ram.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
         </div>
@@ -55,9 +55,9 @@
                     <i class="bi bi-gpu-card"></i> GPU
                 </span>
                 <select class="form-select border-0 p-0 fw-semibold fs-6 text-dark mt-2 shadow-none">
-                    <option>Aguardando Desligamento</option>
-                    <option>RTX 4090</option>
-                    <option>A100</option>
+                    {% for gpu in gpus %}
+                        <option>{{ gpu.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
         </div>
@@ -68,9 +68,9 @@
                     <i class="bi bi-cpu"></i> CPU
                 </span>
                 <select class="form-select border-0 fs-6 p-0 fw-semibold text-dark mt-2 shadow-none">
-                    <option>Equipe de Infraestrutura</option>
-                    <option>Equipe de Redes</option>
-                    <option>Equipe DevOps</option>
+                    {% for gpu in gpus %}
+                        <option>{{ cpu.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
         </div>
@@ -81,9 +81,9 @@
                     <i class="bi bi-hdd-stack"></i> Armazenamento
                 </span>
                 <select class="form-select border-0 fs-6 p-0 fw-semibold text-dark mt-2 shadow-none">
-                    <option>15 minutos</option>
-                    <option>30 minutos</option>
-                    <option>1 hora</option>
+                    {% for ssd in ssds %}
+                        <option>{{ ssd.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
         </div>

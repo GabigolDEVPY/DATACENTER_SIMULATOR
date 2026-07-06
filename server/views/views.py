@@ -2,6 +2,7 @@ import sys
 sys.dont_write_bytecode = True
 from django.shortcuts import render
 from django.views.generic import View, TemplateView
+from hardware.models import RAM, CPU, GPU, SSD
 from ..models import Rack, Bay
 
 class HomeView(TemplateView):
@@ -16,4 +17,5 @@ class HomeView(TemplateView):
 class GetBayDetail(View):
     def get(self, request, id):
         bay = Bay.objects.filter(id=id).first()
-        return render(request, template_name="partials/modal_bay.html", context={"bay": bay})
+        context = {"bay": bay, "rams": RAM.objects.all(), "cpus": CPU.objects.all(), "gpus": GPU.objects.all(), "ssds": SSD.objects.all()}
+        return render(request, template_name="partials/modal_bay.html", context=context)
