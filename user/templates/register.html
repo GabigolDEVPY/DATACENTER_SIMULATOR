@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f1f3f5;
+            min-height: 100vh;
+        }
+
+        .register-card {
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            border: none;
+        }
+
+        .register-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background-color: #e7f1ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+        }
+
+        .btn-register {
+            border-radius: 10px;
+            padding: 10px;
+            font-weight: 600;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .btn-register:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+        }
+
+        .alert-danger {
+            border-radius: 10px;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body class="d-flex align-items-center justify-content-center py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card register-card">
+                    <div class="card-body p-4 p-md-5">
+
+                        <div class="text-center mb-4">
+                            <div class="register-icon mx-auto mb-3">
+                                <i class="bi bi-person-plus fs-4 text-primary"></i>
+                            </div>
+                            <h1 class="h4 fw-bold mb-1">Criar conta</h1>
+                            <p class="text-muted small mb-0">Preencha os dados para se registrar</p>
+                        </div>
+
+                        <form action="{% url 'user:register' %}" method="post">
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label for="username" class="form-label small fw-semibold text-secondary">Usuário</label>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="Escolha um usuário" required autofocus>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password1" class="form-label small fw-semibold text-secondary">Senha</label>
+                                <input type="password" class="form-control" id="password1" name="password1" placeholder="Crie uma senha" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="password2" class="form-label small fw-semibold text-secondary">Confirmar senha</label>
+                                <input type="password" class="form-control" id="password2" name="password2" placeholder="Repita a senha" required>
+                            </div>
+
+                            {% for field in form %}
+                                {% if field.errors %}
+                                    <div class="alert alert-danger py-2">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+
+                            <button type="submit" class="btn btn-primary btn-register w-100">
+                                <i class="bi bi-check-circle me-2"></i>Criar conta
+                            </button>
+
+                            <p class="text-center text-muted small mt-4 mb-0">
+                                Já tem uma conta?
+                                <a href="{% url 'user:login' %}" class="text-decoration-none fw-semibold">Entrar</a>
+                            </p>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
