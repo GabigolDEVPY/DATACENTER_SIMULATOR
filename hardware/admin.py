@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CPU, GPU, RAM, SSD, Brand
+from .models import CPU, GPU, SSD, RAM, Brand
 
 # Register your models here.
 @admin.register(CPU)
@@ -13,14 +13,15 @@ class GPUAdmin(admin.ModelAdmin):
     pass
 
 @admin.register(RAM)
-class RAMAdmin(admin.ModelAdmin):
-    list_display = ('type', 'model', 'brand', 'price', 'watts')
+class GPUAdmin(admin.ModelAdmin):
+    list_display = ('type', 'model', 'brand', 'price', 'watts', 'score_bottleneck')
     pass
 
 @admin.register(SSD)
-class SSDAdmin(admin.ModelAdmin):
-    list_display = ('type', 'model', 'brand', 'price', 'watts')
+class GPUAdmin(admin.ModelAdmin):
+    list_display = ('type', 'model', 'brand', 'price', 'watts', 'score_bottleneck')
     pass
+
 
 @admin.register(Brand)
 class BrandAdmin(admin.ModelAdmin):

@@ -1,5 +1,5 @@
 from django.db import models
-from hardware.models import CPU, GPU, Hardware
+from hardware.models import CPU, GPU, SSD, RAM
 
 # Create your models here.
 class Rack(models.Model):
@@ -33,10 +33,10 @@ class Bay(models.Model):
         WattsTier.VERY_HIGH: 280000,
     }
     
-    RAM = models.ForeignKey(Hardware, on_delete=models.CASCADE, null=True, blank=True)
-    CPU = models.ForeignKey(Hardware, on_delete=models.CASCADE, null=True, blank=True)
-    GPU = models.ForeignKey(Hardware, on_delete=models.CASCADE, null=True, blank=True)
-    SSD = models.ForeignKey(Hardware, on_delete=models.CASCADE, null=True, blank=True)
+    RAM = models.ForeignKey(RAM, on_delete=models.CASCADE, null=True, blank=True)
+    CPU = models.ForeignKey(CPU, on_delete=models.CASCADE, null=True, blank=True)
+    GPU = models.ForeignKey(GPU, on_delete=models.CASCADE, null=True, blank=True)
+    SSD = models.ForeignKey(SSD, on_delete=models.CASCADE, null=True, blank=True)
     
     
     @property

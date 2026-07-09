@@ -13,9 +13,21 @@ class Hardware(models.Model):
     
     
 class CPU(Hardware):
+    cores = models.IntegerField()
+    threads = models.IntegerField()
+    ghz = models.FloatField()
     score_bottleneck = models.IntegerField()
     
 class GPU(Hardware):
     score_bottleneck = models.IntegerField()
+    vram = models.IntegerField()
+    mhz = models.FloatField()
     
+class RAM(Hardware):
+    gb = models.IntegerField()
+    mhz = models.IntegerField()
+
+class SSD(Hardware):
+    gb = models.IntegerField()
+    speed = models.IntegerField()
 

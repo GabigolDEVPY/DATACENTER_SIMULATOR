@@ -3,404 +3,108 @@ from hardware.models import CPU, GPU, RAM, SSD, Brand
 
 
 class Command(BaseCommand):
-    help = "Popula o banco com CPUs, GPUs, RAMs, SSDs e Brands"
+    help = "Popula a base de dados com hardwares e especificações reais atualizadas"
 
     def handle(self, *args, **options):
-        brands = {
-            "NVIDIA": 1,
-            "AMD": 2,
-            "Intel": 3,
-            "Samsung": 4,
-            "Micron": 5,
-            "SK Hynix": 6,
-            "Kingston Server": 7,
-            "Solidigm": 8,
-            "Kioxia": 9,
-            "Kingston": 10,
-        }
+        # 1. Gerenciamento Dinâmico de Marcas (Sem IDs fixos)
+        brand_names = [
+            "AMD",
+            "Intel",
+            "NVIDIA",
+            "Samsung",
+            "Micron",
+            "SK Hynix",
+            "Kingston",
+            "Solidigm",
+            "Kioxia",
+            "Crucial",
+            "Corsair",
+            "G.Skill",
+        ]
+        
+        brands = {}
+        for name in brand_names:
+            brand, _ = Brand.objects.get_or_create(name=name)
+            brands[name] = brand
 
-        # Cria as Brands no banco (id fixo pra bater com o dict acima)
-        Brand.objects.bulk_create(
-            [Brand(id=brand_id, name=name) for name, brand_id in brands.items()],
-            ignore_conflicts=True,
-        )
+        self.stdout.write(self.style.SUCCESS("Marcas mapeadas com sucesso!"))
 
-        pecas = [
-            # ===========================
-            # GPUs
-            # ===========================
-
-            {
-                "type": "GPU",
-                "model": "NVIDIA GB200 Grace Blackwell",
-                "brand": brands["NVIDIA"],
-                "price": 70000,
-                "watts": 2700,
-                "is_active": True,
-                "score_bottleneck": 3000,
-            },
-            {
-                "type": "GPU",
-                "model": "NVIDIA B200",
-                "brand": brands["NVIDIA"],
-                "price": 35000,
-                "watts": 1000,
-                "is_active": True,
-                "score_bottleneck": 2500,
-            },
-            {
-                "type": "GPU",
-                "model": "NVIDIA H200 SXM",
-                "brand": brands["NVIDIA"],
-                "price": 40000,
-                "watts": 700,
-                "is_active": True,
-                "score_bottleneck": 2000,
-            },
-            {
-                "type": "GPU",
-                "model": "AMD Instinct MI325X",
-                "brand": brands["AMD"],
-                "price": 30000,
-                "watts": 750,
-                "is_active": True,
-                "score_bottleneck": 2000,
-            },
-            {
-                "type": "GPU",
-                "model": "AMD Instinct MI300X",
-                "brand": brands["AMD"],
-                "price": 25000,
-                "watts": 750,
-                "is_active": True,
-                "score_bottleneck": 1800,
-            },
-            {
-                "type": "GPU",
-                "model": "NVIDIA H100 SXM",
-                "brand": brands["NVIDIA"],
-                "price": 30000,
-                "watts": 700,
-                "is_active": True,
-                "score_bottleneck": 1800,
-            },
-            {
-                "type": "GPU",
-                "model": "NVIDIA H100 PCIe",
-                "brand": brands["NVIDIA"],
-                "price": 27000,
-                "watts": 350,
-                "is_active": True,
-                "score_bottleneck": 1600,
-            },
-            {
-                "type": "GPU",
-                "model": "NVIDIA A100 80GB",
-                "brand": brands["NVIDIA"],
-                "price": 18000,
-                "watts": 400,
-                "is_active": True,
-                "score_bottleneck": 1200,
-            },
-            {
-                "type": "GPU",
-                "model": "AMD Instinct MI250X",
-                "brand": brands["AMD"],
-                "price": 15000,
-                "watts": 560,
-                "is_active": True,
-                "score_bottleneck": 1200,
-            },
-            {
-                "type": "GPU",
-                "model": "NVIDIA L40S",
-                "brand": brands["NVIDIA"],
-                "price": 9000,
-                "watts": 350,
-                "is_active": True,
-                "score_bottleneck": 800,
-            },
-
-            # ===========================
-            # CPUs
-            # ===========================
-
-            {
-                "type": "CPU",
-                "model": "AMD EPYC 9965",
-                "brand": brands["AMD"],
-                "price": 15000,
-                "watts": 500,
-                "is_active": True,
-                "score_bottleneck": 3000,
-            },
-            {
-                "type": "CPU",
-                "model": "AMD EPYC 9755",
-                "brand": brands["AMD"],
-                "price": 13000,
-                "watts": 500,
-                "is_active": True,
-                "score_bottleneck": 2500,
-            },
-            {
-                "type": "CPU",
-                "model": "Intel Xeon 6980P",
-                "brand": brands["Intel"],
-                "price": 13000,
-                "watts": 500,
-                "is_active": True,
-                "score_bottleneck": 2500,
-            },
-            {
-                "type": "CPU",
-                "model": "AMD EPYC 9655",
-                "brand": brands["AMD"],
-                "price": 11500,
-                "watts": 400,
-                "is_active": True,
-                "score_bottleneck": 2000,
-            },
-            {
-                "type": "CPU",
-                "model": "AMD EPYC 9654",
-                "brand": brands["AMD"],
-                "price": 11000,
-                "watts": 360,
-                "is_active": True,
-                "score_bottleneck": 1900,
-            },
-            {
-                "type": "CPU",
-                "model": "Intel Xeon Platinum 8592+",
-                "brand": brands["Intel"],
-                "price": 10000,
-                "watts": 350,
-                "is_active": True,
-                "score_bottleneck": 1600,
-            },
-            {
-                "type": "CPU",
-                "model": "AMD EPYC 9554",
-                "brand": brands["AMD"],
-                "price": 8500,
-                "watts": 360,
-                "is_active": True,
-                "score_bottleneck": 1600,
-            },
-            {
-                "type": "CPU",
-                "model": "Intel Xeon Platinum 8480+",
-                "brand": brands["Intel"],
-                "price": 8000,
-                "watts": 350,
-                "is_active": True,
-                "score_bottleneck": 1400,
-            },
-            {
-                "type": "CPU",
-                "model": "AMD EPYC 9454",
-                "brand": brands["AMD"],
-                "price": 6000,
-                "watts": 290,
-                "is_active": True,
-                "score_bottleneck": 1200,
-            },
-            {
-                "type": "CPU",
-                "model": "Intel Xeon Gold 6548Y+",
-                "brand": brands["Intel"],
-                "price": 4200,
-                "watts": 250,
-                "is_active": True,
-                "score_bottleneck": 800,
-            },
-
-            # ===========================
-            # RAMs
-            # ===========================
-
-            {
-                "type": "RAM",
-                "model": "Samsung DDR5 ECC RDIMM 512GB",
-                "brand": brands["Samsung"],
-                "price": 4500,
-                "watts": 18,
-                "is_active": True,
-            },
-            {
-                "type": "RAM",
-                "model": "Micron DDR5 ECC RDIMM 512GB",
-                "brand": brands["Micron"],
-                "price": 4400,
-                "watts": 18,
-                "is_active": True,
-            },
-            {
-                "type": "RAM",
-                "model": "SK Hynix DDR5 ECC RDIMM 256GB",
-                "brand": brands["SK Hynix"],
-                "price": 2400,
-                "watts": 15,
-                "is_active": True,
-            },
-            {
-                "type": "RAM",
-                "model": "Samsung DDR5 ECC RDIMM 256GB",
-                "brand": brands["Samsung"],
-                "price": 2350,
-                "watts": 15,
-                "is_active": True,
-            },
-            {
-                "type": "RAM",
-                "model": "Micron DDR5 ECC RDIMM 128GB",
-                "brand": brands["Micron"],
-                "price": 1200,
-                "watts": 12,
-                "is_active": True,
-            },
-            {
-                "type": "RAM",
-                "model": "Samsung DDR5 ECC RDIMM 128GB",
-                "brand": brands["Samsung"],
-                "price": 1150,
-                "watts": 12,
-                "is_active": True,
-            },
-            {
-                "type": "RAM",
-                "model": "SK Hynix DDR5 ECC RDIMM 96GB",
-                "brand": brands["SK Hynix"],
-                "price": 850,
-                "watts": 11,
-                "is_active": True,
-            },
-            {
-                "type": "RAM",
-                "model": "Micron DDR5 ECC RDIMM 64GB",
-                "brand": brands["Micron"],
-                "price": 450,
-                "watts": 10,
-                "is_active": True,
-            },
-            {
-                "type": "RAM",
-                "model": "Samsung DDR5 ECC RDIMM 64GB",
-                "brand": brands["Samsung"],
-                "price": 430,
-                "watts": 10,
-                "is_active": True,
-            },
-            {
-                "type": "RAM",
-                "model": "Kingston Server DDR5 ECC RDIMM 32GB",
-                "brand": brands["Kingston Server"],
-                "price": 220,
-                "watts": 8,
-                "is_active": True,
-            },
-
-            # ===========================
-            # SSDs
-            # ===========================
-
-            {
-                "type": "SSD",
-                "model": "Solidigm D5-P5336 122TB",
-                "brand": brands["Solidigm"],
-                "price": 12000,
-                "watts": 25,
-                "is_active": True,
-            },
-            {
-                "type": "SSD",
-                "model": "Micron 6550 ION 122TB",
-                "brand": brands["Micron"],
-                "price": 11500,
-                "watts": 25,
-                "is_active": True,
-            },
-            {
-                "type": "SSD",
-                "model": "Samsung PM1743 30.72TB",
-                "brand": brands["Samsung"],
-                "price": 4500,
-                "watts": 20,
-                "is_active": True,
-            },
-            {
-                "type": "SSD",
-                "model": "Kioxia CM7 30.72TB",
-                "brand": brands["Kioxia"],
-                "price": 4300,
-                "watts": 20,
-                "is_active": True,
-            },
-            {
-                "type": "SSD",
-                "model": "Micron 7450 PRO 30.72TB",
-                "brand": brands["Micron"],
-                "price": 4100,
-                "watts": 18,
-                "is_active": True,
-            },
-            {
-                "type": "SSD",
-                "model": "Samsung PM9A3 15.36TB",
-                "brand": brands["Samsung"],
-                "price": 2200,
-                "watts": 14,
-                "is_active": True,
-            },
-            {
-                "type": "SSD",
-                "model": "Solidigm D7-P5520 15.36TB",
-                "brand": brands["Solidigm"],
-                "price": 2100,
-                "watts": 14,
-                "is_active": True,
-            },
-            {
-                "type": "SSD",
-                "model": "Micron 7450 PRO 7.68TB",
-                "brand": brands["Micron"],
-                "price": 1100,
-                "watts": 12,
-                "is_active": True,
-            },
-            {
-                "type": "SSD",
-                "model": "Samsung PM893 3.84TB",
-                "brand": brands["Samsung"],
-                "price": 550,
-                "watts": 6,
-                "is_active": True,
-            },
-            {
-                "type": "SSD",
-                "model": "Kingston DC600M 1.92TB",
-                "brand": brands["Kingston"],
-                "price": 280,
-                "watts": 4,
-                "is_active": True,
-            },
+        # 2. Dados de CPUs (Campos herdados + específicos)
+        cpus_data = [
+            {"model": "Ryzen 5 5600", "brand": brands["AMD"], "price": 750, "watts": 65, "cores": 6, "threads": 12, "ghz": 4.4, "score_bottleneck": 120},
+            {"model": "Ryzen 7 5700X", "brand": brands["AMD"], "price": 1100, "watts": 65, "cores": 8, "threads": 16, "ghz": 4.6, "score_bottleneck": 145},
+            {"model": "Ryzen 7 7800X3D", "brand": brands["AMD"], "price": 2600, "watts": 120, "cores": 8, "threads": 16, "ghz": 5.0, "score_bottleneck": 240},
+            {"model": "Ryzen 9 7950X", "brand": brands["AMD"], "price": 3400, "watts": 170, "cores": 16, "threads": 32, "ghz": 5.7, "score_bottleneck": 300},
+            {"model": "Ryzen 9 9950X", "brand": brands["AMD"], "price": 4600, "watts": 170, "cores": 16, "threads": 32, "ghz": 5.7, "score_bottleneck": 320},
+            {"model": "Core i5-14600K", "brand": brands["Intel"], "price": 1950, "watts": 125, "cores": 14, "threads": 20, "ghz": 5.3, "score_bottleneck": 200},
+            {"model": "Core i7-14700K", "brand": brands["Intel"], "price": 2700, "watts": 125, "cores": 20, "threads": 28, "ghz": 5.6, "score_bottleneck": 260},
+            {"model": "Core Ultra 9 285K", "brand": brands["Intel"], "price": 4100, "watts": 125, "cores": 24, "threads": 24, "ghz": 5.7, "score_bottleneck": 300},
         ]
 
-        def clean(peca):
-            """Troca 'brand' (int) por 'brand_id' (int), que é o que o Django espera."""
-            peca = peca.copy()
-            peca["brand_id"] = peca.pop("brand")
-            return peca
+        # 3. Dados de GPUs (Campos herdados + específicos)
+        gpus_data = [
+            {"model": "RTX 4060", "brand": brands["NVIDIA"], "price": 1900, "watts": 115, "vram": 8, "mhz": 2460.0, "score_bottleneck": 180},
+            {"model": "RTX 4060 Ti", "brand": brands["NVIDIA"], "price": 2550, "watts": 165, "vram": 16, "mhz": 2535.0, "score_bottleneck": 210},
+            {"model": "RTX 4070 SUPER", "brand": brands["NVIDIA"], "price": 4300, "watts": 220, "vram": 12, "mhz": 2475.0, "score_bottleneck": 240},
+            {"model": "RTX 5070", "brand": brands["NVIDIA"], "price": 5600, "watts": 250, "vram": 12, "mhz": 2512.0, "score_bottleneck": 280},
+            {"model": "RTX 5070 Ti", "brand": brands["NVIDIA"], "price": 6900, "watts": 300, "vram": 16, "mhz": 2452.0, "score_bottleneck": 320},
+            {"model": "RTX 5080", "brand": brands["NVIDIA"], "price": 9800, "watts": 360, "vram": 16, "mhz": 2617.0, "score_bottleneck": 390},
+            {"model": "RTX 5090", "brand": brands["NVIDIA"], "price": 17000, "watts": 575, "vram": 32, "mhz": 2400.0, "score_bottleneck": 500},
+            {"model": "RX 7700 XT", "brand": brands["AMD"], "price": 3100, "watts": 245, "vram": 12, "mhz": 2544.0, "score_bottleneck": 215},
+            {"model": "RX 7800 XT", "brand": brands["AMD"], "price": 3800, "watts": 263, "vram": 16, "mhz": 2430.0, "score_bottleneck": 230},
+            {"model": "RX 7900 XTX", "brand": brands["AMD"], "price": 6700, "watts": 355, "vram": 24, "mhz": 2500.0, "score_bottleneck": 340},
+        ]
 
-        GPU_DICT = [clean(gpu) for gpu in pecas if gpu["type"] == "GPU"]
-        CPU_DICT = [clean(cpu) for cpu in pecas if cpu["type"] == "CPU"]
-        SSD_DICT = [clean(ssd) for ssd in pecas if ssd["type"] == "SSD"]
-        RAM_DICT = [clean(ram) for ram in pecas if ram["type"] == "RAM"]
+        # 4. Dados de RAMs (Campos herdados + específicos)
+        rams_data = [
+            {"model": "Kingston Fury Beast DDR5", "brand": brands["Kingston"], "price": 480, "watts": 5, "gb": 16, "mhz": 5600},
+            {"model": "Kingston Fury Beast RGB DDR5", "brand": brands["Kingston"], "price": 920, "watts": 6, "gb": 32, "mhz": 6000},
+            {"model": "Corsair Vengeance DDR5", "brand": brands["Corsair"], "price": 890, "watts": 6, "gb": 32, "mhz": 6000},
+            {"model": "Corsair Dominator Platinum DDR5", "brand": brands["Corsair"], "price": 1950, "watts": 8, "gb": 64, "mhz": 6400},
+            {"model": "G.Skill Trident Z5 RGB", "brand": brands["G.Skill"], "price": 1200, "watts": 7, "gb": 32, "mhz": 7200},
+        ]
 
-        GPU.objects.bulk_create([GPU(**gpu) for gpu in GPU_DICT])
-        CPU.objects.bulk_create([CPU(**cpu) for cpu in CPU_DICT])
-        SSD.objects.bulk_create([SSD(**ssd) for ssd in SSD_DICT])
-        RAM.objects.bulk_create([RAM(**ram) for ram in RAM_DICT])
+        # 5. Dados de SSDs (Campos herdados + específicos)
+        ssds_data = [
+            {"model": "Kingston NV3", "brand": brands["Kingston"], "price": 290, "watts": 4, "gb": 500, "speed": 5000},
+            {"model": "Kingston KC3000", "brand": brands["Kingston"], "price": 680, "watts": 5, "gb": 1024, "speed": 7000},
+            {"model": "Samsung 990 EVO Plus", "brand": brands["Samsung"], "price": 750, "watts": 4, "gb": 1000, "speed": 7150},
+            {"model": "Samsung 990 PRO", "brand": brands["Samsung"], "price": 1400, "watts": 6, "gb": 2000, "speed": 7450},
+            {"model": "Crucial T705 PCIe 5.0", "brand": brands["Crucial"], "price": 2500, "watts": 10, "gb": 2000, "speed": 14500},
+        ]
 
-        self.stdout.write(self.style.SUCCESS("Seed concluído com sucesso!"))
+        # --- Inserção e Atualização Segura no Banco ---
+
+        # Processando CPUs
+        for item in cpus_data:
+            CPU.objects.update_or_create(
+                model=item["model"],
+                defaults={**item, "type": "CPU", "is_active": True}
+            )
+        self.stdout.write(self.style.SUCCESS(f"Processado: {len(cpus_data)} modelos de CPU."))
+
+        # Processando GPUs
+        for item in gpus_data:
+            GPU.objects.update_or_create(
+                model=item["model"],
+                defaults={**item, "type": "GPU", "is_active": True}
+            )
+        self.stdout.write(self.style.SUCCESS(f"Processado: {len(gpus_data)} modelos de GPU."))
+
+        # Processando RAMs
+        for item in rams_data:
+            RAM.objects.update_or_create(
+                model=item["model"],
+                defaults={**item, "type": "RAM", "is_active": True}
+            )
+        self.stdout.write(self.style.SUCCESS(f"Processado: {len(rams_data)} modelos de RAM."))
+
+        # Processando SSDs
+        for item in ssds_data:
+            SSD.objects.update_or_create(
+                model=item["model"],
+                defaults={**item, "type": "SSD", "is_active": True}
+            )
+        self.stdout.write(self.style.SUCCESS(f"Processado: {len(ssds_data)} modelos de SSD."))
+
+        self.stdout.write(self.style.SUCCESS("\nBase de dados de hardware populada com sucesso!"))
