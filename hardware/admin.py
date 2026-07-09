@@ -13,13 +13,13 @@ class GPUAdmin(admin.ModelAdmin):
     pass
 
 @admin.register(RAM)
-class GPUAdmin(admin.ModelAdmin):
-    list_display = ('type', 'model', 'brand', 'price', 'watts', 'score_bottleneck')
+class RAMAdmin(admin.ModelAdmin):
+    list_display = ('type', 'model', 'brand', 'price', 'watts')
     pass
 
 @admin.register(SSD)
-class GPUAdmin(admin.ModelAdmin):
-    list_display = ('type', 'model', 'brand', 'price', 'watts', 'score_bottleneck')
+class SSDAdmin(admin.ModelAdmin):
+    list_display = ('type', 'model', 'brand', 'price', 'watts')
     pass
 
 
