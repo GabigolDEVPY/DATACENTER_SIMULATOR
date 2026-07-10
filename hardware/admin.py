@@ -17,6 +17,7 @@ class RAMAdmin(admin.ModelAdmin):
     list_display = ('type', 'model', 'brand', 'price', 'watts')
     pass
 
+
 @admin.register(SSD)
 class SSDAdmin(admin.ModelAdmin):
     list_display = ('type', 'model', 'brand', 'price', 'watts')
