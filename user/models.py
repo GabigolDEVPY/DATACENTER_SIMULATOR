@@ -1,4 +1,6 @@
 from django.db import models
+
+
 from hardware.models import Hardware
 
 # Create your models here.

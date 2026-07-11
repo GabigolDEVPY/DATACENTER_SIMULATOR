@@ -2,9 +2,8 @@ import sys
 sys.dont_write_bytecode = True
 from django.shortcuts import render
 from django.views.generic import View
-from ..models import  Bay
-from ..models import RAM, CPU, GPU, SSD
-from inventory.models import InventoryItem
+from ..models import Bay
+from user.models import InventoryItem
 
 
 class ChangeStatusBay(View):

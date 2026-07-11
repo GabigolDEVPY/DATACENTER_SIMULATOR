@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     'shop',
     'hardware',
     'user',
-    'inventory'
 ]
 
 MIDDLEWARE = [
