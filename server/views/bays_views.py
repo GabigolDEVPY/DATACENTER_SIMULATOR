@@ -22,5 +22,4 @@ class GetBayDetail(View):
                    "gpus": InventoryItem.objects.filter(item__gpu__isnull=False),
                    "ssds": InventoryItem.objects.filter(item__ssd__isnull=False),
                    }
-        print("Bay Detail Context:", context["rams"][0].item.ram.model)  # Debugging line to check the context
         return render(request, template_name="partials/modal_bay.html", context=context)

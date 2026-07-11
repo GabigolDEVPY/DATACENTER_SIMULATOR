@@ -33,10 +33,10 @@ class Bay(models.Model):
         WattsTier.VERY_HIGH: 280000,
     }
     
-    RAM = models.ForeignKey(RAM, on_delete=models.CASCADE, null=True, blank=True)
-    CPU = models.ForeignKey(CPU, on_delete=models.CASCADE, null=True, blank=True)
-    GPU = models.ForeignKey(GPU, on_delete=models.CASCADE, null=True, blank=True)
-    SSD = models.ForeignKey(SSD, on_delete=models.CASCADE, null=True, blank=True)
+    rem= models.ForeignKey(RAM, on_delete=models.CASCADE, null=True, blank=True)
+    cpu = models.ForeignKey(CPU, on_delete=models.CASCADE, null=True, blank=True)
+    gpu = models.ForeignKey(GPU, on_delete=models.CASCADE, null=True, blank=True)
+    ssd = models.ForeignKey(SSD, on_delete=models.CASCADE, null=True, blank=True)
     
     
     @property
