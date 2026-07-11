@@ -1,6 +1,6 @@
 from django.urls import path
-from .views.views import HomeView, GetBayDetail
-from .views.bays_views import ChangeStatusBay
+from .views.views import HomeView
+from .views.bays_views import ChangeStatusBay, GetBayDetail
 
 app_name = "server"
 

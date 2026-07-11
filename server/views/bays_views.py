@@ -1,8 +1,10 @@
 import sys
 sys.dont_write_bytecode = True
 from django.shortcuts import render
-from django.views.generic import View, TemplateView
-from ..models import Rack, Bay
+from django.views.generic import View
+from ..models import  Bay
+from ..models import RAM, CPU, GPU, SSD
+from inventory.models import InventoryItem
 
 
 class ChangeStatusBay(View):
@@ -11,3 +13,15 @@ class ChangeStatusBay(View):
         bay.is_active = not bay.is_active
         bay.save()
         return render(request, template_name="partials/bay.html", context={"bay": bay})
+    
+class GetBayDetail(View):
+    def get(self, request, id):
+        bay = Bay.objects.filter(id=id).first()
+        context = {"bay": bay, 
+                   "rams": InventoryItem.objects.filter(item__ram__isnull=False),
+                   "cpus": InventoryItem.objects.filter(item__cpu__isnull=False),
+                   "gpus": InventoryItem.objects.filter(item__gpu__isnull=False),
+                   "ssds": InventoryItem.objects.filter(item__ssd__isnull=False),
+                   }
+        print("Bay Detail Context:", context["rams"][0].item.ram.model)  # Debugging line to check the context
+        return render(request, template_name="partials/modal_bay.html", context=context)

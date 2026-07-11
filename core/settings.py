@@ -54,7 +54,8 @@ INSTALLED_APPS = [
     'server',
     'shop',
     'hardware',
-    'user'
+    'user',
+    'inventory'
 ]
 
 MIDDLEWARE = [

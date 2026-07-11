@@ -1,9 +1,8 @@
 import sys
 sys.dont_write_bytecode = True
 from django.shortcuts import render
-from django.views.generic import View, TemplateView
-from hardware.models import RAM, CPU, GPU, SSD
-from ..models import Rack, Bay
+from django.views.generic import TemplateView
+from ..models import Rack
 
 class HomeView(TemplateView):
     template_name = 'datacenter/index.html'     
@@ -13,10 +12,3 @@ class HomeView(TemplateView):
         context["hacks"] = Rack.objects.all()
         return context
 
-
-class GetBayDetail(View):
-    def get(self, request, id):
-        bay = Bay.objects.filter(id=id).first()
-        context = {"bay": bay, "rams": RAM.objects.all(), "cpus": CPU.objects.all(), "gpus": GPU.objects.all(), "ssds": SSD.objects.all()}
-        print("Bay Detail Context:", context)  # Debugging line to check the context
-        return render(request, template_name="partials/modal_bay.html", context=context)
