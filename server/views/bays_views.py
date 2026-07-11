@@ -1,5 +1,3 @@
-import sys
-sys.dont_write_bytecode = True
 from django.shortcuts import render
 from django.views.generic import View
 from ..models import Bay
