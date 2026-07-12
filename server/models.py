@@ -1,5 +1,6 @@
 from django.db import models
 from hardware.models import CPU, GPU, SSD, RAM
+from user.models import Inventory, InventoryItem
 
 # Create your models here.
 class Rack(models.Model):
@@ -33,11 +34,10 @@ class Bay(models.Model):
         WattsTier.VERY_HIGH: 280000,
     }
     
-    rem= models.ForeignKey(RAM, on_delete=models.CASCADE, null=True, blank=True)
-    cpu = models.ForeignKey(CPU, on_delete=models.CASCADE, null=True, blank=True)
-    gpu = models.ForeignKey(GPU, on_delete=models.CASCADE, null=True, blank=True)
-    ssd = models.ForeignKey(SSD, on_delete=models.CASCADE, null=True, blank=True)
-    
+    ram = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="ram_bay")
+    cpu = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="cpu_bay")
+    gpu = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="gpu_bay")
+    ssd = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="ssd_bay")
     
     @property
     def price(self):
