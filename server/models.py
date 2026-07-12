@@ -42,6 +42,22 @@ class Bay(models.Model):
     @property
     def price(self):
         return self.WATTS_PRICE.get(self.watts, 0)
+    
+    @property
+    def get_cpu(self):
+        return self.cpu.item.cpu if self.cpu else None
+
+    @property
+    def get_gpu(self):
+        return self.gpu.item.gpu if self.gpu else None
+    
+    @property
+    def get_ram(self):  
+        return self.ram.item.ram if self.ram else None
+    
+    @property
+    def get_ssd(self):
+        return self.ssd.item.ssd if self.ssd else None
 
     def __str__(self):
         return f" {self.name}"

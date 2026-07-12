@@ -41,9 +41,10 @@
                 <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-2">
                     <i class="bi bi-server"></i> RAM
                 </span>
-                <select class="form-select border-0 p-0 fw-semibold fs-6 text-dark mt-2 shadow-none" value="{{ bay.ram_bay }}">
+                <select class="form-select border-0 p-0 fw-semibold fs-6 text-dark mt-2 shadow-none">
+                    <option>{{ bay.get_ram.model|default:"selecione um item" }}</option>
                     {% for inventoryitem in rams %}
-                        <option>{{ inventoryitem.item.ram.model }}</option>
+                        <option >{{ inventoryitem.item.ram.model }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -55,6 +56,7 @@
                     <i class="bi bi-gpu-card"></i> GPU
                 </span>
                 <select class="form-select border-0 p-0 fw-semibold fs-6 text-dark mt-2 shadow-none" value="{{ bay.gpu_bay }}">
+                    <option>{{ bay.get_gpu.model|default:"selecione um item" }}</option>
                     {% for inventoryitem in gpus %}
                         <option>{{ inventoryitem.item.gpu.model }}</option>
                     {% endfor %}
@@ -68,7 +70,7 @@
                     <i class="bi bi-cpu"></i> CPU
                 </span>
                 <select class="form-select border-0 fs-6 p-0 fw-semibold text-dark mt-2 shadow-none">
-                    <option>{% if bay.cpu %}{{ bay.cpu.item.cpu.model }}{% else %}Selecione um item{% endif %}</option>
+                    <option>{{ bay.get_cpu.model|default:"selecione um item" }}</option>
                     {% for inventoryitem in cpus %}
                         <option>{{ inventoryitem.item.cpu.model }}</option>
                     {% endfor %}
@@ -82,6 +84,7 @@
                     <i class="bi bi-hdd-stack"></i> Armazenamento
                 </span>
                 <select class="form-select border-0 fs-6 p-0 fw-semibold text-dark mt-2 shadow-none" value="{{ bay.ssd_bay }}">
+                    <option>{{ bay.get_ssd.model|default:"selecione um item" }}</option>
                     {% for inventoryitem in ssds %}
                         <option>{{ inventoryitem.item.ssd.model }}</option>
                     {% endfor %}
