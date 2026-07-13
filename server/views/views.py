@@ -10,6 +10,6 @@ class HomeView(LoginRequiredMixin, TemplateView):
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["hacks"] = self.request.user.racks
+        context["hacks"] = self.request.user.racks.all()
         return context
 
