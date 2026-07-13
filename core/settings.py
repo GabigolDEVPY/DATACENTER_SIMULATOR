@@ -14,11 +14,11 @@ from pathlib import Path
 import dotenv
 import os
 
-dotenv.load_dotenv() 
+dotenv.load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-LOGIN_REDIRECT_URL = "server:home"
+LOGIN_REDIRECT_URL = "user:login"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -31,12 +31,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+AUTH_USER_MODEL = "user.User"
+
 ASGI_APPLICATION = "core.asgi.application"
 
-CHANNEL_LAYERS = { 
-    'default' : { 
-        'BACKEND' : 'channels.layers.InMemoryChannelLayer' , 
-    }, 
+CHANNEL_LAYERS = {
+    'default' : {
+        'BACKEND' : 'channels.layers.InMemoryChannelLayer' ,
+    },
 }
 
 # Application definition
@@ -66,7 +68,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware"
-    
+
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -100,7 +102,7 @@ DATABASES = {
         "PASSWORD": os.getenv("MYSQL_PASSWORD"),
         'HOST': os.getenv("MYSQL_HOST"),
         'PORT': os.getenv("MYSQL_PORT"),
-        
+
     }
 }
 
