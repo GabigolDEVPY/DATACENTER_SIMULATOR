@@ -1,6 +1,7 @@
 from django.db import models
 from user.models import InventoryItem
 from user.models import User
+from time import time
 
 
 
@@ -28,6 +29,7 @@ class Bay(models.Model):
 
     is_active = models.BooleanField(default=False)
     watts = models.CharField(max_length=10, choices=WattsTier.choices, default=WattsTier.LOW)
+    last_time_active = models.DateTimeField(null=True)
 
     WATTS_PRICE = {
         WattsTier.VERY_LOW: 12000,
