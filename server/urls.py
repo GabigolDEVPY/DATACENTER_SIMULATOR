@@ -1,5 +1,5 @@
 from django.urls import path
-from .views.views import HomeView
+from .views.views import HomeView, GetTotalBalance
 from .views.bays_views import ChangeStatusBay, GetBayDetail
 
 app_name = "server"
@@ -10,7 +10,8 @@ urlpatterns = [
     
     # bays
     path('get-bay-detail/<int:id>', GetBayDetail.as_view(), name="get_bay_detail"),
-    path('bay-status-changed/<int:id>', ChangeStatusBay.as_view(), name="change_status_bay")
+    path('bay-status-changed/<int:id>', ChangeStatusBay.as_view(), name="change_status_bay"),
+    path('get-total-value/', GetTotalBalance.as_view(), name="get_total_value")
 ]
 
 

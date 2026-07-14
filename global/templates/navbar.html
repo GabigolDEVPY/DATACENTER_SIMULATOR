@@ -151,7 +151,7 @@
             <div class="sidebar-status-collapsed d-flex flex-column align-items-center gap-1">
                 <div class="status-item collapsed-mode" title="Dinheiro">
                     <i class="bi bi-coin text-warning" style="font-size: 16px;"></i>
-                    <span class="status-value">1.2k</span>
+                    <span class="status-value">{{ request.user.money }}</span>
                 </div>
                 <div class="status-item collapsed-mode" title="Energia">
                     <i class="bi bi-lightning-charge-fill text-primary" style="font-size: 16px;"></i>
@@ -167,7 +167,7 @@
             <div class="sidebar-status-expanded d-none flex-column w-100 gap-1">
                 <div class="status-item expanded-mode">
                     <span class="status-label"><i class="bi bi-coin text-warning"></i>Dinheiro</span>
-                    <span class="status-value">{{ request.user.money }}</span>
+                    <span hx-get="{% url 'server:get_total_value' %}" hx-trigger="every 2s" hx-swap="innerHTML" class="status-value">{{ value|default:request.user.money }}</span>
                 </div>
                 <div class="status-item expanded-mode">
                     <span class="status-label"><i class="bi bi-lightning-charge-fill text-primary"></i>Energia</span>
