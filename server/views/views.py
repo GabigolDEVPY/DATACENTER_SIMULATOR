@@ -19,6 +19,13 @@ class HomeView(LoginRequiredMixin, TemplateView):
 class GetTotalBalance(View):
     def get(self, request):
         user = request.user
-        value = BalanceService.get_total_balance(user=user)
-        value = 100000 + time.time() % 100000
+        value = 0
+        racks = user.racks.all()
+        for rack in racks:
+            print("entrou", flush=True)
+            print(rack)
+            for bay in rack.bays.all():
+                value += (bay.get_power() / 10000)
+        print(value)
+        
         return HttpResponse(f"R$ {value:.2f}")

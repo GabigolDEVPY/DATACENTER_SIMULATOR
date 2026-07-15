@@ -43,6 +43,11 @@ class Bay(models.Model):
     cpu = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="cpu_bay")
     gpu = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="gpu_bay")
     ssd = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="ssd_bay")
+    
+    @property
+    def get_power(self):
+        power =(self.cpu.get_power() + self.gpu.get_power() + self.ssd.get_power() + self.ram.get_power())
+        return power
 
     @property
     def price(self):
