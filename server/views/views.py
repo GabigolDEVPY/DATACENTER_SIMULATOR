@@ -8,6 +8,7 @@ from server.services.balance_service import BalanceService
 from django.http import HttpResponse
 
 
+
 class HomeView(LoginRequiredMixin, TemplateView):
     template_name = 'datacenter/index.html'     
         
@@ -16,18 +17,9 @@ class HomeView(LoginRequiredMixin, TemplateView):
         context["hacks"] = self.request.user.racks.all()
         return context
 
+
 class GetTotalBalance(View):
     def get(self, request):
         user = request.user
-        value = 0
-        racks = user.racks.all()
-        for rack in racks:
-            for bay in rack.bays.all():
-                value += (
-                    (bay.get_cpu.get_power() / 10000) +
-                    (bay.get_gpu.get_power() / 10000) +
-                    (bay.get_ram.get_power() / 10000) +
-                    (bay.get_ssd.get_power() / 10000)  
-                )
-        
+        value = BalanceService.get_total_balance(user)
         return HttpResponse(f"R$ {value:.2f}")
