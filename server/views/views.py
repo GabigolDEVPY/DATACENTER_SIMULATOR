@@ -22,10 +22,12 @@ class GetTotalBalance(View):
         value = 0
         racks = user.racks.all()
         for rack in racks:
-            print("entrou", flush=True)
-            print(rack)
             for bay in rack.bays.all():
-                value += (bay.get_power() / 10000)
-        print(value)
+                value += (
+                    (bay.get_cpu.get_power() / 10000) +
+                    (bay.get_gpu.get_power() / 10000) +
+                    (bay.get_ram.get_power() / 10000) +
+                    (bay.get_ssd.get_power() / 10000)  
+                )
         
         return HttpResponse(f"R$ {value:.2f}")
