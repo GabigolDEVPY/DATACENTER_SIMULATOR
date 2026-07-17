@@ -168,7 +168,7 @@
                 <div class="status-item expanded-mode">
                     <span class="status-label"><i class="bi bi-coin text-warning"></i>Dinheiro</span>
                     <span hx-get="{% url 'server:get_total_value' %}" 
-                    hx-trigger="refresh_balance from:body" 
+                    hx-trigger="refresh_power from:body" 
                     hx-swap="innerHTML" 
                     class="status-value">
                     {{ value|default:request.user.money }}</span>
@@ -191,7 +191,6 @@
             <span class="sidebar-text d-none">Config</span>
         </a>
 
-        <!-- Logout -->
         <!-- Logout -->
         <form method="post" action="{% url 'user:logout' %}" class="w-100">
             {% csrf_token %}

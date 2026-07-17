@@ -1,4 +1,6 @@
-{% extends "base.html" %} {% block content %} {% load static %}
+{% extends "base.html" %}
+{% load static %} 
+ {% block content %}
 
 <style>
   .wire {
@@ -25,10 +27,13 @@
 </style>
 
 <div class="row col-24 mx-auto justify-content-center align-items-center">
-  {% for hack in hacks %} {% include "partials/rack.html" %} {% if not
-  forloop.last %}
-  <div class="wire"></div>
-  {% endif %} {% endfor %}
+    {% for hack in hacks %}
+        {% include "partials/rack.html" %}
+
+        {% if not forloop.last %}
+            <div class="wire"></div>
+        {% endif %}
+    {% endfor %}
 </div>
 
 <div
