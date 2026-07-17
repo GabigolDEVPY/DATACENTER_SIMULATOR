@@ -1,14 +1,12 @@
 from django.shortcuts import render
 from django.views.generic import View
-from ..models import Bay
-from user.models import InventoryItem
 from server.services.bay_services import BayService
 
 
 
 class ChangeStatusBay(View):
     def post(self, request, id):
-        bay = BayService(id)
+        bay = BayService.change_status(id, request.user)
         return render(request, template_name="partials/bay.html", context={"bay": bay})
     
     
