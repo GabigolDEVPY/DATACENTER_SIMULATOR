@@ -1,8 +1,6 @@
 from server.models import Bay
 from user.models import InventoryItem
-import json
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
+from user.services import UserService
 
 
 
@@ -24,12 +22,6 @@ class BayService:
         bay = Bay.objects.filter(id=id).first()       
         bay.is_active = not bay.is_active
         bay.save()
-        
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"user_{user.id}",
-            {"type": "power_update", "message_type": "refresh_power", "data": {}}
-        )
-        
+        UserService.refresh_balance(user)
         return bay
     

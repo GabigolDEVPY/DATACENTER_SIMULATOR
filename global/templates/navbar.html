@@ -166,12 +166,9 @@
             <!-- Aberto: linhas com label e valor completo -->
             <div class="sidebar-status-expanded d-none flex-column w-100 gap-1">
                 <div class="status-item expanded-mode">
+                    <!-- label valor -->
                     <span class="status-label"><i class="bi bi-coin text-warning"></i>Dinheiro</span>
-                    <span hx-get="{% url 'server:get_total_value' %}" 
-                    hx-trigger="refresh_power from:body" 
-                    hx-swap="innerHTML" 
-                    class="status-value">
-                    {{ value|default:request.user.money }}</span>
+                    <span id="live-balance" class="status-value">{{ value|default:request.user.money }}</span>
                 </div>
                 <div class="status-item expanded-mode">
                     <span class="status-label"><i class="bi bi-lightning-charge-fill text-primary"></i>Energia</span>

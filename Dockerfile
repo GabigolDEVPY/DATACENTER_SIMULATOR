@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 RUN pip install --no-cache-dir -r requirements.txt
 

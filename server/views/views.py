@@ -1,11 +1,7 @@
-import time
 import sys
 sys.dont_write_bytecode = True
-from django.shortcuts import render
-from django.views.generic import TemplateView, View
+from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from server.services.balance_service import BalanceService
-from django.http import HttpResponse
 
 
 
@@ -16,10 +12,3 @@ class HomeView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context["hacks"] = self.request.user.racks.all()
         return context
-
-
-class GetTotalBalance(View):
-    def get(self, request):
-        user = request.user
-        value = BalanceService.get_total_balance(user)
-        return HttpResponse(f"R$ {value:.2f}")
