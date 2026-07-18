@@ -2,8 +2,10 @@ from django.shortcuts import render
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
-from django.views.generic import CreateView
+from django.views.generic import CreateView, View
 from django.urls import reverse_lazy
+from .services import UserService
+from django.http import JsonResponse
 
 # Create your views here.
 class UserRegisterView(CreateView):
@@ -26,4 +28,11 @@ class UserLogoutView(LogoutView):
     next_page = reverse_lazy("user:login")
 
         
-    
+class GetBalanceView(View):
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        if user.is_authenticated:
+            UserService.refresh_balance(user)
+            return JsonResponse({"balance": str(user.money)})
+        else:
+            return JsonResponse({"error": "User not authenticated"}, status=401)
