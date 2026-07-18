@@ -1,6 +1,10 @@
 from django.contrib import admin
-from user.models import Inventory, InventoryItem
+from user.models import Inventory, InventoryItem, User
 # Register your models here.
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ['username', 'email', 'money', 'actual_rate', 'last_refresh_balance']
 
 @admin.register(Inventory)
 class InventoryAdmin(admin.ModelAdmin):
