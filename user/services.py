@@ -11,14 +11,17 @@ class UserService:
         for rack in racks:
             for bay in rack.bays.all():
                 if bay.is_active:
-                    value += float(
-                        bay.get_cpu.get_power() +
-                        bay.get_gpu.get_power() +
-                        bay.get_ram.get_power() +
-                        bay.get_ssd.get_power()  
-                    ) * 0.000001
+                    
+                    components = [bay.get_cpu,bay.get_gpu,bay.get_ram,bay.get_ssd]
+                    
+                    if any(component is None for component in components):
+                        continue
+                    
+                    value += float(bay.get_cpu.get_power() +bay.get_gpu.get_power() +bay.get_ram.get_power() + bay.get_ssd.get_power()  ) * 0.000001
+                    
                 else:
                     continue
+                
         return value
     
     @staticmethod
