@@ -151,11 +151,11 @@
             <div class="sidebar-status-collapsed d-flex flex-column align-items-center gap-1">
                 <div class="status-item collapsed-mode" title="Dinheiro">
                     <i class="bi bi-coin text-warning" style="font-size: 16px;"></i>
-                    <span class="status-value">{{ request.user.money }}</span>
+                    <span id="live-balance-close" class="status-value">{{ request.user.money }}</span>
                 </div>
                 <div class="status-item collapsed-mode" title="Energia">
                     <i class="bi bi-lightning-charge-fill text-primary" style="font-size: 16px;"></i>
-                    <span class="status-value">87</span>
+                    <span class="status-value">{{ request.user.energy }}</span>
                 </div>
                 <div class="status-item collapsed-mode" title="Servers">
                     <i class="bi bi-hdd-rack text-success" style="font-size: 16px;"></i>
@@ -172,7 +172,7 @@
                 </div>
                 <div class="status-item expanded-mode">
                     <span class="status-label"><i class="bi bi-lightning-charge-fill text-primary"></i>Energia</span>
-                    <span class="status-value">87 / 100</span>
+                    <span class="status-value">{{ request.user.energy }}</span>
                 </div>
                 <div class="status-item expanded-mode">
                     <span class="status-label"><i class="bi bi-hdd-rack text-success"></i>Servers</span>

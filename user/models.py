@@ -5,6 +5,9 @@ from django.utils import timezone
 
 class User(AbstractUser):
     money = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    energy = models.PositiveIntegerField()
+    actual_energy = models.DecimalField(max_digits=65, decimal_places=2, default=0)
+    last_refresh_balance = models.DateTimeField(null=True, default=timezone.now)
     actual_rate = models.DecimalField(max_digits=65, decimal_places=2, default=0)
     last_refresh_balance = models.DateTimeField(null=True, default=timezone.now)
 
