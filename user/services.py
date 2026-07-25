@@ -42,10 +42,13 @@ class UserService:
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f"user_{user.id}",
-            {"type": "power_update",
+            {
+             "type": "power_update",
              "message_type": "refresh_balance",
              "balance": float(new_balance),
-             "rate": float(new_rate)
-                 }
+             "rate_money": float(new_rate),
+             "energy": 100,
+             "rate_energy": 0.1
+            }
         )
         
