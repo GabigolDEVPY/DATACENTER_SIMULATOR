@@ -50,6 +50,11 @@ class Bay(models.Model):
         return power
 
     @property
+    def get_energy_rate(self):
+        energy_rate =(self.get_cpu.get_energy_rate() + self.get_gpu.get_energy_rate() + self.get_ssd.get_energy_rate() + self.get_ram.get_energy_rate())
+        return energy_rate
+
+    @property
     def price(self):
         return self.WATTS_PRICE.get(self.watts, 0)
 

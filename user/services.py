@@ -7,6 +7,7 @@ class UserService:
     @staticmethod 
     def get_total_rate(user):
         value = 0
+        energy_rate = 0
         racks = user.racks.all()
         for rack in racks:
             for bay in rack.bays.all():
@@ -18,24 +19,31 @@ class UserService:
                         continue
                     
                     value += float(bay.get_cpu.get_power() +bay.get_gpu.get_power() +bay.get_ram.get_power() + bay.get_ssd.get_power()  ) * 0.000001
+                    energy_rate += bay.get_energy_rate
                     
-                else:
+                else: 
                     continue
                 
-        return value
+        return value, (energy_rate * 0.00001)
     
     @staticmethod
     def refresh_balance(user):
         now = timezone.now()
         seconds = int((now - user.last_refresh_balance).total_seconds() + 1)
         
-        new_balance = (user.money) + (seconds * user.actual_rate)
-        new_rate = UserService.get_total_rate(user)
+        new_rate, new_energy_rate = UserService.get_total_rate(user)
+        
+        new_balance = user.money + (seconds * user.actual_rate)
+        new_energy = user.energy + (seconds * user.actual_energy_rate)
+        print(new_energy)
         
         
         user.last_refresh_balance = now
+        
         user.money = new_balance
         user.actual_rate = new_rate
+        user.energy = new_energy
+        user.actual_rate = new_energy_rate
         
         user.save(update_fields=["money", "last_refresh_balance", "actual_rate"])
         
@@ -47,8 +55,8 @@ class UserService:
              "message_type": "refresh_balance",
              "balance": float(new_balance),
              "rate_money": float(new_rate),
-             "energy": 100,
-             "rate_energy": 0.1
+             "energy": float(new_energy),
+             "rate_energy": float(new_energy_rate)
             }
         )
         

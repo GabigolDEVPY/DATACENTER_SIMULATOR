@@ -33,6 +33,11 @@ class CPU(Hardware):
             self.ghz * 100 +
             self.score_bottleneck * 300
         )
+    
+    def get_energy_rate(self):
+        return (
+            self.watts
+        )
         
 
 
@@ -47,6 +52,11 @@ class GPU(Hardware):
             self.mhz +
             self.score_bottleneck * 500
         )
+    
+    def get_energy_rate(self):
+        return (
+            self.watts
+        )
 
 
 class RAM(Hardware):
@@ -59,6 +69,10 @@ class RAM(Hardware):
             self.mhz * 2
         )
 
+    def get_energy_rate(self):
+        return (
+            self.watts
+        )
 
 class SSD(Hardware):
     gb = models.IntegerField()
@@ -68,4 +82,9 @@ class SSD(Hardware):
         return (
             self.gb * 5 +
             self.speed * 3
+        )
+    
+    def get_energy_rate(self):
+        return (
+            self.watts
         )
