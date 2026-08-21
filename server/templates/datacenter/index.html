@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %} 
  {% block content %}
-
+ <link rel="stylesheet" href="{% static 'css/raritys.css' %}">
 <style>
   .wire {
     width: 40px;
@@ -39,27 +39,28 @@
 <div
   id="ModalBay"
   class="position-fixed top-0 start-0 w-100 h-100"
-  style="display: none; z-index: 1050; background: rgba(0, 0, 0, 0.5)"
+  style="display: none; z-index: 1050; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);"
   onclick="if (event.target.id === 'ModalBay') closeModal();"
 >
   <div
-    class="position-relative bg-white text-dark border rounded-3 p-4 mx-auto shadow-lg d-flex flex-column"
-    style="max-width: 500px; min-height: 300px; margin-top: 10vh"
+    class="position-relative bg-dark text-light border border-secondary rounded-3 p-4 mx-auto shadow-lg d-flex flex-column"
+    style="max-width: 500px; min-height: 300px; margin-top: 10vh; background-color: #0b0e14 !important; border-color: #1e2633 !important;"
   >
+    <!-- Botão fechar (escuro) -->
     <button
       type="button"
-      class="btn-close position-absolute top-0 end-0 m-3"
+      class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
       aria-label="Close"
       onclick="closeModal()"
     ></button>
 
-    <div id="ModalBayBody" class="flex-grow-1">
+    <div id="ModalBayBody" class="flex-grow-1 text-light" style="color: #e8e4dc !important;">
       <!-- conteúdo injetado pelo htmx -->
     </div>
 
-    <div class="mt-auto d-flex justify-content-end pt-3">
-      <button type="button" class="btn btn-primary" onclick="closeModal()">
-        Close
+    <div class="mt-auto d-flex justify-content-end pt-3 border-top border-secondary">
+      <button type="button" class="btn btn-outline-light btn-sm" onclick="closeModal()">
+        Fechar
       </button>
     </div>
   </div>

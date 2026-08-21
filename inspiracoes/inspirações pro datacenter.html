@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DataCenter Sim Pro+ (Raridades)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* Reset e base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0b0e14;
+            color: #c8d6e5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        /* Cabeçalho */
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            background: #141a24;
+            padding: 10px 18px;
+            border-radius: 12px;
+            margin-bottom: 14px;
+            border-left: 4px solid #00d4ff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            gap: 6px;
+        }
+
+        .header h1 {
+            font-weight: 300;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header h1 i {
+            color: #00d4ff;
+        }
+
+        .header-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            font-size: 0.75rem;
+            background: #1e2633;
+            padding: 4px 12px;
+            border-radius: 30px;
+            align-items: center;
+        }
+
+        .header-stats span {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .header-stats i {
+            color: #00d4ff;
+            width: 14px;
+        }
+
+        .money {
+            color: #4ade80;
+            font-weight: 600;
+        }
+        .temp {
+            color: #fbbf24;
+        }
+        .power {
+            color: #f87171;
+        }
+        .level {
+            color: #a78bfa;
+        }
+
+        .btn {
+            background: #1e2633;
+            border: none;
+            color: #c8d6e5;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            border: 1px solid #2a3345;
+        }
+
+        .btn:hover {
+            background: #2a3345;
+            border-color: #00d4ff;
+            color: #fff;
+            transform: scale(1.03);
+        }
+
+        .btn-primary {
+            background: #00a3c4;
+            border-color: #00a3c4;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #00b8d4;
+            border-color: #00d4ff;
+        }
+
+        .btn-danger {
+            background: #b91c1c;
+            border-color: #b91c1c;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+            border-color: #ef4444;
+        }
+
+        .btn-success {
+            background: #15803d;
+            border-color: #15803d;
+            color: #fff;
+        }
+        .btn-success:hover {
+            background: #16a34a;
+            border-color: #22c55e;
+        }
+
+        .btn-warning {
+            background: #b45309;
+            border-color: #b45309;
+            color: #fff;
+        }
+        .btn-warning:hover {
+            background: #d97706;
+            border-color: #f59e0b;
+        }
+
+        .btn-hack {
+            background: #6d28d9;
+            border-color: #6d28d9;
+            color: #fff;
+        }
+        .btn-hack:hover {
+            background: #7c3aed;
+            border-color: #8b5cf6;
+        }
+
+        .btn-cool {
+            background: #0b6e8a;
+            border-color: #0b6e8a;
+            color: #fff;
+        }
+        .btn-cool:hover {
+            background: #0e8aa8;
+            border-color: #00d4ff;
+        }
+
+        .btn-upgrade {
+            background: #2d7a4b;
+            border-color: #2d7a4b;
+            color: #fff;
+        }
+        .btn-upgrade:hover {
+            background: #3b9e62;
+            border-color: #4ade80;
+        }
+
+        .btn-sm {
+            padding: 2px 7px;
+            font-size: 0.65rem;
+        }
+
+        /* Racks */
+        .racks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+            margin-top: 6px;
+        }
+
+        .rack {
+            background: #141a24;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #1e2633;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: border-color 0.3s;
+        }
+
+        .rack:hover {
+            border-color: #2a3345;
+        }
+
+        .rack-header {
+            background: #1a212b;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e2633;
+            cursor: pointer;
+        }
+
+        .rack-header h3 {
+            font-weight: 400;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .rack-header h3 i {
+            color: #00d4ff;
+        }
+
+        .rack-header .badge-count {
+            background: #1e2633;
+            padding: 1px 8px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            color: #94a3b8;
+        }
+
+        .rack-body {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-height: 560px;
+            overflow-y: auto;
+        }
+
+        .rack-body::-webkit-scrollbar {
+            width: 4px;
+        }
+        .rack-body::-webkit-scrollbar-thumb {
+            background: #2a3345;
+            border-radius: 10px;
+        }
+
+        /* Slot / Servidor */
+        .slot {
+            border-radius: 8px;
+            padding: 6px 8px;
+            border-left: 3px solid #2a3345;
+            transition: background 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            position: relative;
+        }
+
+        .slot.online {
+            border-left-color: #4ade80;
+            background: #0f1a12;
+        }
+
+        .slot.offline {
+            border-left-color: #f87171;
+            background: #1a1012;
+        }
+
+        .slot.hacked {
+            border-left-color: #a78bfa;
+            background: #1a1028;
+            animation: pulse-hack 1.5s infinite;
+        }
+
+        @keyframes pulse-hack {
+            0%,
+            100% {
+                box-shadow: inset 0 0 5px rgba(167, 139, 250, 0.2);
+            }
+            50% {
+                box-shadow: inset 0 0 15px rgba(167, 139, 250, 0.5);
+            }
+        }
+
+        /* Raridades */
+        .slot.common {
+            border-left-color: #94a3b8;
+            background: #141a24;
+        }
+        .slot.rare {
+            border-left-color: #3b82f6;
+            background: #0f1a2a;
+        }
+        .slot.epic {
+            border-left-color: #8b5cf6;
+            background: #1a102a;
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.2);
+        }
+        .slot.legendary {
+            border-left-color: #f59e0b;
+            background: #1a1a0a;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+            animation: glow-legendary 2s infinite alternate;
+        }
+
+        @keyframes glow-legendary {
+            0% {
+                box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+            }
+            100% {
+                box-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
+            }
+        }
+
+        .slot-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .slot-name {
+            font-weight: 500;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .slot-name i {
+            color: #00d4ff;
+            font-size: 0.7rem;
+        }
+
+        .slot-status {
+            font-size: 0.55rem;
+            padding: 1px 6px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .status-online {
+            background: #15803d;
+            color: #bbf7d0;
+        }
+        .status-offline {
+            background: #991b1b;
+            color: #fca5a5;
+        }
+        .status-hacked {
+            background: #5b21b6;
+            color: #ddd6fe;
+        }
+
+        .slot-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            font-size: 0.6rem;
+            color: #94a3b8;
+        }
+
+        .slot-specs span {
+            background: #1a212b;
+            padding: 1px 5px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .slot-specs i {
+            color: #00d4ff;
+            font-size: 0.55rem;
+        }
+
+        .slot-extra {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            font-size: 0.6rem;
+            color: #94a3b8;
+            margin-top: 1px;
+        }
+
+        .slot-extra span {
+            background: #1a212b;
+            padding: 1px 5px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .slot-extra .temp-high {
+            color: #f87171;
+        }
+        .slot-extra .temp-mid {
+            color: #fbbf24;
+        }
+        .slot-extra .temp-low {
+            color: #4ade80;
+        }
+
+        .rarity-badge {
+            font-size: 0.55rem;
+            padding: 1px 6px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .rarity-common {
+            color: #94a3b8;
+            background: #1e2633;
+        }
+        .rarity-rare {
+            color: #3b82f6;
+            background: #1a2a3a;
+        }
+        .rarity-epic {
+            color: #8b5cf6;
+            background: #2a1a3a;
+        }
+        .rarity-legendary {
+            color: #f59e0b;
+            background: #3a2a0a;
+        }
+
+        .slot-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            margin-top: 2px;
+        }
+
+        .slot-empty {
+            color: #475569;
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 6px 0;
+            border: 1px dashed #1e2633;
+            border-radius: 6px;
+        }
+
+        /* Painel de eventos e conquistas */
+        .panels {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        .panel {
+            background: #141a24;
+            border-radius: 12px;
+            padding: 10px 14px;
+            border: 1px solid #1e2633;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .panel h4 {
+            font-weight: 300;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .panel .item {
+            font-size: 0.7rem;
+            padding: 2px 0;
+            border-bottom: 1px solid #1a212b;
+            color: #c8d6e5;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .panel .item .time {
+            color: #64748b;
+            margin-right: 8px;
+        }
+        .panel .item .bad {
+            color: #f87171;
+        }
+        .panel .item .good {
+            color: #4ade80;
+        }
+        .panel .item .info {
+            color: #60a5fa;
+        }
+
+        .achievement {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        /* Gráfico */
+        .chart-container {
+            background: #141a24;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-top: 12px;
+            border: 1px solid #1e2633;
+        }
+
+        .chart-container h4 {
+            font-weight: 300;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 50px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: #00d4ff;
+            min-height: 3px;
+            border-radius: 2px;
+            transition: height 0.3s;
+            opacity: 0.7;
+        }
+
+        /* Modais */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #141a24;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 520px;
+            width: 95%;
+            border: 1px solid #2a3345;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            font-weight: 300;
+            margin-bottom: 14px;
+            color: #00d4ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+
+        .modal .form-group {
+            margin-bottom: 10px;
+        }
+
+        .modal label {
+            display: block;
+            font-size: 0.75rem;
+            margin-bottom: 3px;
+            color: #94a3b8;
+        }
+
+        .modal select,
+        .modal input {
+            width: 100%;
+            padding: 6px 10px;
+            background: #0b0e14;
+            border: 1px solid #1e2633;
+            border-radius: 8px;
+            color: #c8d6e5;
+            font-size: 0.8rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .modal select:focus,
+        .modal input:focus {
+            border-color: #00d4ff;
+        }
+
+        .modal .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        /* Toasts */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-width: 280px;
+        }
+
+        .toast {
+            background: #1e2633;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border-left: 4px solid #00d4ff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            font-size: 0.75rem;
+            animation: slideIn 0.3s ease;
+            color: #e2e8f0;
+        }
+
+        .toast.error {
+            border-left-color: #f87171;
+        }
+        .toast.success {
+            border-left-color: #4ade80;
+        }
+        .toast.hack {
+            border-left-color: #a78bfa;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0e14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a3345;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 700px) {
+            .panels {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .header-stats {
+                justify-content: space-around;
+                font-size: 0.65rem;
+            }
+            .racks-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cabeçalho -->
+    <header class="header">
+        <h1><i class="fas fa-server"></i> DataCenter Pro+</h1>
+        <div class="header-stats">
+            <span><i class="fas fa-coins money"></i> <span id="moneyDisplay">0</span></span>
+            <span><i class="fas fa-bolt power"></i> <span id="totalPowerDisplay">0</span> W</span>
+            <span><i class="fas fa-thermometer-half temp"></i> <span id="avgTempDisplay">0</span> °C</span>
+            <span><i class="fas fa-circle" style="color:#4ade80;"></i> <span id="onlineCount">0</span></span>
+            <span><i class="fas fa-circle" style="color:#f87171;"></i> <span id="offlineCount">0</span></span>
+            <span><i class="fas fa-chart-line"></i> <span id="profitRate">0</span>/s</span>
+            <span class="level"><i class="fas fa-star"></i> Nv. <span id="levelDisplay">1</span></span>
+        </div>
+        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+            <button class="btn btn-primary" id="addRackBtn"><i class="fas fa-plus"></i> Rack</button>
+            <button class="btn btn-cool" id="buyCoolingBtn"><i class="fas fa-fan"></i> Resfriar</button>
+        </div>
+    </header>
+
+    <!-- Racks -->
+    <div class="racks-container" id="racksContainer"></div>
+
+    <!-- Gráfico -->
+    <div class="chart-container" id="chartContainer">
+        <h4><i class="fas fa-chart-bar"></i> Histórico (receita / custo)</h4>
+        <div class="chart-bars" id="chartBars"></div>
+    </div>
+
+    <!-- Painéis: Eventos e Conquistas -->
+    <div class="panels">
+        <div class="panel" id="eventsPanel">
+            <h4><i class="fas fa-bell"></i> Eventos</h4>
+            <div id="eventList"></div>
+        </div>
+        <div class="panel" id="achievementsPanel">
+            <h4><i class="fas fa-trophy"></i> Conquistas</h4>
+            <div id="achievementList"></div>
+        </div>
+    </div>
+
+    <!-- Modal para adicionar servidor -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2><i class="fas fa-plus-circle"></i> Adicionar Servidor</h2>
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" id="serverNameInput" placeholder="Ex: ML-01" />
+            </div>
+            <div class="form-group">
+                <label>CPU</label>
+                <select id="cpuSelect">
+                    <option value="Intel Xeon E5-2680 v4 (14c/28t)">Intel Xeon E5-2680 v4 (14c)</option>
+                    <option value="AMD EPYC 7302 (16c/32t)" selected>AMD EPYC 7302 (16c)</option>
+                    <option value="Intel Xeon Platinum 8280 (28c/56t)">Intel Xeon Platinum 8280 (28c)</option>
+                    <option value="AMD EPYC 7742 (64c/128t)">AMD EPYC 7742 (64c)</option>
+                    <option value="Intel Core i9-13900K (24c/32t)">Intel Core i9-13900K (24c)</option>
+                    <option value="Intel Xeon Max 9480 (56c/112t)">Intel Xeon Max 9480 (56c)</option>
+                    <option value="AMD EPYC 9754 (128c/256t)">AMD EPYC 9754 (128c)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>GPU</label>
+                <select id="gpuSelect">
+                    <option value="NVIDIA A100 (40GB)">NVIDIA A100 (40GB)</option>
+                    <option value="NVIDIA A6000 (48GB)" selected>NVIDIA A6000 (48GB)</option>
+                    <option value="NVIDIA RTX 4090 (24GB)">NVIDIA RTX 4090 (24GB)</option>
+                    <option value="AMD Radeon Instinct MI250X (64GB)">AMD Radeon Instinct MI250X (64GB)</option>
+                    <option value="NVIDIA H100 (80GB)">NVIDIA H100 (80GB)</option>
+                    <option value="NVIDIA H200 (141GB)">NVIDIA H200 (141GB)</option>
+                    <option value="AMD Radeon Instinct MI300X (192GB)">AMD MI300X (192GB)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>RAM (GB)</label>
+                <select id="ramSelect">
+                    <option value="64">64</option>
+                    <option value="128" selected>128</option>
+                    <option value="256">256</option>
+                    <option value="512">512</option>
+                    <option value="1024">1024</option>
+                    <option value="2048">2048</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Armazenamento (TB)</label>
+                <select id="storageSelect">
+                    <option value="2">2</option>
+                    <option value="4" selected>4</option>
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                    <option value="32">32</option>
+                    <option value="64">64</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Modelo de IA</label>
+                <select id="aiModelSelect">
+                    <option value="nenhum">Nenhum</option>
+                    <option value="llama3" selected>Llama 3 (8B)</option>
+                    <option value="gpt4">GPT-4 (1.8T)</option>
+                    <option value="stable_diffusion">Stable Diffusion</option>
+                    <option value="whisper">Whisper (áudio)</option>
+                    <option value="mixtral">Mixtral 8x7B</option>
+                    <option value="claude">Claude 3 Opus</option>
+                    <option value="gemini">Gemini Ultra</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="modalCancelBtn">Cancelar</button>
+                <button class="btn btn-primary" id="modalConfirmBtn">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para upgrade -->
+    <div class="modal-overlay" id="upgradeModalOverlay">
+        <div class="modal">
+            <h2><i class="fas fa-arrow-up"></i> Upgrade</h2>
+            <div class="form-group">
+                <label>Componente</label>
+                <select id="upgradeComponentSelect">
+                    <option value="cpu">CPU ($300)</option>
+                    <option value="gpu">GPU ($500)</option>
+                    <option value="ram">RAM ($200)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Novo valor</label>
+                <select id="upgradeValueSelect"></select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="upgradeCancelBtn">Cancelar</button>
+                <button class="btn btn-success" id="upgradeConfirmBtn">Aplicar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para resfriamento -->
+    <div class="modal-overlay" id="coolingModalOverlay">
+        <div class="modal">
+            <h2><i class="fas fa-fan"></i> Resfriamento</h2>
+            <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:10px;">Nível atual: <span id="currentCoolLevel">0</span> (custo $<span id="coolCost">500</span>)</p>
+            <div class="form-group">
+                <label>Selecione o rack</label>
+                <select id="coolingRackSelect"></select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="coolingCancelBtn">Cancelar</button>
+                <button class="btn btn-primary" id="coolingConfirmBtn">Comprar Nível</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ====== MODELOS DE IA ======
+        const AI_MODELS = {
+            'nenhum': { name: 'Nenhum', minCpuCores: 0, minGpuMem: 0, minRam: 0, revenue: 0, powerFactor: 1, rarity: 'common' },
+            'llama3': { name: 'Llama 3 (8B)', minCpuCores: 8, minGpuMem: 16, minRam: 32, revenue: 2.5, powerFactor: 1.2,
+                rarity: 'rare' },
+            'gpt4': { name: 'GPT-4 (1.8T)', minCpuCores: 32, minGpuMem: 80, minRam: 512, revenue: 12.0, powerFactor: 2.0,
+                rarity: 'epic' },
+            'stable_diffusion': { name: 'Stable Diffusion', minCpuCores: 4, minGpuMem: 8, minRam: 16, revenue: 1.8,
+                powerFactor: 1.1, rarity: 'common' },
+            'whisper': { name: 'Whisper (áudio)', minCpuCores: 2, minGpuMem: 4, minRam: 8, revenue: 0.8, powerFactor: 0.9,
+                rarity: 'common' },
+            'mixtral': { name: 'Mixtral 8x7B', minCpuCores: 16, minGpuMem: 48, minRam: 128, revenue: 5.0, powerFactor: 1.5,
+                rarity: 'rare' },
+            'claude': { name: 'Claude 3 Opus', minCpuCores: 40, minGpuMem: 100, minRam: 512, revenue: 15.0,
+                powerFactor: 2.2, rarity: 'epic' },
+            'gemini': { name: 'Gemini Ultra', minCpuCores: 48, minGpuMem: 128, minRam: 1024, revenue: 18.0,
+                powerFactor: 2.5, rarity: 'legendary' }
+        };
+
+        // ====== ESTADO GLOBAL ======
+        let racks = [];
+        let rackIdCounter = 1;
+        let serverIdCounter = 1;
+        let targetRackForServer = null;
+        let targetServerForUpgrade = null;
+
+        let money = 1000;
+        const COST_PER_KWH = 0.15;
+        let totalPowerConsumption = 0;
+        let level = 1;
+        let xp = 0;
+        let xpToNext = 100;
+        let totalServersBuilt = 0;
+        let totalRevenueEarned = 0;
+        let achievements = [];
+
+        // Histórico gráfico
+        let historyRevenue = [];
+        let historyCost = [];
+        const MAX_HISTORY = 20;
+
+        // Eventos
+        let eventLog = [];
+
+        // ====== FUNÇÕES AUXILIARES ======
+        function getCpuCores(cpuStr) {
+            const match = cpuStr.match(/(\d+)c/);
+            return match ? parseInt(match[1]) : 0;
+        }
+
+        function getGpuMem(gpuStr) {
+            const match = gpuStr.match(/(\d+)GB/);
+            return match ? parseInt(match[1]) : 0;
+        }
+
+        function calcPower(server) {
+            let base = 30;
+            const cpuCores = getCpuCores(server.cpu);
+            const gpuMem = getGpuMem(server.gpu);
+            const ramGB = server.ram || 128;
+            const model = AI_MODELS[server.aiModel] || AI_MODELS['nenhum'];
+            const factor = model.powerFactor || 1;
+            return Math.round((base + cpuCores * 1.5 + gpuMem * 0.3 + ramGB * 0.02) * factor);
+        }
+
+        function calcTemperature(server, rackCoolingLevel) {
+            if (!server || !server.online || server.hacked) return 25;
+            const power = server.power || 50;
+            let temp = 25 + (power / 8) - (rackCoolingLevel * 5);
+            return Math.round(Math.min(95, Math.max(20, temp)));
+        }
+
+        function calcRevenue(server) {
+            if (!server.online || server.hacked) return 0;
+            const model = AI_MODELS[server.aiModel] || AI_MODELS['nenhum'];
+            if (model.revenue === 0) return 0;
+            const cpuCores = getCpuCores(server.cpu);
+            const gpuMem = getGpuMem(server.gpu);
+            const ram = server.ram || 0;
+            let factor = 1;
+            if (cpuCores < model.minCpuCores) factor *= 0.5;
+            if (gpuMem < model.minGpuMem) factor *= 0.5;
+            if (ram < model.minRam) factor *= 0.5;
+            return model.revenue * factor * 0.01;
+        }
+
+        // Determina raridade do servidor baseado em CPU, GPU, RAM e modelo de IA
+        function getServerRarity(server) {
+            const cpuCores = getCpuCores(server.cpu);
+            const gpuMem = getGpuMem(server.gpu);
+            const ram = server.ram || 0;
+            const model = AI_MODELS[server.aiModel] || AI_MODELS['nenhum'];
+            // Pontuação: CPU cores * 2 + GPU mem * 0.5 + RAM * 0.1 + bônus do modelo
+            let score = cpuCores * 2 + gpuMem * 0.5 + ram * 0.05;
+            if (model.rarity === 'rare') score += 20;
+            else if (model.rarity === 'epic') score += 50;
+            else if (model.rarity === 'legendary') score += 100;
+
+            if (score >= 120) return 'legendary';
+            if (score >= 70) return 'epic';
+            if (score >= 35) return 'rare';
+            return 'common';
+        }
+
+        function getRarityColor(rarity) {
+            if (rarity === 'legendary') return '#f59e0b';
+            if (rarity === 'epic') return '#8b5cf6';
+            if (rarity === 'rare') return '#3b82f6';
+            return '#94a3b8';
+        }
+
+        function getRarityName(rarity) {
+            return rarity.charAt(0).toUpperCase() + rarity.slice(1);
+        }
+
+        // ====== CRIAÇÃO ======
+        function createRack(name) {
+            return {
+                id: rackIdCounter++,
+                name: name || `Rack ${rackIdCounter}`,
+                slots: [],
+                coolingLevel: 0,
+            };
+        }
+
+        function addServerToRack(rack, serverData) {
+            const slot = {
+                id: serverIdCounter++,
+                server: {
+                    id: serverIdCounter - 1,
+                    name: serverData.name || `Server-${serverIdCounter}`,
+                    cpu: serverData.cpu || 'AMD EPYC 7302 (16c/32t)',
+                    gpu: serverData.gpu || 'NVIDIA A6000 (48GB)',
+                    ram: serverData.ram || 128,
+                    storage: serverData.storage || 4,
+                    aiModel: serverData.aiModel || 'nenhum',
+                    online: serverData.online !== undefined ? serverData.online : true,
+                    hacked: false,
+                    power: 0,
+                    efficiency: 0, // será calculado
+                }
+            };
+            slot.server.power = calcPower(slot.server);
+            slot.server.efficiency = slot.server.power > 0 ? calcRevenue(slot.server) / (slot.server.power / 1000) : 0;
+            rack.slots.push(slot);
+            totalServersBuilt++;
+            // Ganha XP ao construir
+            addXp(10);
+            return slot;
+        }
+
+        // ====== XP E NÍVEL ======
+        function addXp(amount) {
+            xp += amount;
+            while (xp >= xpToNext) {
+                xp -= xpToNext;
+                level++;
+                xpToNext = Math.floor(xpToNext * 1.5);
+                showToast(`🎉 Nível ${level} alcançado!`, 'success');
+                addEvent(`Data center atingiu nível ${level}!`, 'good');
+                // Bônus de dinheiro ao subir nível
+                money += 500 * level;
+                // Verifica conquistas
+                checkAchievements();
+            }
+        }
+
+        // ====== CONQUISTAS ======
+        function checkAchievements() {
+            const newAchs = [];
+            if (totalServersBuilt >= 5 && !achievements.includes('5servers')) {
+                achievements.push('5servers');
+                newAchs.push('5 servidores construídos');
+                money += 200;
+            }
+            if (totalServersBuilt >= 15 && !achievements.includes('15servers')) {
+                achievements.push('15servers');
+                newAchs.push('15 servidores construídos');
+                money += 500;
+            }
+            if (totalRevenueEarned >= 100 && !achievements.includes('100rev')) {
+                achievements.push('100rev');
+                newAchs.push('$100 de receita total');
+                money += 300;
+            }
+            if (totalRevenueEarned >= 1000 && !achievements.includes('1000rev')) {
+                achievements.push('1000rev');
+                newAchs.push('$1000 de receita total');
+                money += 1000;
+            }
+            if (level >= 5 && !achievements.includes('level5')) {
+                achievements.push('level5');
+                newAchs.push('Nível 5');
+                money += 400;
+            }
+            if (level >= 10 && !achievements.includes('level10')) {
+                achievements.push('level10');
+                newAchs.push('Nível 10');
+                money += 800;
+            }
+            // Raridade: ter um lendário
+            let hasLegendary = false;
+            racks.forEach(r => r.slots.forEach(s => {
+                if (s.server && getServerRarity(s.server) === 'legendary') hasLegendary = true;
+            }));
+            if (hasLegendary && !achievements.includes('legendary')) {
+                achievements.push('legendary');
+                newAchs.push('Servidor Lendário');
+                money += 1500;
+            }
+
+            newAchs.forEach(ach => {
+                showToast(`🏆 Conquista desbloqueada: ${ach}!`, 'success');
+                addEvent(`Conquista: ${ach}`, 'good');
+            });
+            renderAll();
+        }
+
+        // ====== UPGRADE ======
+        function getUpgradeOptions(component) {
+            if (component === 'cpu') {
+                return [
+                    'Intel Xeon E5-2680 v4 (14c/28t)',
+                    'AMD EPYC 7302 (16c/32t)',
+                    'Intel Xeon Platinum 8280 (28c/56t)',
+                    'AMD EPYC 7742 (64c/128t)',
+                    'Intel Core i9-13900K (24c/32t)',
+                    'Intel Xeon Max 9480 (56c/112t)',
+                    'AMD EPYC 9754 (128c/256t)'
+                ];
+            } else if (component === 'gpu') {
+                return [
+                    'NVIDIA A100 (40GB)',
+                    'NVIDIA A6000 (48GB)',
+                    'NVIDIA RTX 4090 (24GB)',
+                    'AMD Radeon Instinct MI250X (64GB)',
+                    'NVIDIA H100 (80GB)',
+                    'NVIDIA H200 (141GB)',
+                    'AMD Radeon Instinct MI300X (192GB)'
+                ];
+            } else if (component === 'ram') {
+                return ['64', '128', '256', '512', '1024', '2048'];
+            }
+            return [];
+        }
+
+        function applyUpgrade(rackIdx, slotIdx, component, newValue) {
+            const server = racks[rackIdx].slots[slotIdx].server;
+            if (!server) return false;
+            let cost = 0;
+            if (component === 'cpu') { cost = 300;
+                server.cpu = newValue; } else if (component === 'gpu') { cost = 500;
+                server.gpu = newValue; } else if (component === 'ram') { cost = 200;
+                server.ram = parseInt(newValue); }
+            if (money < cost) {
+                showToast(`Saldo insuficiente! Upgrade custa $${cost}`, 'error');
+                return false;
+            }
+            money -= cost;
+            server.power = calcPower(server);
+            server.efficiency = server.power > 0 ? calcRevenue(server) / (server.power / 1000) : 0;
+            showToast(`Upgrade aplicado!`, 'success');
+            addEvent(`Upgrade em ${server.name}`, 'good');
+            return true;
+        }
+
+        // ====== RENDERIZAÇÃO ======
+        function renderAll() {
+            const container = document.getElementById('racksContainer');
+            container.innerHTML = '';
+
+            let totalPower = 0;
+            let totalTemp = 0;
+            let tempCount = 0;
+            let totalRevenue = 0;
+            let totalCost = 0;
+
+            racks.forEach((rack, index) => {
+                const rackDiv = document.createElement('div');
+                rackDiv.className = 'rack';
+                rackDiv.dataset.index = index;
+
+                const header = document.createElement('div');
+                header.className = 'rack-header';
+                const occupied = rack.slots.filter(s => s.server !== null).length;
+                const totalSlots = rack.slots.length;
+                header.innerHTML = `
+                    <h3><i class="fas fa-rack"></i> ${rack.name} <span style="font-size:0.6rem;color:#94a3b8;margin-left:4px;"><i class="fas fa-fan"></i> ${rack.coolingLevel}</span></h3>
+                    <span class="badge-count">${occupied}/${totalSlots}</span>
+                `;
+                header.addEventListener('click', () => openModal(index));
+
+                const body = document.createElement('div');
+                body.className = 'rack-body';
+
+                if (rack.slots.length === 0) {
+                    const emptyMsg = document.createElement('div');
+                    emptyMsg.className = 'slot-empty';
+                    emptyMsg.innerHTML = `<i class="fas fa-plus-circle"></i> Clique para adicionar`;
+                    body.appendChild(emptyMsg);
+                } else {
+                    rack.slots.forEach((slot, slotIdx) => {
+                        const slotDiv = document.createElement('div');
+                        slotDiv.className = 'slot';
+                        if (slot.server) {
+                            const server = slot.server;
+                            const temp = calcTemperature(server, rack.coolingLevel);
+                            server.power = calcPower(server);
+                            server.efficiency = server.power > 0 ? calcRevenue(server) / (server.power / 1000) : 0;
+                            const rarity = getServerRarity(server);
+
+                            // Adiciona classe de raridade
+                            slotDiv.classList.add(rarity);
+                            if (server.hacked) slotDiv.classList.add('hacked');
+                            else if (server.online) slotDiv.classList.add('online');
+                            else slotDiv.classList.add('offline');
+
+                            if (server.online && !server.hacked) {
+                                totalPower += server.power;
+                                totalTemp += temp;
+                                tempCount++;
+                                totalRevenue += calcRevenue(server);
+                            }
+
+                            // Topo
+                            const top = document.createElement('div');
+                            top.className = 'slot-top';
+                            const nameSpan = document.createElement('span');
+                            nameSpan.className = 'slot-name';
+                            nameSpan.innerHTML =
+                                `<i class="fas fa-server"></i> ${server.name} <span class="rarity-badge rarity-${rarity}">${getRarityName(rarity)}</span>`;
+                            const statusSpan = document.createElement('span');
+                            statusSpan.className = `slot-status ${server.hacked ? 'status-hacked' : server.online ? 'status-online' : 'status-offline'}`;
+                            statusSpan.textContent = server.hacked ? 'HACKED' : server.online ? 'ONLINE' : 'OFFLINE';
+                            top.appendChild(nameSpan);
+                            top.appendChild(statusSpan);
+
+                            // Specs
+                            const specs = document.createElement('div');
+                            specs.className = 'slot-specs';
+                            specs.innerHTML = `
+                                <span><i class="fas fa-microchip"></i> ${server.cpu}</span>
+                                <span><i class="fas fa-desktop"></i> ${server.gpu}</span>
+                                <span><i class="fas fa-memory"></i> ${server.ram} GB</span>
+                                <span><i class="fas fa-hdd"></i> ${server.storage} TB</span>
+                            `;
+
+                            // Extra
+                            const extra = document.createElement('div');
+                            extra.className = 'slot-extra';
+                            const modelName = AI_MODELS[server.aiModel] ? AI_MODELS[server.aiModel].name : 'Nenhum';
+                            const revenue = calcRevenue(server);
+                            const tempClass = temp > 75 ? 'temp-high' : (temp > 55 ? 'temp-mid' : 'temp-low');
+                            extra.innerHTML = `
+                                <span><i class="fas fa-brain"></i> ${modelName}</span>
+                                <span><i class="fas fa-coins money"></i> $${(revenue * 60).toFixed(2)}/min</span>
+                                <span class="${tempClass}"><i class="fas fa-thermometer-half"></i> ${temp}°C</span>
+                                <span><i class="fas fa-bolt"></i> ${server.power} W</span>
+                                <span><i class="fas fa-chart-line"></i> ${server.efficiency.toFixed(2)} W/$</span>
+                            `;
+
+                            // Ações
+                            const actions = document.createElement('div');
+                            actions.className = 'slot-actions';
+
+                            const toggleBtn = document.createElement('button');
+                            toggleBtn.className = `btn btn-sm ${server.online ? 'btn-warning' : 'btn-success'}`;
+                            toggleBtn.innerHTML = server.online ? '<i class="fas fa-power-off"></i>' :
+                                '<i class="fas fa-power-off"></i>';
+                            toggleBtn.title = 'Ligar/Desligar';
+                            toggleBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                toggleServer(index, slotIdx);
+                            });
+
+                            const hackBtn = document.createElement('button');
+                            hackBtn.className = 'btn btn-sm btn-hack';
+                            hackBtn.innerHTML = '<i class="fas fa-skull"></i>';
+                            hackBtn.title = 'Hackear';
+                            hackBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                hackServer(index, slotIdx);
+                            });
+
+                            const upgradeBtn = document.createElement('button');
+                            upgradeBtn.className = 'btn btn-sm btn-upgrade';
+                            upgradeBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                            upgradeBtn.title = 'Upgrade';
+                            upgradeBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                openUpgradeModal(index, slotIdx);
+                            });
+
+                            const removeBtn = document.createElement('button');
+                            removeBtn.className = 'btn btn-sm btn-danger';
+                            removeBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                            removeBtn.title = 'Remover';
+                            removeBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                removeServer(index, slotIdx);
+                            });
+
+                            actions.appendChild(toggleBtn);
+                            actions.appendChild(hackBtn);
+                            actions.appendChild(upgradeBtn);
+                            actions.appendChild(removeBtn);
+
+                            slotDiv.appendChild(top);
+                            slotDiv.appendChild(specs);
+                            slotDiv.appendChild(extra);
+                            slotDiv.appendChild(actions);
+                        } else {
+                            slotDiv.className = 'slot-empty';
+                            slotDiv.innerHTML = `<i class="fas fa-plus-circle"></i> Vazio`;
+                            slotDiv.addEventListener('click', () => openModal(index));
+                        }
+                        body.appendChild(slotDiv);
+                    });
+                }
+
+                rackDiv.appendChild(header);
+                rackDiv.appendChild(body);
+                container.appendChild(rackDiv);
+            });
+
+            totalPowerConsumption = totalPower;
+            const avgTemp = tempCount > 0 ? Math.round(totalTemp / tempCount) : 25;
+            document.getElementById('totalPowerDisplay').textContent = totalPower;
+            document.getElementById('avgTempDisplay').textContent = avgTemp;
+
+            let online = 0,
+                offline = 0;
+            racks.forEach(r => {
+                r.slots.forEach(s => {
+                    if (s.server) {
+                        if (s.server.hacked || !s.server.online) offline++;
+                        else online++;
+                    }
+                });
+            });
+            document.getElementById('onlineCount').textContent = online;
+            document.getElementById('offlineCount').textContent = offline;
+            document.getElementById('moneyDisplay').textContent = money.toFixed(2);
+            document.getElementById('levelDisplay').textContent = level;
+
+            const energyCost = (totalPower / 1000) * COST_PER_KWH / 3600;
+            const profit = totalRevenue - energyCost;
+            document.getElementById('profitRate').textContent = profit.toFixed(2);
+
+            // Atualiza gráfico
+            updateChart(totalRevenue, energyCost);
+            updateEvents();
+            updateAchievements();
+        }
+
+        // ====== GRÁFICO ======
+        function updateChart(revenue, cost) {
+            historyRevenue.push(revenue);
+            historyCost.push(cost);
+            if (historyRevenue.length > MAX_HISTORY) {
+                historyRevenue.shift();
+                historyCost.shift();
+            }
+            const barsContainer = document.getElementById('chartBars');
+            barsContainer.innerHTML = '';
+            const maxVal = Math.max(1, ...historyRevenue, ...historyCost);
+            for (let i = 0; i < historyRevenue.length; i++) {
+                const containerBar = document.createElement('div');
+                containerBar.style.cssText =
+                    'flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:1px;';
+                const revHeight = (historyRevenue[i] / maxVal) * 40;
+                const costHeight = (historyCost[i] / maxVal) * 40;
+                const revBar = document.createElement('div');
+                revBar.style.cssText = `background:#4ade80; height:${revHeight}px; width:100%; border-radius:2px; transition:height 0.3s;`;
+                const costBar = document.createElement('div');
+                costBar.style.cssText = `background:#f87171; height:${costHeight}px; width:100%; border-radius:2px; transition:height 0.3s;`;
+                containerBar.appendChild(costBar);
+                containerBar.appendChild(revBar);
+                barsContainer.appendChild(containerBar);
+            }
+        }
+
+        // ====== EVENTOS E CONQUISTAS ======
+        function addEvent(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            eventLog.unshift({ time, message, type });
+            if (eventLog.length > 50) eventLog.pop();
+        }
+
+        function updateEvents() {
+            const container = document.getElementById('eventList');
+            container.innerHTML = '';
+            eventLog.slice(0, 10).forEach(e => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                const cls = e.type === 'bad' ? 'bad' : (e.type === 'good' ? 'good' : 'info');
+                div.innerHTML =
+                    `<span><span class="time">[${e.time}]</span><span class="${cls}">${e.message}</span></span>`;
+                container.appendChild(div);
+            });
+        }
+
+        function updateAchievements() {
+            const container = document.getElementById('achievementList');
+            container.innerHTML = '';
+            if (achievements.length === 0) {
+                container.innerHTML = '<div class="item" style="color:#64748b;">Nenhuma conquista ainda</div>';
+                return;
+            }
+            achievements.forEach(ach => {
+                const div = document.createElement('div');
+                div.className = 'item achievement';
+                div.innerHTML = `<span><i class="fas fa-trophy"></i> ${ach}</span>`;
+                container.appendChild(div);
+            });
+        }
+
+        // ====== EVENTOS ALEATÓRIOS ======
+        function triggerRandomEvent() {
+            if (Math.random() > 0.12) return;
+            const events = [
+                { msg: 'Pico de demanda! Receita +20% por 10s.', type: 'good' },
+                { msg: 'Falha de energia! Servidor desligado aleatoriamente.', type: 'bad', action: () => {
+                        const rack = racks[Math.floor(Math.random() * racks.length)];
+                        if (rack) {
+                            const onlines = rack.slots.filter(s => s.server && s.server.online && !s.server.hacked);
+                            if (onlines.length > 0) {
+                                const target = onlines[Math.floor(Math.random() * onlines.length)];
+                                target.server.online = false;
+                                addEvent(`Servidor ${target.server.name} desligado por falha.`, 'bad');
+                            }
+                        }
+                    } },
+                { msg: 'Ataque DDoS! Receita -50% por 10s.', type: 'bad' },
+                { msg: 'Bônus de eficiência! Consumo reduzido 10% por 15s.', type: 'good' },
+                { msg: 'Novo modelo de IA lançado! Receita base +5%.', type: 'good' },
+                { msg: 'Servidor superaquecido! Um servidor foi danificado.', type: 'bad', action: () => {
+                        const rack = racks[Math.floor(Math.random() * racks.length)];
+                        if (rack) {
+                            const onlines = rack.slots.filter(s => s.server && s.server.online && !s.server.hacked);
+                            if (onlines.length > 0) {
+                                const target = onlines[Math.floor(Math.random() * onlines.length)];
+                                target.server.online = false;
+                                addEvent(`Servidor ${target.server.name} superaqueceu e desligou.`, 'bad');
+                            }
+                        }
+                    } },
+            ];
+            const evt = events[Math.floor(Math.random() * events.length)];
+            addEvent(evt.msg, evt.type);
+            if (evt.action) evt.action();
+        }
+
+        // ====== OPERAÇÕES ======
+        function toggleServer(rackIdx, slotIdx) {
+            const slot = racks[rackIdx].slots[slotIdx];
+            if (!slot.server || slot.server.hacked) {
+                showToast('Servidor comprometido, não pode ser ligado/desligado!', 'error');
+                return;
+            }
+            slot.server.online = !slot.server.online;
+            renderAll();
+            showToast(`Servidor ${slot.server.name} ${slot.server.online ? 'ligado' : 'desligado'}`, 'success');
+        }
+
+        function removeServer(rackIdx, slotIdx) {
+            const rack = racks[rackIdx];
+            const slot = rack.slots[slotIdx];
+            if (!slot.server) return;
+            const name = slot.server.name;
+            const value = Math.round(slot.server.power * 0.5 + 50);
+            money += value;
+            rack.slots.splice(slotIdx, 1);
+            renderAll();
+            showToast(`Servidor ${name} vendido por $${value}.`, 'success');
+            addEvent(`Servidor ${name} vendido por $${value}.`, 'good');
+        }
+
+        function hackServer(rackIdx, slotIdx) {
+            const slot = racks[rackIdx].slots[slotIdx];
+            if (!slot.server) return;
+            if (slot.server.hacked) {
+                showToast('Este servidor já foi hackeado!', 'error');
+                return;
+            }
+            if (!slot.server.online) {
+                showToast('Servidor desligado, não é possível hackear.', 'error');
+                return;
+            }
+            const success = Math.random() < 0.6;
+            if (success) {
+                slot.server.hacked = true;
+                slot.server.online = false;
+                showToast(`Hackeamento BEM-SUCEDIDO! Servidor ${slot.server.name} comprometido.`, 'hack');
+                addEvent(`Servidor ${slot.server.name} foi hackeado!`, 'bad');
+                // Ganha dinheiro extra com hack (roubo de dados)
+                money += 50;
+            } else {
+                slot.server.online = false;
+                showToast(`Falha no hackeamento! Servidor ${slot.server.name} foi desligado.`, 'error');
+                addEvent(`Tentativa de hackeamento falhou em ${slot.server.name}.`, 'info');
+            }
+            renderAll();
+        }
+
+        // ====== MODAIS ======
+        function openModal(rackIndex) {
+            targetRackForServer = rackIndex;
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('serverNameInput').value = `Server-${serverIdCounter}`;
+            document.getElementById('cpuSelect').selectedIndex = 1;
+            document.getElementById('gpuSelect').selectedIndex = 1;
+            document.getElementById('ramSelect').selectedIndex = 1;
+            document.getElementById('storageSelect').selectedIndex = 1;
+            document.getElementById('aiModelSelect').selectedIndex = 1;
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            targetRackForServer = null;
+        }
+
+        document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+        document.getElementById('modalOverlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        document.getElementById('modalConfirmBtn').addEventListener('click', () => {
+            if (targetRackForServer === null) return;
+            const name = document.getElementById('serverNameInput').value.trim() || `Server-${serverIdCounter}`;
+            const cpu = document.getElementById('cpuSelect').value;
+            const gpu = document.getElementById('gpuSelect').value;
+            const ram = parseInt(document.getElementById('ramSelect').value);
+            const storage = parseInt(document.getElementById('storageSelect').value);
+            const aiModel = document.getElementById('aiModelSelect').value;
+
+            const serverData = { name, cpu, gpu, ram, storage, aiModel, online: true };
+            const rack = racks[targetRackForServer];
+            addServerToRack(rack, serverData);
+            closeModal();
+            renderAll();
+            showToast(`Servidor ${name} adicionado ao rack ${rack.name}`, 'success');
+            addEvent(`Servidor ${name} adicionado.`, 'good');
+        });
+
+        // ====== UPGRADE MODAL ======
+        function openUpgradeModal(rackIdx, slotIdx) {
+            targetServerForUpgrade = { rackIndex: rackIdx, slotIndex: slotIdx };
+            document.getElementById('upgradeModalOverlay').classList.add('active');
+            document.getElementById('upgradeComponentSelect').value = 'cpu';
+            updateUpgradeOptions('cpu');
+        }
+
+        function updateUpgradeOptions(component) {
+            const valSelect = document.getElementById('upgradeValueSelect');
+            valSelect.innerHTML = '';
+            const options = getUpgradeOptions(component);
+            options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt;
+                option.textContent = opt;
+                valSelect.appendChild(option);
+            });
+        }
+
+        document.getElementById('upgradeComponentSelect').addEventListener('change', function() {
+            updateUpgradeOptions(this.value);
+        });
+
+        document.getElementById('upgradeCancelBtn').addEventListener('click', () => {
+            document.getElementById('upgradeModalOverlay').classList.remove('active');
+            targetServerForUpgrade = null;
+        });
+        document.getElementById('upgradeModalOverlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                document.getElementById('upgradeModalOverlay').classList.remove('active');
+                targetServerForUpgrade = null;
+            }
+        });
+
+        document.getElementById('upgradeConfirmBtn').addEventListener('click', () => {
+            if (!targetServerForUpgrade) return;
+            const { rackIndex, slotIndex } = targetServerForUpgrade;
+            const component = document.getElementById('upgradeComponentSelect').value;
+            const newValue = document.getElementById('upgradeValueSelect').value;
+            const success = applyUpgrade(rackIndex, slotIndex, component, newValue);
+            if (success) {
+                document.getElementById('upgradeModalOverlay').classList.remove('active');
+                targetServerForUpgrade = null;
+                renderAll();
+            }
+        });
+
+        // ====== RESFRIAMENTO MODAL ======
+        document.getElementById('buyCoolingBtn').addEventListener('click', () => {
+            const select = document.getElementById('coolingRackSelect');
+            select.innerHTML = '';
+            racks.forEach((rack, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = `${rack.name} (Nível ${rack.coolingLevel})`;
+                select.appendChild(opt);
+            });
+            if (racks.length === 0) {
+                showToast('Nenhum rack disponível.', 'error');
+                return;
+            }
+            // Atualiza custo
+            const rack = racks[parseInt(select.value)];
+            if (rack) {
+                document.getElementById('currentCoolLevel').textContent = rack.coolingLevel;
+                document.getElementById('coolCost').textContent = 500 * (rack.coolingLevel + 1);
+            }
+            document.getElementById('coolingModalOverlay').classList.add('active');
+        });
+
+        document.getElementById('coolingRackSelect').addEventListener('change', function() {
+            const idx = parseInt(this.value);
+            if (!isNaN(idx) && idx >= 0 && idx < racks.length) {
+                const rack = racks[idx];
+                document.getElementById('currentCoolLevel').textContent = rack.coolingLevel;
+                document.getElementById('coolCost').textContent = 500 * (rack.coolingLevel + 1);
+            }
+        });
+
+        document.getElementById('coolingCancelBtn').addEventListener('click', () => {
+            document.getElementById('coolingModalOverlay').classList.remove('active');
+        });
+        document.getElementById('coolingModalOverlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) document.getElementById('coolingModalOverlay').classList.remove('active');
+        });
+
+        document.getElementById('coolingConfirmBtn').addEventListener('click', () => {
+            const select = document.getElementById('coolingRackSelect');
+            const idx = parseInt(select.value);
+            if (isNaN(idx) || idx < 0 || idx >= racks.length) {
+                showToast('Selecione um rack válido.', 'error');
+                return;
+            }
+            const rack = racks[idx];
+            const cost = 500 * (rack.coolingLevel + 1);
+            if (money < cost) {
+                showToast(`Saldo insuficiente! Necessário $${cost}`, 'error');
+                return;
+            }
+            money -= cost;
+            rack.coolingLevel += 1;
+            document.getElementById('coolingModalOverlay').classList.remove('active');
+            renderAll();
+            showToast(`Resfriamento do ${rack.name} aumentou para nível ${rack.coolingLevel}`, 'success');
+            addEvent(`Resfriamento do ${rack.name} melhorado.`, 'good');
+        });
+
+        // ====== ADICIONAR RACK ======
+        document.getElementById('addRackBtn').addEventListener('click', () => {
+            const newRack = createRack(`Rack ${rackIdCounter}`);
+            racks.push(newRack);
+            renderAll();
+            showToast(`Novo rack ${newRack.name} criado!`, 'success');
+            addEvent(`Novo rack ${newRack.name} criado.`, 'good');
+        });
+
+        // ====== TOASTS ======
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.4s';
+                setTimeout(() => toast.remove(), 400);
+            }, 3500);
+        }
+
+        // ====== LOOP DE SIMULAÇÃO ======
+        function simulationTick() {
+            let revenuePerSecond = 0;
+            racks.forEach(rack => {
+                rack.slots.forEach(slot => {
+                    if (slot.server && slot.server.online && !slot.server.hacked) {
+                        const rev = calcRevenue(slot.server);
+                        revenuePerSecond += rev;
+                        totalRevenueEarned += rev;
+                        // Superaquecimento
+                        const temp = calcTemperature(slot.server, rack.coolingLevel);
+                        if (temp > 85 && Math.random() < 0.03) {
+                            slot.server.online = false;
+                            addEvent(`Servidor ${slot.server.name} desligado por superaquecimento!`, 'bad');
+                            showToast(`${slot.server.name} desligado devido à temperatura!`, 'error');
+                        }
+                    }
+                });
+            });
+
+            const energyCostPerSecond = (totalPowerConsumption / 1000) * COST_PER_KWH / 3600;
+            const netIncome = revenuePerSecond - energyCostPerSecond;
+            money += netIncome;
+
+            // Ganha XP passivo: 1 XP por segundo por servidor online
+            let onlineServers = 0;
+            racks.forEach(r => r.slots.forEach(s => {
+                if (s.server && s.server.online && !s.server.hacked) onlineServers++;
+            }));
+            if (onlineServers > 0) addXp(onlineServers * 0.2);
+
+            // Eventos aleatórios
+            triggerRandomEvent();
+
+            renderAll();
+            // Atualiza conquistas baseadas em receita total
+            checkAchievements();
+        }
+
+        // ====== INICIALIZAÇÃO ======
+        function init() {
+            const rack1 = createRack('Rack Alpha');
+            const rack2 = createRack('Rack Beta');
+            const rack3 = createRack('Rack Gamma');
+
+            addServerToRack(rack1, { name: 'Web-01', cpu: 'AMD EPYC 7302 (16c/32t)', gpu: 'NVIDIA A6000 (48GB)', ram: 128,
+                storage: 4, aiModel: 'llama3', online: true });
+            addServerToRack(rack1, { name: 'DB-01', cpu: 'Intel Xeon Platinum 8280 (28c/56t)', gpu: 'NVIDIA A100 (40GB)',
+                ram: 256, storage: 8, aiModel: 'gpt4', online: true });
+            addServerToRack(rack2, { name: 'ML-01', cpu: 'AMD EPYC 7742 (64c/128t)', gpu: 'NVIDIA H100 (80GB)', ram: 512,
+                storage: 16, aiModel: 'mixtral', online: true });
+            addServerToRack(rack2, { name: 'ML-02', cpu: 'AMD EPYC 7742 (64c/128t)', gpu: 'NVIDIA H100 (80GB)', ram: 512,
+                storage: 16, aiModel: 'stable_diffusion', online: true });
+            addServerToRack(rack3, { name: 'Storage-01', cpu: 'Intel Xeon E5-2680 v4 (14c/28t)', gpu: 'NVIDIA A6000 (48GB)',
+                ram: 128, storage: 32, aiModel: 'whisper', online: true });
+            addServerToRack(rack3, { name: 'Backup-01', cpu: 'Intel Xeon E5-2680 v4 (14c/28t)', gpu: 'NVIDIA A6000 (48GB)',
+                ram: 64, storage: 16, aiModel: 'nenhum', online: false });
+
+            racks = [rack1, rack2, rack3];
+            renderAll();
+            // Inicializa conquistas
+            checkAchievements();
+
+            setInterval(simulationTick, 1000);
+        }
+
+        init();
+    </script>
+
+</body>
+</html>
