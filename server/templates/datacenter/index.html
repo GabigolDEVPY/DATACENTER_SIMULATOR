@@ -38,13 +38,13 @@
 
 <div
   id="ModalBay"
-  class="position-fixed top-0 start-0 w-100 h-100"
+  class="position-fixed top-0 start-0 w-100 h-50"
   style="display: none; z-index: 1050; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);"
   onclick="if (event.target.id === 'ModalBay') closeModal();"
 >
   <div
     class="position-relative bg-dark text-light border border-secondary rounded-3 p-4 mx-auto shadow-lg d-flex flex-column"
-    style="max-width: 500px; min-height: 300px; margin-top: 10vh; background-color: #0b0e14 !important; border-color: #1e2633 !important;"
+    style="max-width: 1100px; width: 95vw; max-height: 80vh; margin-top: 6vh; background-color: #0b0e14 !important; border-color: #1e2633 !important;"
   >
     <!-- Botão fechar (escuro) -->
     <button
@@ -54,7 +54,11 @@
       onclick="closeModal()"
     ></button>
 
-    <div id="ModalBayBody" class="flex-grow-1 text-light" style="color: #e8e4dc !important;">
+    <div
+      id="ModalBayBody"
+      class="flex-grow-1 text-light"
+      style="color: #e8e4dc !important; overflow-y: auto; max-height: calc(80vh - 110px);"
+    >
       <!-- conteúdo injetado pelo htmx -->
     </div>
 

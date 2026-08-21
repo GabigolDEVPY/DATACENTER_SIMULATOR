@@ -4,219 +4,364 @@
 <div class="bay-wrapper p-2" id="bay-id-{{ bay.id }}">
 
     <!-- Cabeçalho da Bay -->
-    <div class="bay-header d-flex justify-content-between align-items-start border-bottom pb-2 mb-3" style="border-color: #1e2633 !important;">
+    <div class="bay-header d-flex justify-content-between align-items-start border-bottom pb-1 mb-2" style="border-color: #1e2633 !important;">
         <div>
-            <h5 class="fw-bold mb-1 text-light d-flex align-items-center gap-2" style="font-size: 1rem;">
-                <i class="bi bi-server" style="color: #00d4ff; font-size: 0.9rem;"></i>
+            <h5 class="fw-bold mb-0 text-light d-flex align-items-center gap-2" style="font-size: 0.9rem;">
+                <i class="bi bi-server" style="color: #00d4ff; font-size: 0.85rem;"></i>
                 Bay #{{ bay.id }}
-                <span class="badge bg-dark text-light ms-1" style="font-size:0.55rem; border:1px solid #2a3345; font-weight:500;">
+                <span class="badge bg-dark text-light ms-1" style="font-size:0.5rem; border:1px solid #2a3345; font-weight:500;">
                     <i class="bi bi-thermometer-half"></i> {{ bay.temperature|default:"42" }}°C
                 </span>
             </h5>
-            <small class="text-secondary" style="font-size: 0.65rem;">
+            <small class="text-secondary" style="font-size: 0.58rem;">
                 <i class="bi bi-clock-history"></i> Ativo desde {{ bay.created_at|date:"d/m/Y" }}
             </small>
         </div>
 
         <div class="text-end">
-            <label class="form-label fw-semibold mb-0 text-secondary text-uppercase" style="font-size: 0.55rem;">OFF/ON</label>
+            <label class="form-label fw-semibold mb-0 text-secondary text-uppercase" style="font-size: 0.5rem;">OFF/ON</label>
             <div class="form-check form-switch d-flex justify-content-end">
-                <input hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                       hx-post="{% url 'server:change_status_bay' bay.id %}"
-                       hx-target="#bay-id-{{ bay.id }}"
-                       hx-swap="outerHTML"
-                       class="form-check-input"
-                       type="checkbox"
-                       role="switch"
-                       id="baySwitch"
-                       {% if bay.is_active %}checked{% endif %}
-                       style="cursor:pointer; width:2.3rem; height:1.15rem; background-color: #1e2633; border-color: #2a3345;">
+                <input hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
+                       hx-post="{% url 'server:change_status_bay' bay.id %}" 
+                       hx-target="#bay-id-{{ bay.id }}" 
+                       hx-swap="outerHTML" 
+                       class="form-check-input" 
+                       type="checkbox" 
+                       role="switch" 
+                       id="baySwitch" 
+                       {% if bay.is_active %}checked{% endif %} 
+                       style="cursor:pointer; width:2rem; height:1rem; background-color: #1e2633; border-color: #2a3345;">
             </div>
         </div>
     </div>
 
-    <!-- Cards de informações rápidas (compactos, 4 colunas) -->
-    <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3">
-            <div class="info-card rounded-3 p-2 h-100 d-flex align-items-center gap-2" style="background: #141a24; border: 1px solid #1e2633;">
-                <i class="bi bi-lightning-fill" style="color: #fbbf24; font-size: 1.2rem;"></i>
-                <div>
-                    <span class="text-secondary text-uppercase" style="font-size:0.55rem;">Consumo</span>
-                    <h6 class="mb-0 text-light" style="font-size: 0.8rem;">{{ bay.watts }} W</h6>
+    <!-- ================================================= -->
+    <!-- SEÇÃO 1 – CARDS DE INFORMAÇÃO RÁPIDA (8 cards, 1 linha só) -->
+    <!-- ================================================= -->
+    <div class="info-section mb-2">
+        <h6 class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.52rem; letter-spacing:0.5px;">
+            <i class="bi bi-speedometer2 me-1"></i> Métricas da Bay
+        </h6>
+
+        <div class="row g-1">
+            <div class="col-6 col-md-3 col-lg-3">
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
+                    <i class="bi bi-lightning-fill" style="color: #fbbf24; font-size: 0.8rem;"></i>
+                    <div>
+                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Consumo</span>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.watts }} W</h6>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="info-card rounded-3 p-2 h-100 d-flex align-items-center gap-2" style="background: #141a24; border: 1px solid #1e2633;">
-                <i class="bi bi-currency-dollar" style="color: #4ade80; font-size: 1.2rem;"></i>
-                <div>
-                    <span class="text-secondary text-uppercase" style="font-size:0.55rem;">Valor</span>
-                    <h6 class="mb-0 text-light" style="font-size: 0.8rem;">${{ bay.price }}</h6>
+            <div class="col-6 col-md-3 col-lg-3">
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
+                    <i class="bi bi-currency-dollar" style="color: #4ade80; font-size: 0.8rem;"></i>
+                    <div>
+                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Valor</span>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">${{ bay.price }}</h6>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="info-card rounded-3 p-2 h-100 d-flex align-items-center gap-2" style="background: #141a24; border: 1px solid #1e2633;">
-                <i class="bi bi-cpu" style="color: #60a5fa; font-size: 1.2rem;"></i>
-                <div>
-                    <span class="text-secondary text-uppercase" style="font-size:0.55rem;">Uso médio</span>
-                    <h6 class="mb-0 text-light" style="font-size: 0.8rem;">{{ bay.cpu_usage|default:"32" }}%</h6>
+            <div class="col-6 col-md-3 col-lg-3">
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
+                    <i class="bi bi-cpu" style="color: #60a5fa; font-size: 0.8rem;"></i>
+                    <div>
+                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Uso médio</span>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.cpu_usage|default:"32" }}%</h6>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="info-card rounded-3 p-2 h-100 d-flex align-items-center gap-2" style="background: #141a24; border: 1px solid #1e2633;">
-                <i class="bi bi-brain" style="color: #ec4899; font-size: 1.2rem;"></i>
-                <div>
-                    <span class="text-secondary text-uppercase" style="font-size:0.55rem;">IA ativa</span>
-                    <h6 class="mb-0 text-light" style="font-size: 0.8rem;">{{ bay.get_ai_model.name|default:"Nenhuma" }}</h6>
+            <div class="col-6 col-md-3 col-lg-3">
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
+                    <i class="bi bi-brain" style="color: #ec4899; font-size: 0.8rem;"></i>
+                    <div>
+                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">IA ativa</span>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.get_ai_model.name|default:"Nenhuma" }}</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg-3">
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
+                    <i class="bi bi-cpu" style="color: #f97316; font-size: 0.8rem;"></i>
+                    <div>
+                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Processadores</span>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.cores|default:"8" }}</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg-3">
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
+                    <i class="bi bi-memory" style="color: #a78bfa; font-size: 0.8rem;"></i>
+                    <div>
+                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">VRAM</span>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.vram_total|default:"12" }} GB</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg-3">
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
+                    <i class="bi bi-server" style="color: #34d399; font-size: 0.8rem;"></i>
+                    <div>
+                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">RAM</span>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.ram_total|default:"64" }} GB</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg-3">
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
+                    <i class="bi bi-hdd-stack" style="color: #f472b6; font-size: 0.8rem;"></i>
+                    <div>
+                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Armazenamento</span>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.storage_total|default:"2" }} TB</h6>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Componentes com Raridades (compactos, 3 por linha em telas maiores) -->
-    <div class="row g-2">
+    <!-- ================================================= -->
+    <!-- SEÇÃO 2 – COMPONENTES COM RARIDADES (separados por tipo) -->
+    <!-- ================================================= -->
+    <div class="hardware-section">
+        <h6 class="text-uppercase text-secondary fw-bold" style="font-size:0.52rem; letter-spacing:0.5px; border-bottom:1px solid #1e2633; padding-bottom:3px; margin-bottom:6px;">
+            <i class="bi bi-grid-3x3-gap-fill me-1"></i> Hardware & IA
+        </h6>
 
-        <!-- RAM – pearlescent -->
-        <div class="col-6 col-lg-4">
-            <div class="card-wrapper rarity-pearlescent">
-                <div class="card-glow-outer"></div>
-                <div class="card-border">
-                    <div class="card-inner" style="text-align: left; align-items: stretch; padding: 0.65rem;">
-                        <div class="card-glow-inner"></div>
-                        <span class="rarity-badge" style="align-self: flex-start; font-size:0.5rem;">Épico</span>
-                        <div class="d-flex flex-column gap-1" style="width: 100%;">
-                            <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-1" style="font-size:0.65rem;">
-                                <i class="bi bi-server"></i> RAM
-                            </span>
-                            <select class="form-select border-0 p-0 fw-semibold mt-1 shadow-none"
-                                    style="background: transparent; color: var(--text-primary, #e8e4dc); font-size:0.7rem;">
-                                <option>{{ bay.get_ram.model|default:"selecione um item" }}</option>
-                                {% for inventoryitem in rams %}
-                                    <option>{{ inventoryitem.item.ram.model }}</option>
-                                {% endfor %}
-                            </select>
+        <!-- ---------- GRUPO: itens únicos (CPU, RAM, Armazenamento, IA) numa linha só ---------- -->
+        <div class="component-group mb-2">
+            <div class="row g-1">
+                <div class="col-6 col-md-3">
+                    <div class="card-wrapper rarity-ancestral">
+                        <div class="card-glow-outer"></div>
+                        <div class="card-border">
+                            <div class="card-inner">
+                                <div class="card-glow-inner"></div>
+                                <span class="rarity-badge">Ancestral</span>
+                                <div class="d-flex flex-column gap-1 w-100">
+                                    <span class="card-label"><i class="bi bi-cpu"></i> CPU</span>
+                                    <select class="part-select">
+                                        <option>{{ bay.get_cpu.model|default:"selecione um item" }}</option>
+                                        {% for inventoryitem in cpus %}
+                                            <option>{{ inventoryitem.item.cpu.model }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="card-wrapper rarity-pearlescent">
+                        <div class="card-glow-outer"></div>
+                        <div class="card-border">
+                            <div class="card-inner">
+                                <div class="card-glow-inner"></div>
+                                <span class="rarity-badge">Épico</span>
+                                <div class="d-flex flex-column gap-1 w-100">
+                                    <span class="card-label"><i class="bi bi-server"></i> RAM</span>
+                                    <select class="part-select">
+                                        <option>{{ bay.get_ram.model|default:"selecione um item" }}</option>
+                                        {% for inventoryitem in rams %}
+                                            <option>{{ inventoryitem.item.ram.model }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="card-wrapper rarity-iris">
+                        <div class="card-glow-outer"></div>
+                        <div class="card-border">
+                            <div class="card-inner">
+                                <div class="card-glow-inner"></div>
+                                <span class="rarity-badge">Iris</span>
+                                <div class="d-flex flex-column gap-1 w-100">
+                                    <span class="card-label"><i class="bi bi-hdd-stack"></i> Armazenamento</span>
+                                    <select class="part-select">
+                                        <option>{{ bay.get_ssd.model|default:"selecione um item" }}</option>
+                                        {% for inventoryitem in ssds %}
+                                            <option>{{ inventoryitem.item.ssd.model }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="card-wrapper rarity-mythic">
+                        <div class="card-glow-outer"></div>
+                        <div class="card-border">
+                            <div class="card-inner">
+                                <div class="card-glow-inner"></div>
+                                <span class="rarity-badge">Mítico</span>
+                                <div class="d-flex flex-column gap-1 w-100">
+                                    <span class="card-label"><i class="bi bi-cpu-fill"></i> IA</span>
+                                    <select class="part-select">
+                                        <option>{{ bay.get_ai_model.name|default:"Nenhum" }}</option>
+                                        {% for inventoryitem in ai_models %}
+                                            <option>{{ inventoryitem.item.ai_model.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- GPU – Lendário -->
-        <div class="col-6 col-lg-4">
-            <div class="card-wrapper rarity-legendary">
-                <div class="card-glow-outer"></div>
-                <div class="card-border">
-                    <div class="card-inner" style="text-align: left; align-items: stretch; padding: 0.65rem;">
-                        <div class="card-glow-inner"></div>
-                        <span class="rarity-badge" style="align-self: flex-start; font-size:0.5rem;">Lendário</span>
-                        <div class="d-flex flex-column gap-1" style="width: 100%;">
-                            <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-1" style="font-size:0.65rem;">
-                                <i class="bi bi-gpu-card"></i> GPU
-                            </span>
-                            <select class="form-select border-0 p-0 fw-semibold mt-1 shadow-none"
-                                    style="background: transparent; color: var(--text-primary, #e8e4dc); font-size:0.7rem;">
-                                <option>{{ bay.get_gpu.model|default:"selecione um item" }}</option>
-                                {% for inventoryitem in gpus %}
-                                    <option>{{ inventoryitem.item.gpu.model }}</option>
-                                {% endfor %}
-                            </select>
+        <!-- ---------- GRUPO: GPUs (3 slots) ---------- -->
+        <div class="component-group mb-2">
+            <span class="group-title"><i class="bi bi-gpu-card"></i> GPUs</span>
+            <div class="row g-1">
+                <div class="col-6 col-md-4">
+                    <div class="card-wrapper rarity-legendary">
+                        <div class="card-glow-outer"></div>
+                        <div class="card-border">
+                            <div class="card-inner">
+                                <div class="card-glow-inner"></div>
+                                <span class="rarity-badge">Lendário</span>
+                                <div class="d-flex flex-column gap-1 w-100">
+                                    <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #1</span>
+                                    <select class="part-select">
+                                        <option>{{ bay.get_gpu.model|default:"selecione um item" }}</option>
+                                        {% for inventoryitem in gpus %}
+                                            <option>{{ inventoryitem.item.gpu.model }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="card-wrapper rarity-legendary">
+                        <div class="card-glow-outer"></div>
+                        <div class="card-border">
+                            <div class="card-inner">
+                                <div class="card-glow-inner"></div>
+                                <span class="rarity-badge">Lendário</span>
+                                <div class="d-flex flex-column gap-1 w-100">
+                                    <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #2</span>
+                                    <select class="part-select">
+                                        <option>selecione um item</option>
+                                        {% for inventoryitem in gpus %}
+                                            <option>{{ inventoryitem.item.gpu.model }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="card-wrapper rarity-legendary">
+                        <div class="card-glow-outer"></div>
+                        <div class="card-border">
+                            <div class="card-inner">
+                                <div class="card-glow-inner"></div>
+                                <span class="rarity-badge">Lendário</span>
+                                <div class="d-flex flex-column gap-1 w-100">
+                                    <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #3</span>
+                                    <select class="part-select">
+                                        <option>selecione um item</option>
+                                        {% for inventoryitem in gpus %}
+                                            <option>{{ inventoryitem.item.gpu.model }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- CPU – Ancestral -->
-        <div class="col-6 col-lg-4">
-            <div class="card-wrapper rarity-ancestral">
-                <div class="card-glow-outer"></div>
-                <div class="card-border">
-                    <div class="card-inner" style="text-align: left; align-items: stretch; padding: 0.65rem">
-                        <div class="card-glow-inner"></div>
-                        <span class="rarity-badge" style="align-self: flex-start; font-size:0.5rem;">Ancestral</span>
-                        <div class="d-flex flex-column gap-1" style="width: 100%;">
-                            <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-1" style="font-size:0.65rem;">
-                                <i class="bi bi-cpu"></i> CPU
-                            </span>
-                            <select class="form-select border-0 p-0 fw-semibold mt-1 shadow-none"
-                                    style="background: transparent; color: var(--text-primary, #e8e4dc); font-size:0.7rem;">
-                                <option>{{ bay.get_cpu.model|default:"selecione um item" }}</option>
-                                {% for inventoryitem in cpus %}
-                                    <option>{{ inventoryitem.item.cpu.model }}</option>
-                                {% endfor %}
-                            </select>
+        <!-- ---------- GRUPO: VRAM (3 slots) ---------- -->
+        <div class="component-group mb-1">
+            <span class="group-title"><i class="bi bi-memory"></i> VRAM</span>
+            <div class="row g-1">
+                <div class="col-6 col-md-4">
+                    <div class="card-wrapper rarity-epic">
+                        <div class="card-glow-outer"></div>
+                        <div class="card-border">
+                            <div class="card-inner">
+                                <div class="card-glow-inner"></div>
+                                <span class="rarity-badge">Épico</span>
+                                <div class="d-flex flex-column gap-1 w-100">
+                                    <span class="card-label"><i class="bi bi-memory"></i> VRAM #1</span>
+                                    <select class="part-select">
+                                        <option>selecione a VRAM</option>
+                                        {% for inventoryitem in vrams %}
+                                            <option>{{ inventoryitem.item.vram.size }} GB</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="card-wrapper rarity-epic">
+                        <div class="card-glow-outer"></div>
+                        <div class="card-border">
+                            <div class="card-inner">
+                                <div class="card-glow-inner"></div>
+                                <span class="rarity-badge">Épico</span>
+                                <div class="d-flex flex-column gap-1 w-100">
+                                    <span class="card-label"><i class="bi bi-memory"></i> VRAM #2</span>
+                                    <select class="part-select">
+                                        <option>selecione a VRAM</option>
+                                        {% for inventoryitem in vrams %}
+                                            <option>{{ inventoryitem.item.vram.size }} GB</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="card-wrapper rarity-epic">
+                        <div class="card-glow-outer"></div>
+                        <div class="card-border">
+                            <div class="card-inner">
+                                <div class="card-glow-inner"></div>
+                                <span class="rarity-badge">Épico</span>
+                                <div class="d-flex flex-column gap-1 w-100">
+                                    <span class="card-label"><i class="bi bi-memory"></i> VRAM #3</span>
+                                    <select class="part-select">
+                                        <option>selecione a VRAM</option>
+                                        {% for inventoryitem in vrams %}
+                                            <option>{{ inventoryitem.item.vram.size }} GB</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Armazenamento – iris -->
-        <div class="col-6 col-lg-4">
-            <div class="card-wrapper rarity-iris">
-                <div class="card-glow-outer"></div>
-                <div class="card-border">
-                    <div class="card-inner" style="text-align: left; align-items: stretch; padding: 0.65rem;">
-                        <div class="card-glow-inner"></div>
-                        <span class="rarity-badge" style="align-self: flex-start; font-size:0.5rem;">Iris</span>
-                        <div class="d-flex flex-column gap-1" style="width: 100%;">
-                            <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-1" style="font-size:0.65rem;">
-                                <i class="bi bi-hdd-stack"></i> Armazenamento
-                            </span>
-                            <select class="form-select border-0 p-0 fw-semibold mt-1 shadow-none"
-                                    style="background: transparent; color: var(--text-primary, #e8e4dc); font-size:0.7rem;">
-                                <option>{{ bay.get_ssd.model|default:"selecione um item" }}</option>
-                                {% for inventoryitem in ssds %}
-                                    <option>{{ inventoryitem.item.ssd.model }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    </div><!-- /hardware-section -->
 
-        <!-- Modelo de IA – Mítico (novo, inspirado nos modelos do outro código: Llama, GPT-4, Mixtral, Claude, Gemini...) -->
-        <div class="col-6 col-lg-4">
-            <div class="card-wrapper rarity-mythic">
-                <div class="card-glow-outer"></div>
-                <div class="card-border">
-                    <div class="card-inner" style="text-align: left; align-items: stretch; padding: 0.65rem;">
-                        <div class="card-glow-inner"></div>
-                        <span class="rarity-badge" style="align-self: flex-start; font-size:0.5rem;">Mítico</span>
-                        <div class="d-flex flex-column gap-1" style="width: 100%;">
-                            <span class="card-label text-secondary fw-semibold d-flex align-items-center gap-1" style="font-size:0.65rem;">
-                                <i class="bi bi-cpu-fill"></i> Modelo de IA
-                            </span>
-                            <select class="form-select border-0 p-0 fw-semibold mt-1 shadow-none"
-                                    style="background: transparent; color: var(--text-primary, #e8e4dc); font-size:0.7rem;">
-                                <option>{{ bay.get_ai_model.name|default:"Nenhum" }}</option>
-                                {% for inventoryitem in ai_models %}
-                                    <option>{{ inventoryitem.item.ai_model.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div><!-- /row -->
-
-    <!-- Impacto Operacional (compacto) -->
-    <div class="row mt-3">
+    <!-- Impacto Operacional (bem compacto) -->
+    <div class="row mt-2">
         <div class="col-12">
-            <div class="alert-card rounded-3 p-2 d-flex align-items-start gap-2" style="background: #1a1a2e; border-left: 3px solid #f87171; border: 1px solid #1e2633;">
-                <i class="bi bi-shield-exclamation" style="color: #f87171; font-size: 1.1rem;"></i>
+            <div class="alert-card rounded-2 p-1 d-flex align-items-start gap-1" style="background: #1a1a2e; border-left: 3px solid #f87171; border: 1px solid #1e2633;">
+                <i class="bi bi-shield-exclamation" style="color: #f87171; font-size: 0.9rem;"></i>
                 <div>
-                    <h6 class="fw-semibold text-light mb-0" style="font-size: 0.75rem;">Impacto Operacional</h6>
-                    <p class="text-secondary mb-0" style="font-size: 0.65rem;">
-                        Durante a baixa os serviços hospedados nesta Bay poderão ficar
-                        indisponíveis. Certifique-se de que todos os procedimentos de
-                        redundância e backup foram executados antes de liberar o
-                        desligamento.
+                    <h6 class="fw-semibold text-light mb-0" style="font-size: 0.62rem;">Impacto Operacional</h6>
+                    <p class="text-secondary mb-0" style="font-size: 0.55rem;">
+                        Durante a baixa os serviços hospedados nesta Bay poderão ficar indisponíveis.
+                        Certifique-se de que os procedimentos de redundância/backup foram executados.
                     </p>
                 </div>
             </div>
@@ -225,30 +370,108 @@
 
 </div>
 
-<!-- ====== ESTILOS EXTRAS (tema escuro + versão compacta) ====== -->
+<!-- ====== ESTILOS EXTRAS (tema escuro + versão bem compacta) ====== -->
 <style>
-    /* Wrapper sem borda/sombra própria — o modal externo (#ModalBay) já cuida disso */
     .bay-wrapper {
         background: transparent;
         border: none;
         box-shadow: none;
-        max-width: 620px;
+        max-width: 1050px;
+        width: 100%;
+        overflow-x: hidden;
     }
 
     .bay-wrapper * {
         background-color: transparent !important;
     }
 
-    .card-inner select {
+    /* raritys.css (arquivo externo) provavelmente define largura fixa
+       ou min-width nesses elementos — isso é o que está causando o
+       scroll lateral quando o card fica numa coluna mais estreita.
+       Forçamos tudo a ser 100% fluido dentro da coluna. */
+    .bay-wrapper,
+    .bay-wrapper * {
+        box-sizing: border-box;
+    }
+    .card-wrapper,
+    .card-glow-outer,
+    .card-border,
+    .card-inner,
+    .card-glow-inner {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Título de grupo (GPUs, VRAM) */
+    .component-group .group-title {
+        display: block;
+        font-size: 0.55rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: #6b7280;
+        margin-bottom: 3px;
+    }
+    .component-group .group-title i {
+        margin-right: 3px;
+    }
+
+    /* Cards de peças: bem menores (largos e baixos) */
+    .card-wrapper .card-inner {
+        text-align: left;
+        align-items: stretch;
+        padding: 0.3rem 0.45rem;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .card-inner .rarity-badge {
+        align-self: flex-start;
+        font-size: 0.4rem;
+        padding: 0 3px;
+        line-height: 1.3;
+        max-width: 100%;
+    }
+
+    .card-inner .card-label {
+        color: #9a9590;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.5rem;
+        min-width: 0;
+    }
+
+    .card-inner select.part-select {
         background: transparent !important;
+        border: 0;
+        padding: 0;
+        margin-top: 1px;
         color: #e8e4dc !important;
         outline: none;
+        box-shadow: none;
+        font-weight: 600;
+        font-size: 0.55rem;
+        line-height: 1.1;
+        white-space: normal;
+        word-break: break-word;
+        height: auto;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
     }
-    .card-inner select option {
+    .card-inner select.part-select option {
         background: #0b0e14;
         color: #e8e4dc;
+        white-space: normal;
+        word-break: break-word;
+        font-size: 0.62rem;
+        padding: 3px 5px;
     }
-    .card-inner select:focus {
+    .card-inner select.part-select:focus {
         box-shadow: none;
     }
 
@@ -279,22 +502,39 @@
         border-color: #00d4ff !important;
     }
 
-    /* Raridade "Mítico" para o Modelo de IA, no mesmo padrão das outras
-       (rarity-epic / rarity-legendary / rarity-ancestral / rarity-pearlescent
-       já existem no seu CSS global — esta é só a nova, cor rosa/roxa) */
     .rarity-mythic .card-border {
         border: 1px solid #ec4899;
     }
     .rarity-mythic .card-glow-outer {
-        box-shadow: 0 0 14px rgba(236, 72, 153, 0.35);
+        box-shadow: 0 0 10px rgba(236, 72, 153, 0.35);
     }
     .rarity-mythic .rarity-badge {
         color: #ec4899;
         background: #2a0f22;
         border: 1px solid #ec4899;
-        padding: 1px 6px;
-        border-radius: 10px;
+        padding: 1px 5px;
+        border-radius: 8px;
         text-transform: uppercase;
         font-weight: 600;
+    }
+
+    .card-wrapper.rarity-legendary,
+    .card-wrapper.rarity-epic {
+        opacity: 0.9;
+    }
+    .card-wrapper.rarity-legendary .card-border,
+    .card-wrapper.rarity-epic .card-border {
+        border-width: 1px;
+    }
+    .hardware-section .row [class^="col-"] {
+        margin-bottom: 4px;
+    }
+</style>
+
+<!-- O tamanho do modal (largura/altura) é ajustado direto no template
+     que contém a div #ModalBay (ver hacks_page.html). -->
+<style>
+    #ModalBayBody {
+        overflow-y: auto;
     }
 </style>
