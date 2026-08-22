@@ -2,29 +2,8 @@
 {% load static %} 
  {% block content %}
  <link rel="stylesheet" href="{% static 'css/raritys.css' %}">
-<style>
-  .wire {
-    width: 40px;
-    height: 7px;
-    align-self: center;
-    background: linear-gradient(90deg, #062233, #00aaff, #062233);
-    background-size: 200% 100%;
-    box-shadow:
-      0 0 8px #00aaff,
-      0 0 3px #00aaff;
-    animation: energyFlow 1.5s linear infinite;
-    flex-shrink: 0;
-  }
+ <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 
-  @keyframes energyFlow {
-    0% {
-      background-position: 200% 0;
-    }
-    100% {
-      background-position: -200% 0;
-    }
-  }
-</style>
 
 <div class="row col-24 mx-auto justify-content-center align-items-center">
     {% for hack in hacks %}
@@ -38,7 +17,7 @@
 
 <div
   id="ModalBay"
-  class="position-fixed top-0 start-0 w-100 h-50"
+  class="position-fixed top-0 start-0 w-100 h-100"
   style="display: none; z-index: 1050; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);"
   onclick="if (event.target.id === 'ModalBay') closeModal();"
 >
@@ -69,7 +48,5 @@
     </div>
   </div>
 </div>
-
-<script src="{% static 'scripts_web_socket.js' %}"></script>
 
 {% endblock content %}
