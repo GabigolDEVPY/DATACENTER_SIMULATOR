@@ -35,7 +35,6 @@ class UserService:
         
         new_balance = user.money + (seconds * user.actual_rate)
         new_energy = user.energy + (seconds * user.actual_energy_rate)
-        print(new_energy)
         
         
         user.last_refresh_balance = now

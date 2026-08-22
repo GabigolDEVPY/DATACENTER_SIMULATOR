@@ -4,8 +4,9 @@ from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import CreateView, View
 from django.urls import reverse_lazy
-from .services import UserService
+from ..services import UserService
 from django.http import JsonResponse
+
 
 # Create your views here.
 class UserRegisterView(CreateView):
@@ -26,6 +27,7 @@ class UserLoginView(LoginView):
     
 class UserLogoutView(LogoutView):
     next_page = reverse_lazy("user:login")
+
 
         
 class GetBalanceView(View):

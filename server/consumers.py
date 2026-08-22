@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-class ServerConsumer(AsyncWebsocketConsumer):
+class UserStatsConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         try:
             self.group_name = f"user_{self.scope['user'].id}"
