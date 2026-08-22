@@ -42,20 +42,20 @@ class UserService:
         user.money = new_balance
         user.actual_rate = new_rate
         user.energy = new_energy
-        user.actual_rate = new_energy_rate
         
         user.save(update_fields=["money", "last_refresh_balance", "actual_rate"])
         
         channel_layer = get_channel_layer()
+        
+        # chamar o socket pra atualizar os stats da navbar do usuário
         async_to_sync(channel_layer.group_send)(
             f"user_{user.id}",
             {
-             "type": "power_update",
-             "message_type": "refresh_balance",
-             "balance": float(new_balance),
-             "rate_money": float(new_rate),
-             "energy": float(new_energy),
-             "rate_energy": float(new_energy_rate)
+            "type": "stats_update",
+            "message_type": "refresh_balance",
+            "balance": float(new_balance),
+            "rate_money": float(new_rate),
+            "energy": float(new_energy),
+            "rate_energy": float(new_energy_rate)
             }
         )
-        

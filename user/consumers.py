@@ -1,5 +1,8 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from .services import UserService
+from asgiref.sync import async_to_sync
+from channels.db import database_sync_to_async
 
 class UserStatsConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -10,6 +13,9 @@ class UserStatsConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
             await self.accept()
+            # chama o refresh, e o refresh vai chamar o power update 
+            await database_sync_to_async(UserService.refresh_balance)(user=self.scope["user"]) 
+            
         except Exception as e:
             await self.close(code=1011) # erro interno do servidor
         
@@ -22,5 +28,5 @@ class UserStatsConsumer(AsyncWebsocketConsumer):
         )
     
     # serviço é chamado quando existe updates dos dados do usuário
-    async def power_update(self, event):
+    async def stats_update(self, event):
         await self.send(text_data=json.dumps(event))
