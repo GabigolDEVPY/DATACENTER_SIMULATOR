@@ -62,6 +62,41 @@ class Bay(models.Model):
     @property
     def price(self):
         return self.WATTS_PRICE.get(self.watts, 0)
+    
+    @property
+    def get_total_ram(self):
+        total_ram = 0
+        
+        if self.get_ram1:
+            total_ram += self.get_ram1.gb
+        if self.get_ram2:
+            total_ram += self.get_ram2.gb
+        if self.get_ram3:
+            total_ram += self.get_ram3.gb
+            
+        return total_ram
+    
+    @property
+    def get_total_vram(self):
+        total_vram = 0
+        if self.get_gpu1:
+            total_vram += self.get_gpu1.vram
+        if self.get_gpu2:
+            total_vram += self.get_gpu2.vram
+        if self.get_gpu3:
+            total_vram += self.get_gpu3.vram
+        return total_vram
+    
+    @property
+    def get_total_processors(self):
+        total_processors = (self.get_cpu.cores)
+        return total_processors
+    
+    @property
+    def get_total_storage(self):
+        total_storage = (self.get_ssd.gb)
+        return total_storage
+    
 
 
     # get das peças

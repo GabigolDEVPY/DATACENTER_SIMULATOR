@@ -85,7 +85,7 @@
                     <i class="bi bi-cpu" style="color: #f97316; font-size: 0.8rem;"></i>
                     <div>
                         <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Processadores</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.cores|default:"8" }}</h6>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.get_total_processors|default:"0" }}</h6>
                     </div>
                 </div>
             </div>
@@ -94,7 +94,7 @@
                     <i class="bi bi-memory" style="color: #a78bfa; font-size: 0.8rem;"></i>
                     <div>
                         <span class="text-secondary text-uppercase" style="font-size:0.42rem;">VRAM</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.vram_total|default:"12" }} GB</h6>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.get_total_vram|default:"0" }} GB</h6>
                     </div>
                 </div>
             </div>
@@ -103,7 +103,7 @@
                     <i class="bi bi-server" style="color: #34d399; font-size: 0.8rem;"></i>
                     <div>
                         <span class="text-secondary text-uppercase" style="font-size:0.42rem;">RAM</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.ram_total|default:"64" }} GB</h6>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.get_total_ram|default:"0" }} GB</h6>
                     </div>
                 </div>
             </div>
@@ -112,7 +112,7 @@
                     <i class="bi bi-hdd-stack" style="color: #f472b6; font-size: 0.8rem;"></i>
                     <div>
                         <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Armazenamento</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.storage_total|default:"2" }} TB</h6>
+                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.get_total_storage|default:"2" }} GB</h6>
                     </div>
                 </div>
             </div>
@@ -200,7 +200,7 @@
             <span class="group-title"><i class="bi bi-gpu-card"></i> GPUs</span>
             <div class="row g-1">
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper {{ bay.get_gpu1.rarity }}">
+                    <div class="card-wrapper rarity-{{ bay.get_gpu1.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
@@ -209,7 +209,7 @@
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #1</span>
                                     <select class="part-select">
-                                        <option>{{ bay.get_gpu.model|default:"selecione um item" }}</option>
+                                        <option>{{ bay.get_gpu1.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in gpus %}
                                             <option>{{ inventoryitem.item.gpu.model }}</option>
                                         {% endfor %}
@@ -229,7 +229,7 @@
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #2</span>
                                     <select class="part-select">
-                                        <option>selecione um item</option>
+                                        <option>{{ bay.get_gpu2.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in gpus %}
                                             <option>{{ inventoryitem.item.gpu.model }}</option>
                                         {% endfor %}
@@ -249,7 +249,7 @@
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #3</span>
                                     <select class="part-select">
-                                        <option>selecione um item</option>
+                                        <option>{{ bay.get_gpu3.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in gpus %}
                                             <option>{{ inventoryitem.item.gpu.model }}</option>
                                         {% endfor %}
@@ -276,7 +276,7 @@
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #1</span>
                                     <select class="part-select">
-                                        <option>{{ bay.get_ram.model|default:"selecione a RAM" }}</option>
+                                        <option>{{ bay.get_ram1.model|default:"selecione a RAM" }}</option>
                                         {% for inventoryitem in rams %}
                                             <option>{{ inventoryitem.item.ram.model }}</option>
                                         {% endfor %}
@@ -296,7 +296,7 @@
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #2</span>
                                     <select class="part-select">
-                                        <option>selecione a RAM</option>
+                                        <option>{{ bay.get_ram2.model|default:"selecione a RAM" }}</option>
                                         {% for inventoryitem in rams %}
                                             <option>{{ inventoryitem.item.ram.model }}</option>
                                         {% endfor %}
@@ -316,7 +316,7 @@
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #3</span>
                                     <select class="part-select">
-                                        <option>selecione a RAM</option>
+                                        <option>{{ bay.get_ram3.model|default:"selecione a RAM" }}</option>
                                         {% for inventoryitem in rams %}
                                             <option>{{ inventoryitem.item.ram.model }}</option>
                                         {% endfor %}
