@@ -200,12 +200,12 @@
             <span class="group-title"><i class="bi bi-gpu-card"></i> GPUs</span>
             <div class="row g-1">
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-legendary">
+                    <div class="card-wrapper {{ bay.get_gpu1.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">Lendário</span>
+                                <span class="rarity-badge">{{ bay.get_gpu1.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #1</span>
                                     <select class="part-select">
@@ -220,12 +220,12 @@
                     </div>
                 </div>
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-legendary">
+                    <div class="card-wrapper rarity-{{ bay.get_gpu2.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">Lendário</span>
+                                <span class="rarity-badge">{{ bay.get_gpu2.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #2</span>
                                     <select class="part-select">
@@ -240,12 +240,12 @@
                     </div>
                 </div>
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-legendary">
+                    <div class="card-wrapper rarity-{{ bay.get_gpu3.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">Lendário</span>
+                                <span class="rarity-badge">{{ bay.get_gpu3.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #3</span>
                                     <select class="part-select">
@@ -267,12 +267,12 @@
             <span class="group-title"><i class="bi bi-memory"></i> RAM</span>
             <div class="row g-1">
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-epic">
+                    <div class="card-wrapper rarity-{{ bay.get_ram1.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">Épico</span>
+                                <span class="rarity-badge">{{ bay.get_ram1.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #1</span>
                                     <select class="part-select">
@@ -287,12 +287,12 @@
                     </div>
                 </div>
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-epic">
+                    <div class="card-wrapper rarity-{{ bay.get_ram2.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">Épico</span>
+                                <span class="rarity-badge">{{ bay.get_ram2.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #2</span>
                                     <select class="part-select">
@@ -307,12 +307,12 @@
                     </div>
                 </div>
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-epic">
+                    <div class="card-wrapper rarity-{{ bay.get_ram3.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">Épico</span>
+                                <span class="rarity-badge">{{ bay.get_ram3.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #3</span>
                                     <select class="part-select">
@@ -330,21 +330,5 @@
         </div>
 
     </div><!-- /hardware-section -->
-
-    <!-- Impacto Operacional (bem compacto) -->
-    <div class="row mt-2">
-        <div class="col-12">
-            <div class="alert-card rounded-2 p-1 d-flex align-items-start gap-1" style="background: #1a1a2e; border-left: 3px solid #f87171; border: 1px solid #1e2633;">
-                <i class="bi bi-shield-exclamation" style="color: #f87171; font-size: 0.9rem;"></i>
-                <div>
-                    <h6 class="fw-semibold text-light mb-0" style="font-size: 0.62rem;">Impacto Operacional</h6>
-                    <p class="text-secondary mb-0" style="font-size: 0.55rem;">
-                        Durante a baixa os serviços hospedados nesta Bay poderão ficar indisponíveis.
-                        Certifique-se de que os procedimentos de redundância/backup foram executados.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
+
