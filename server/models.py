@@ -38,10 +38,10 @@ class Bay(models.Model):
         WattsTier.VERY_HIGH: 280000,
     }
 
-    ram = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="ram_bay")
-    cpu = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="cpu_bay")
     gpu = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="gpu_bay")
     ssd = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="ssd_bay")
+    cpu = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="cpu_bay")
+    ram = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="ram_bay")
     
     @property
     def get_power(self):
@@ -57,6 +57,8 @@ class Bay(models.Model):
     def price(self):
         return self.WATTS_PRICE.get(self.watts, 0)
 
+
+    # get das partes do bay
     @property
     def get_cpu(self):
         return self.cpu.item.cpu if self.cpu else None
