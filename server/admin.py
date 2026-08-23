@@ -8,4 +8,4 @@ class RackAdmin(admin.ModelAdmin):
     
 @admin.register(Bay)
 class BayAdmin(admin.ModelAdmin):
-    list_display = ["name", "rack", "watts"]
+    list_display = ["name", "rack"]

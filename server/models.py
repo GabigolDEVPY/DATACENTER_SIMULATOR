@@ -18,25 +18,9 @@ class Rack(models.Model):
 class Bay(models.Model):
     name = models.CharField(max_length=80, blank=False)
     rack = models.ForeignKey(Rack, on_delete=models.CASCADE, related_name="bays")
-
-    class WattsTier(models.TextChoices):
-        VERY_LOW = "1KW", "Very Low (1KW)"
-        LOW = "2KW", "Low (2KW)"
-        MEDIUM = "4KW", "Medium (4KW)"
-        HIGH = "8KW", "HIGH (8KW)"
-        VERY_HIGH = "16KW", "HIGH (16KW)"
-
     is_active = models.BooleanField(default=False)
-    watts = models.CharField(max_length=10, choices=WattsTier.choices, default=WattsTier.LOW)
     last_time_active = models.DateTimeField(null=True)
 
-    WATTS_PRICE = {
-        WattsTier.VERY_LOW: 12000,
-        WattsTier.LOW: 28000,
-        WattsTier.MEDIUM: 58000,
-        WattsTier.HIGH: 120000,
-        WattsTier.VERY_HIGH: 280000,
-    }
 
     cpu = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="cpu_bay")
     ssd = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="ssd_bay")
@@ -51,19 +35,47 @@ class Bay(models.Model):
 
     @property
     def get_power(self):
-        power =(self.cpu.get_power() + self.gpu1.get_power() + self.gpu2.get_power() + self.gpu3.get_power() + self.ssd.get_power() + self.ram1.get_power() + self.ram2.get_power() + self.ram3.get_power())
+        power =(
+            (self.get_cpu.get_power() if self.get_cpu else 0 )+
+            (self.get_gpu1.get_power() if self.get_gpu1 else 0)+
+            (self.get_gpu2.get_power() if self.get_gpu2 else 0)+
+            (self.get_gpu3.get_power() if self.get_gpu3 else 0)+
+            (self.get_ssd.get_power() if self.get_ssd else 0)+
+            (self.get_ram1.get_power() if self.get_ram1 else 0)+
+            (self.get_ram2.get_power() if self.get_ram2 else 0)+
+            (self.get_ram3.get_power() if self.get_ram3 else 0)
+        )
         return power
 
     @property
-    def get_energy_rate(self):
-        energy_rate =(self.get_cpu.get_energy_rate() + self.get_gpu1.get_energy_rate() + self.get_gpu2.get_energy_rate() + self.get_gpu3.get_energy_rate() + self.get_ssd.get_energy_rate() + self.get_ram1.get_energy_rate() + self.get_ram2.get_energy_rate() + self.get_ram3.get_energy_rate())
-        return energy_rate
+    def get_total_watts(self):
+        watts = (
+            (self.get_cpu.watts if self.get_cpu else 0 )+
+            (self.get_gpu1.watts if self.get_gpu1 else 0)+
+            (self.get_gpu2.watts if self.get_gpu2 else 0)+
+            (self.get_gpu3.watts if self.get_gpu3 else 0)+
+            (self.get_ssd.watts if self.get_ssd else 0)+
+            (self.get_ram1.watts if self.get_ram1 else 0)+
+            (self.get_ram2.watts if self.get_ram2 else 0)+
+            (self.get_ram3.watts if self.get_ram3 else 0)
+        )
+        return watts
 
     @property
-    def price(self):
-        return self.WATTS_PRICE.get(self.watts, 0)
+    def get_total_price(self):
+        price = (
+            (self.get_cpu.price if self.get_cpu else 0 )+
+            (self.get_gpu1.price if self.get_gpu1 else 0)+
+            (self.get_gpu2.price if self.get_gpu2 else 0)+
+            (self.get_gpu3.price if self.get_gpu3 else 0)+
+            (self.get_ssd.price if self.get_ssd else 0)+
+            (self.get_ram1.price if self.get_ram1 else 0)+
+            (self.get_ram2.price if self.get_ram2 else 0)+
+            (self.get_ram3.price if self.get_ram3 else 0)
+        )
+        return price
     
-    @property
+    @property 
     def get_total_ram(self):
         total_ram = 0
         

@@ -16,7 +16,8 @@ class Hardware(models.Model):
     watts = models.IntegerField()
     rarity = models.CharField(max_length=30)
     is_active = models.BooleanField(default=False)
-
+    
+        
     def __str__(self):
         return f"{self.brand.name} {self.model}"
 
@@ -35,11 +36,6 @@ class CPU(Hardware):
             self.score_bottleneck * 300
         )
     
-    def get_energy_rate(self):
-        return (
-            self.watts
-        )
-        
 
 
 class GPU(Hardware):
@@ -54,11 +50,6 @@ class GPU(Hardware):
             self.score_bottleneck * 500
         )
     
-    def get_energy_rate(self):
-        return (
-            self.watts
-        )
-
 
 class RAM(Hardware):
     gb = models.IntegerField()
@@ -70,10 +61,7 @@ class RAM(Hardware):
             self.mhz * 2
         )
 
-    def get_energy_rate(self):
-        return (
-            self.watts
-        )
+
 
 class SSD(Hardware):
     gb = models.IntegerField()
@@ -85,7 +73,3 @@ class SSD(Hardware):
             self.speed * 3
         )
     
-    def get_energy_rate(self):
-        return (
-            self.watts
-        )
