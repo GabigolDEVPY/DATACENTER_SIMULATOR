@@ -22,91 +22,53 @@ class Bay(models.Model):
     last_time_active = models.DateTimeField(null=True)
 
 
-    cpu = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="cpu_bay")
-    ssd = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="ssd_bay")
+    cpu = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="cpu_bay")
+    ssd = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="ssd_bay")
     
-    gpu1 = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="gpu_bay1")
-    gpu2 = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="gpu_bay2")
-    gpu3 = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="gpu_bay3")
+    gpu1 = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="gpu_bay1")
+    gpu2 = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="gpu_bay2")
+    gpu3 = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="gpu_bay3")
     
-    ram1 = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="ram_bay1")
-    ram2 = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="ram_bay2")
-    ram3 = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, null=True, blank=True, related_name="ram_bay3")
+    ram1 = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="ram_bay1")
+    ram2 = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="ram_bay2")
+    ram3 = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="ram_bay3")
 
     @property
     def get_power(self):
-        power =(
-            (self.get_cpu.get_power() if self.get_cpu else 0 )+
-            (self.get_gpu1.get_power() if self.get_gpu1 else 0)+
-            (self.get_gpu2.get_power() if self.get_gpu2 else 0)+
-            (self.get_gpu3.get_power() if self.get_gpu3 else 0)+
-            (self.get_ssd.get_power() if self.get_ssd else 0)+
-            (self.get_ram1.get_power() if self.get_ram1 else 0)+
-            (self.get_ram2.get_power() if self.get_ram2 else 0)+
-            (self.get_ram3.get_power() if self.get_ram3 else 0)
-        )
+        power = sum(value.get_power for field in self._meta.fields if hasattr(value := getattr(self, field.name, None), "get_power"))
         return power
+
 
     @property
     def get_total_watts(self):
-        watts = (
-            (self.get_cpu.watts if self.get_cpu else 0 )+
-            (self.get_gpu1.watts if self.get_gpu1 else 0)+
-            (self.get_gpu2.watts if self.get_gpu2 else 0)+
-            (self.get_gpu3.watts if self.get_gpu3 else 0)+
-            (self.get_ssd.watts if self.get_ssd else 0)+
-            (self.get_ram1.watts if self.get_ram1 else 0)+
-            (self.get_ram2.watts if self.get_ram2 else 0)+
-            (self.get_ram3.watts if self.get_ram3 else 0)
-        )
-        return watts
+        total_watts = sum(getattr(getattr(self, field.name, None), "watts", 0) for field in self._meta.fields)
+        return total_watts
 
     @property
     def get_total_price(self):
-        price = (
-            (self.get_cpu.price if self.get_cpu else 0 )+
-            (self.get_gpu1.price if self.get_gpu1 else 0)+
-            (self.get_gpu2.price if self.get_gpu2 else 0)+
-            (self.get_gpu3.price if self.get_gpu3 else 0)+
-            (self.get_ssd.price if self.get_ssd else 0)+
-            (self.get_ram1.price if self.get_ram1 else 0)+
-            (self.get_ram2.price if self.get_ram2 else 0)+
-            (self.get_ram3.price if self.get_ram3 else 0)
-        )
-        return price
+        total_price = sum(getattr(getattr(self, field.name, None), "price", 0) for field in self._meta.fields)
+        return total_price
+
+    
     
     @property 
     def get_total_ram(self):
-        total_ram = 0
-        
-        if self.get_ram1:
-            total_ram += self.get_ram1.gb
-        if self.get_ram2:
-            total_ram += self.get_ram2.gb
-        if self.get_ram3:
-            total_ram += self.get_ram3.gb
-            
+        total_ram = sum(getattr(ram, "gb", 0) for field in self._meta.fields if (ram := getattr(self, field.name, None)))
         return total_ram
     
     @property
     def get_total_vram(self):
-        total_vram = 0
-        if self.get_gpu1:
-            total_vram += self.get_gpu1.vram
-        if self.get_gpu2:
-            total_vram += self.get_gpu2.vram
-        if self.get_gpu3:
-            total_vram += self.get_gpu3.vram
+        total_vram = sum(getattr(ram, "vram", 0) for field in self._meta.fields if (ram := getattr(self, field.name, None)))
         return total_vram
     
     @property
     def get_total_processors(self):
-        total_processors = (self.get_cpu.cores)
+        total_processors = self.get_cpu.cores if self.self.get_cpu else 0
         return total_processors
     
     @property
     def get_total_storage(self):
-        total_storage = (self.get_ssd.gb)
+        total_storage = self.get_ssd.gb if self.self.get_ssd else 0
         return total_storage
     
 
