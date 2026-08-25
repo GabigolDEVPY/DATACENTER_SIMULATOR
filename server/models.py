@@ -33,11 +33,12 @@ class Bay(models.Model):
     ram2 = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="ram_bay2")
     ram3 = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="ram_bay3")
 
+
+
     @property
     def get_power(self):
         power = sum(value.get_power for field in self._meta.fields if hasattr(value := getattr(self, field.name, None), "get_power"))
         return power
-
 
     @property
     def get_total_watts(self):
@@ -48,8 +49,6 @@ class Bay(models.Model):
     def get_total_price(self):
         total_price = sum(getattr(getattr(self, field.name, None), "price", 0) for field in self._meta.fields)
         return total_price
-
-    
     
     @property 
     def get_total_ram(self):
@@ -63,16 +62,16 @@ class Bay(models.Model):
     
     @property
     def get_total_processors(self):
-        total_processors = self.get_cpu.cores if self.self.get_cpu else 0
+        total_processors = self.get_cpu.cores if self.get_cpu else 0
         return total_processors
     
     @property
     def get_total_storage(self):
-        total_storage = self.get_ssd.gb if self.self.get_ssd else 0
+        total_storage = self.get_ssd.gb if self.get_ssd else 0
         return total_storage
     
-
-
+    
+    
     # get das peças
     @property
     def get_ssd(self):
