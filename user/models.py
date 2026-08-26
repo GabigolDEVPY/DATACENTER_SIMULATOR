@@ -22,8 +22,7 @@ class Inventory(models.Model):
 class InventoryItem(models.Model):
     inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE)
     item = models.ForeignKey(Hardware, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
     is_equiped = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.quantity} x {self.item.model} (Equipped: {self.is_equiped})"
+        return f"{self.item.model} (Equipped: {self.is_equiped})"

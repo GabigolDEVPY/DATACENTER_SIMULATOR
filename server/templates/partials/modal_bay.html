@@ -131,16 +131,16 @@
         <div class="component-group mb-2">
             <div class="row g-1">
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-{{ bay.get_cpu.rarity }}">
+                    <div class="card-wrapper rarity-{{ bay.bay.get_cpu.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">{{ bay.get_cpu.rarity }}</span>
+                                <span class="rarity-badge">{{ bay.bay.get_cpu.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-cpu"></i> CPU</span>
                                     <select class="part-select">
-                                        <option>{{ bay.get_cpu.model|default:"selecione um item" }}</option>
+                                        <option>{{ bay.bay.get_cpu.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in cpus %}
                                             <option>{{ inventoryitem.item.cpu.model }}</option>
                                         {% endfor %}
@@ -152,16 +152,16 @@
                 </div>
 
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-{{ bay.get_ssd.rarity }}">
+                    <div class="card-wrapper rarity-{{ bay.bay.get_ssd.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">{{ bay.get_ssd.rarity }}</span>
+                                <span class="rarity-badge">{{ bay.bay.get_ssd.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-hdd-stack"></i> Armazenamento</span>
                                     <select class="part-select">
-                                        <option>{{ bay.get_ssd.model|default:"selecione um item" }}</option>
+                                        <option>{{ bay.bay.get_ssd.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in ssds %}
                                             <option>{{ inventoryitem.item.ssd.model }}</option>
                                         {% endfor %}
@@ -182,7 +182,7 @@
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-cpu-fill"></i> IA</span>
                                     <select class="part-select">
-                                        <option>{{ bay.get_ai_model.name|default:"Nenhum" }}</option>
+                                        <option>{{ bay.bay.get_ai_model.name|default:"Nenhum" }}</option>
                                         {% for inventoryitem in ai_models %}
                                             <option>{{ inventoryitem.item.ai_model.name }}</option>
                                         {% endfor %}
@@ -200,16 +200,16 @@
             <span class="group-title"><i class="bi bi-gpu-card"></i> GPUs</span>
             <div class="row g-1">
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-{{ bay.get_gpu1.rarity }}">
+                    <div class="card-wrapper rarity-{{ bay.bay.get_gpu1.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">{{ bay.get_gpu1.rarity }}</span>
+                                <span class="rarity-badge">{{ bay.bay.get_gpu1.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #1</span>
                                     <select class="part-select">
-                                        <option>{{ bay.get_gpu1.model|default:"selecione um item" }}</option>
+                                        <option>{{ bay.bay.get_gpu1.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in gpus %}
                                             <option>{{ inventoryitem.item.gpu.model }}</option>
                                         {% endfor %}
@@ -220,16 +220,16 @@
                     </div>
                 </div>
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-{{ bay.get_gpu2.rarity }}">
+                    <div class="card-wrapper rarity-{{ bay.bay.get_gpu2.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">{{ bay.get_gpu2.rarity }}</span>
+                                <span class="rarity-badge">{{ bay.bay.get_gpu2.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #2</span>
                                     <select class="part-select">
-                                        <option>{{ bay.get_gpu2.model|default:"selecione um item" }}</option>
+                                        <option>{{ bay.bay.get_gpu2.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in gpus %}
                                             <option>{{ inventoryitem.item.gpu.model }}</option>
                                         {% endfor %}
@@ -240,16 +240,16 @@
                     </div>
                 </div>
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-{{ bay.get_gpu3.rarity }}">
+                    <div class="card-wrapper rarity-{{ bay.bay.get_gpu3.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">{{ bay.get_gpu3.rarity }}</span>
+                                <span class="rarity-badge">{{ bay.bay.get_gpu3.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #3</span>
                                     <select class="part-select">
-                                        <option>{{ bay.get_gpu3.model|default:"selecione um item" }}</option>
+                                        <option>{{ bay.bay.get_gpu3.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in gpus %}
                                             <option>{{ inventoryitem.item.gpu.model }}</option>
                                         {% endfor %}
@@ -267,16 +267,16 @@
             <span class="group-title"><i class="bi bi-memory"></i> RAM</span>
             <div class="row g-1">
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-{{ bay.get_ram1.rarity }}">
+                    <div class="card-wrapper rarity-{{ bay.bay.get_ram1.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">{{ bay.get_ram1.rarity }}</span>
+                                <span class="rarity-badge">{{ bay.bay.get_ram1.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #1</span>
                                     <select class="part-select">
-                                        <option>{{ bay.get_ram1.model|default:"selecione a RAM" }}</option>
+                                        <option>{{ bay.bay.get_ram1.model|default:"selecione a RAM" }}</option>
                                         {% for inventoryitem in rams %}
                                             <option>{{ inventoryitem.item.ram.model }}</option>
                                         {% endfor %}
@@ -287,16 +287,16 @@
                     </div>
                 </div>
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-{{ bay.get_ram2.rarity }}">
+                    <div class="card-wrapper rarity-{{ bay.bay.get_ram2.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">{{ bay.get_ram2.rarity }}</span>
+                                <span class="rarity-badge">{{ bay.bay.get_ram2.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #2</span>
                                     <select class="part-select">
-                                        <option>{{ bay.get_ram2.model|default:"selecione a RAM" }}</option>
+                                        <option>{{ bay.bay.get_ram2.model|default:"selecione a RAM" }}</option>
                                         {% for inventoryitem in rams %}
                                             <option>{{ inventoryitem.item.ram.model }}</option>
                                         {% endfor %}
@@ -307,16 +307,16 @@
                     </div>
                 </div>
                 <div class="col-6 col-md-4">
-                    <div class="card-wrapper rarity-{{ bay.get_ram3.rarity }}">
+                    <div class="card-wrapper rarity-{{ bay.bay.get_ram3.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
                             <div class="card-inner">
                                 <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">{{ bay.get_ram3.rarity }}</span>
+                                <span class="rarity-badge">{{ bay.bay.get_ram3.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #3</span>
                                     <select class="part-select">
-                                        <option>{{ bay.get_ram3.model|default:"selecione a RAM" }}</option>
+                                        <option>{{ bay.bay.get_ram3.model|default:"selecione a RAM" }}</option>
                                         {% for inventoryitem in rams %}
                                             <option>{{ inventoryitem.item.ram.model }}</option>
                                         {% endfor %}

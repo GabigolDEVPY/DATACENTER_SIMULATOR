@@ -12,4 +12,4 @@ class InventoryAdmin(admin.ModelAdmin):
     
 @admin.register(InventoryItem)
 class InventoryItemAdmin(admin.ModelAdmin):
-    list_display = ['item', 'quantity', 'is_equiped']
+    list_display = ['item', 'is_equiped']
