@@ -25,51 +25,55 @@ class Hardware(models.Model):
 class CPU(Hardware):
     cores = models.IntegerField()
     threads = models.IntegerField()
-    ghz = models.FloatField()
-    score_bottleneck = models.IntegerField()
+    cpu_ghz = models.FloatField()
+    cpu_score_bottleneck = models.IntegerField()
 
+    @property
     def get_power(self):
         return (
             self.cores * 50 +
             self.threads * 80 +
-            self.ghz * 100 +
+            self.cpu_ghz * 100 +
             self.score_bottleneck * 300
         )
     
 
 
 class GPU(Hardware):
-    score_bottleneck = models.IntegerField()
+    gpu_score_bottleneck = models.IntegerField()
     vram = models.IntegerField()
-    mhz = models.FloatField()
+    gpu_mhz = models.FloatField()
 
+    @property
     def get_power(self):
         return (
             self.vram * 200 +
-            self.mhz +
-            self.score_bottleneck * 500
+            self.gpu_mhz +
+            self.gpu_score_bottleneck * 500
         )
     
 
 class RAM(Hardware):
-    gb = models.IntegerField()
-    mhz = models.IntegerField()
+    ram_gb = models.IntegerField()
+    ram_mhz = models.IntegerField()
 
+    @property
     def get_power(self):
         return (
-            self.gb * 300 +
-            self.mhz * 2
+            self.ram_gb * 300 +
+            self.ram_mhz * 2
         )
 
 
 
 class SSD(Hardware):
-    gb = models.IntegerField()
+    ssd_gb = models.IntegerField()
     speed = models.IntegerField()
 
+    @property
     def get_power(self):
         return (
-            self.gb * 5 +
+            self.ssd_gb * 5 +
             self.speed * 3
         )
     

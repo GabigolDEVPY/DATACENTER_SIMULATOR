@@ -4,12 +4,12 @@ from .models import CPU, GPU, SSD, RAM, Brand
 # Register your models here.
 @admin.register(CPU)
 class CPUAdmin(admin.ModelAdmin):
-    list_display = ('type', 'model', 'brand', 'price', 'watts', 'score_bottleneck', 'get_power', 'rarity')
+    list_display = ('type', 'model', 'brand', 'price', 'watts', 'cpu_score_bottleneck', 'get_power', 'rarity')
     pass
 
 @admin.register(GPU)
 class GPUAdmin(admin.ModelAdmin):
-    list_display = ('type', 'model', 'brand', 'price', 'watts', 'score_bottleneck', 'get_power', 'rarity')
+    list_display = ('type', 'model', 'brand', 'price', 'watts', 'gpu_score_bottleneck', 'get_power', 'rarity')
     pass
 
 @admin.register(RAM)
