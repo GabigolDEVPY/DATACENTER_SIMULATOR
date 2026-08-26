@@ -34,7 +34,7 @@ class CPU(Hardware):
             self.cores * 50 +
             self.threads * 80 +
             self.cpu_ghz * 100 +
-            self.score_bottleneck * 300
+            self.cpu_score_bottleneck * 300
         )
     
 

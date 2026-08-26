@@ -4,34 +4,13 @@ from decimal import Decimal
 from django.utils import timezone
 
 class UserService:
-    @staticmethod 
-    def get_total_rate(user):
-        value = 0
-        energy_rate = 0
-        racks = user.racks.all()
-        for rack in racks:
-            for bay in rack.bays.all():
-                if bay.is_active:
-                    
-                    components = [bay.get_cpu, bay.get_gpu1 ,bay.get_ram1, bay.get_ssd]
-                    
-                    if any(component is None for component in components):
-                        continue
-                    
-                    value += float(bay.get_cpu.get_power() +bay.get_gpu1.get_power() +bay.get_ram1.get_power() + bay.get_ssd.get_power()  ) * 0.000001
-                    energy_rate += 1 
-                    
-                else: 
-                    continue
-                
-        return value, (energy_rate * 0.00001)
     
     @staticmethod
     def refresh_balance(user):
         now = timezone.now()
         seconds = int((now - user.last_refresh_balance).total_seconds() + 1)
         
-        new_rate, new_energy_rate = UserService.get_total_rate(user)
+        new_rate, new_energy_rate = 0, 0
         
         new_balance = user.money + (seconds * user.actual_rate)
         new_energy = user.energy + (seconds * user.actual_energy_rate)

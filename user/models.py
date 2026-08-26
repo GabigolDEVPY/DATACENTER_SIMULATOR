@@ -20,7 +20,7 @@ class Inventory(models.Model):
 
 
 class InventoryItem(models.Model):
-    Inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE)
+    inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE)
     item = models.ForeignKey(Hardware, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     is_equiped = models.BooleanField(default=False)

@@ -1,5 +1,5 @@
 from django.views.generic import View
-from ..services import UserService
+from ..services.services import UserService
 from django.http import JsonResponse
 
 

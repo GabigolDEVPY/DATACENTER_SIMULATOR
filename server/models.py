@@ -34,51 +34,10 @@ class Bay(models.Model):
     ram3 = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="ram_bay3")
 
 
-
     @property
     def components(self):
             return filter(None, [self.get_cpu, self.get_ssd, self.get_gpu1, self.get_gpu2, self.get_gpu3, self.get_ram1, self.get_ram2, self.get_ram3])
-    
-
-    @property
-    def get_power(self):
-        power = sum(getattr(item, "get_power", 0) for item in self.components)
-        return power
-
-    @property
-    def get_total_watts(self):
-        total_watts = sum(getattr(item, "watts", 0) for item in self.components)
-        print("total_watts", total_watts)
-        return total_watts
-
-    @property
-    def get_total_price(self):
-        total_price = sum(getattr(item, "price", 0) for item in self.components)
-        return total_price
-    
-    @property 
-    def get_total_ram(self):
-        total_ram = sum(getattr(item, "ram_gb", 0) for item in self.components)
-        print(total_ram)
-        return total_ram
-    
-    @property
-    def get_total_vram(self):
-        total_vram = sum(getattr(item, "vram", 0) for item in self.components)
-        print(total_vram)
-        return total_vram
-    
-    @property
-    def get_total_processors(self):
-        total_processors = self.get_cpu.cores if self.get_cpu else 0
-        return total_processors
-    
-    @property
-    def get_total_storage(self):
-        total_storage = self.get_ssd.ssd_gb if self.get_ssd else 0
-        return total_storage
-    
-    
+     
     
     # get das peças
     @property

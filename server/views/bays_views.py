@@ -12,7 +12,9 @@ class ChangeStatusBay(View):
     
 class GetBayDetail(View):
     def get(self, request, id):
-        context = BayService.get_bay_detail(id)
+        bay = BayService(bay_id=id)
+        context = bay.get_bay_detail(user_id=request.user.id)
+        print(context)
         return render(request, template_name="partials/modal_bay.html", context=context)
     
 class ChangeComponent(View):
