@@ -14,3 +14,7 @@ class GetBayDetail(View):
     def get(self, request, id):
         context = BayService.get_bay_detail(id)
         return render(request, template_name="partials/modal_bay.html", context=context)
+    
+class ChangeComponent(View):
+    def post(self, request, id, component_id):
+        pass
