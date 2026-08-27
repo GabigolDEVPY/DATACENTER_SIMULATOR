@@ -15,7 +15,6 @@ class Hardware(models.Model):
     price = models.IntegerField()
     watts = models.IntegerField()
     rarity = models.CharField(max_length=30)
-    is_active = models.BooleanField(default=False)
     
         
     def __str__(self):

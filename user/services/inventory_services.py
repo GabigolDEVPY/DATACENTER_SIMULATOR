@@ -5,10 +5,11 @@ class InventoryService:
         self.inventory = Inventory.objects.filter(user=user_id).first()
     
     def get_cpus(self):
-        return InventoryItem.objects.filter(
-            inventory=self.inventory,item__cpu__isnull=False,
-            item__cpu__is_active=False
+        cpus = InventoryItem.objects.filter(
+            inventory=self.inventory, item__cpu__isnull=False,
+            is_equiped=False
             )
+        return cpus
         
     def get_gpus(self):
         return InventoryItem.objects.filter(

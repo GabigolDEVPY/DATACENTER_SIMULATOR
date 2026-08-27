@@ -52,7 +52,7 @@ class BayService:
         context = {"bay": self, 
                    "rams": inventory.get_rams(),
                    "cpus": inventory.get_cpus(),
-                   "gpus": inventory.get_cpus(),
+                   "gpus": inventory.get_gpus(),
                    "ssds": inventory.get_ssds(),
                    }
         return context
