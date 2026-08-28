@@ -14,19 +14,19 @@ class InventoryService:
     def get_gpus(self):
         return InventoryItem.objects.filter(
             inventory=self.inventory,item__gpu__isnull=False,
-            item__gpu__is_active=False
+            is_equiped=False
             )
         
     def get_rams(self):
         return InventoryItem.objects.filter(
             inventory=self.inventory, item__ram__isnull=False,
-            item__ram__is_active=False
+            is_equiped=False
             )
     
     def get_ssds(self):
         return InventoryItem.objects.filter(
             inventory=self.inventory,item__ssd__isnull=False,
-            item__ssd__is_active=False
+            is_equiped=False
             )
         
         
