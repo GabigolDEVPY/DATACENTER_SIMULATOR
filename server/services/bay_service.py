@@ -34,6 +34,7 @@ class BayService:
 
     def get_total_watts(self):
         total_watts = sum(getattr(item, "watts", 0) for item in self.components)
+        print("total watts", total_watts)
         return total_watts
 
     def get_total_price(self):
