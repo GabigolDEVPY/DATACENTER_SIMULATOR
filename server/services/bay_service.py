@@ -34,7 +34,6 @@ class BayService:
 
     def get_total_watts(self):
         total_watts = sum(getattr(item, "watts", 0) for item in self.components)
-        print("total watts", total_watts)
         return total_watts
 
     def get_total_price(self):
@@ -47,7 +46,6 @@ class BayService:
     
     def get_total_vram(self):
         total_vram = sum(getattr(item, "vram", 0) for item in self.components)
-        print("vramm", total_vram)
         return total_vram
     
     def get_total_processors(self):
