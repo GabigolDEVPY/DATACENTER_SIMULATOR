@@ -1,13 +1,13 @@
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
+from user.forms import CustomUserCreationForm
 
 
 # Create your views here.
 class UserRegisterView(CreateView):
-    form_class = UserCreationForm
+    form_class = CustomUserCreationForm
     template_name = "register.html"
     success_url = reverse_lazy("server:home")
     

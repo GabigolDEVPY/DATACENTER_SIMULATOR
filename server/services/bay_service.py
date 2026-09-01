@@ -16,9 +16,7 @@ class BayService:
             "ram3__item__ram"
         ), id=bay_id )
     
-    
-    def get_components(self):
-        components = filter(None, [
+        self.components = list(filter(None, [
             self.bay.cpu.item.cpu if self.bay.cpu else None,
             self.bay.ssd.item.ssd if self.bay.ssd else None,
             self.bay.gpu1.item.gpu if self.bay.gpu1 else None,
@@ -27,28 +25,28 @@ class BayService:
             self.bay.ram1.item.ram if self.bay.ram1 else None,
             self.bay.ram2.item.ram if self.bay.ram2 else None,
             self.bay.ram3.item.ram if self.bay.ram3 else None,
-            ])
-        return components
+            ]))
     
         
     def get_power(self):
-        power = sum(item.get_power for item in self.get_components())
+        power = sum(item.get_power() for item in self.components)
         return power
 
     def get_total_watts(self):
-        total_watts = sum(getattr(item, "watts", 0) for item in self.get_components())
+        total_watts = sum(getattr(item, "watts", 0) for item in self.components)
         return total_watts
 
     def get_total_price(self):
-        total_price = sum(getattr(item, "price", 0) for item in self.get_components())
+        total_price = sum(getattr(item, "price", 0) for item in self.components)
         return total_price
     
     def get_total_ram(self):
-        total_ram = sum(getattr(item, "ram_gb", 0) for item in self.get_components())
+        total_ram = sum(getattr(item, "ram_gb", 0) for item in self.components)
         return total_ram
     
     def get_total_vram(self):
-        total_vram = sum(getattr(item, "vram", 0) for item in self.get_components())
+        total_vram = sum(getattr(item, "vram", 0) for item in self.components)
+        print("vramm", total_vram)
         return total_vram
     
     def get_total_processors(self):
