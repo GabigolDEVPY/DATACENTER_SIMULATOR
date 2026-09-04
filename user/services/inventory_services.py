@@ -29,6 +29,14 @@ class InventoryService:
             is_equiped=False
             )
         
+    def get_components(self):
+        return {
+            "cpus": self.get_cpus,
+            "rams": self.get_rams,
+            "ssds": self.get_ssds,
+            "gpus": self.get_gpus
+        }
+        
         
         
     

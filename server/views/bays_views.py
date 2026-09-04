@@ -17,10 +17,7 @@ class GetBayDetail(View):
         inventory = InventoryService(request.user.id)
         context = {
             "bay": bay,
-            "cpus": inventory.get_cpus(),
-            "gpus": inventory.get_gpus(),
-            "rams": inventory.get_rams(),
-            "ssds": inventory.get_ssds()
+            **inventory.get_components()
         }
         return render(request, template_name="partials/modal_bay.html", context=context)
     
@@ -30,9 +27,6 @@ class ChangeComponent(View):
         inventory = InventoryService(request.user.id)
         context = {
             "bay": bay,
-            "cpus": inventory.get_cpus(),
-            "gpus": inventory.get_gpus(),
-            "rams": inventory.get_rams(),
-            "ssds": inventory.get_ssds()
+            **inventory.get_components()
         }
         return render(request, template_name="partials/modal_bay.html", context=context)
