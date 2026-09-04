@@ -89,8 +89,9 @@ class BayService:
         )        
         
     def change_status(self):
+        print("chegou aqui")
         self.bay.is_active = not self.bay.is_active
-        self.bay.save(update_fields="is_active")
+        self.bay.save(update_fields=["is_active"])
         return self.get_view_model()
 
     def change_component(self, data):

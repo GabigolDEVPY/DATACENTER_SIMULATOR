@@ -7,6 +7,7 @@ from user.services.inventory_services import InventoryService
 
 class ChangeStatusBay(View):
     def post(self, request, id):
+        print(id)
         bay = BayService(id).change_status()
         return render(request, template_name="partials/bay.html", context={"bay": bay})
     
