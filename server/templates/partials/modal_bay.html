@@ -25,10 +25,12 @@
                        hx-post="{% url 'server:change_status_bay' bay.id %}" 
                        hx-target="#bay-id-{{ bay.id }}" 
                        hx-swap="outerHTML" 
-                       class="form-check-input" 
+                       class="form-check-input bay-switch"  
                        type="checkbox" 
                        role="switch" 
                        id="baySwitch" 
+                       type="checkbox"
+                       data-bay-id="{{ bay.id }}"
                        {% if bay.is_active %}checked{% endif %} 
                        style="cursor:pointer; width:2rem; height:1rem; background-color: #1e2633; border-color: #2a3345;">
             </div>
@@ -147,6 +149,7 @@
                                         hx-swap="outerHTML"
                                         name="component_id"
                                         hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "cpu"}'
+                                        {% if bay.is_active %}disabled{% endif %}
                                     >
                                         <option>{{ bay.cpu.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in cpus %}
@@ -176,6 +179,7 @@
                                         hx-swap="outerHTML"
                                         name="component_id"
                                         hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ssd"}'
+                                        {% if bay.is_active %}disabled{% endif %}
                                     >
                                         <option>{{ bay.ssd.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in ssds %}
@@ -205,6 +209,7 @@
                                         hx-swap="outerHTML"
                                         name="component_id"
                                         hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ai_model"}'
+                                        {% if bay.is_active %}disabled{% endif %}
                                     >
                                         <option>{{ bay.ai_model.name|default:"Nenhum" }}</option>
                                         {% for inventoryitem in ai_models %}
@@ -240,6 +245,7 @@
                                         hx-swap="outerHTML"
                                         name="component_id"
                                         hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "gpu1"}'
+                                        {% if bay.is_active %}disabled{% endif %}
                                     >
                                         <option>{{ bay.gpu1.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in gpus %}
@@ -268,6 +274,7 @@
                                         hx-swap="outerHTML"
                                         name="component_id"
                                         hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "gpu2"}'
+                                        {% if bay.is_active %}disabled{% endif %}
                                     >
                                         <option>{{ bay.gpu2.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in gpus %}
@@ -296,6 +303,7 @@
                                         hx-swap="outerHTML"
                                         name="component_id"
                                         hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "gpu3"}'
+                                        {% if bay.is_active %}disabled{% endif %}
                                     >
                                         <option>{{ bay.gpu3.model|default:"selecione um item" }}</option>
                                         {% for inventoryitem in gpus %}
@@ -331,6 +339,7 @@
                                         hx-swap="outerHTML"
                                         name="component_id"
                                         hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ram1"}'
+                                        {% if bay.is_active %}disabled{% endif %}
                                     >
                                         <option>{{ bay.ram1.model|default:"selecione a RAM" }}</option>
                                         {% for inventoryitem in rams %}
@@ -359,6 +368,7 @@
                                         hx-swap="outerHTML"
                                         name="component_id"
                                         hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ram2"}'
+                                        {% if bay.is_active %}disabled{% endif %}
                                     >
                                         <option>{{ bay.ram2.model|default:"selecione a RAM" }}</option>
                                         {% for inventoryitem in rams %}
@@ -387,6 +397,7 @@
                                         hx-swap="outerHTML"
                                         name="component_id"
                                         hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ram3"}'
+                                        {% if bay.is_active %}disabled{% endif %}
                                     >
                                         <option>{{ bay.ram3.model|default:"selecione a RAM" }}</option>
                                         {% for inventoryitem in rams %}
