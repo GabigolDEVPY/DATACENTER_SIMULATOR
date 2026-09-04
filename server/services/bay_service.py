@@ -1,6 +1,9 @@
 from server.models import Bay
 from server.viewmodels.bay_viewmodel import BayViewModel
 from django.shortcuts import get_object_or_404
+from user.services import inventory_services
+from user.models import InventoryItem
+from django.db import transaction
 
 
 class BayService:
@@ -88,4 +91,30 @@ class BayService:
     def change_status(self):
         self.bay.is_active = not self.bay.is_active
         self.bay.save(update_fields="is_active")
+        return self.get_view_model()
+
+    def change_component(self, data):
+        type = data.get("action")
+        component = data.get("component")
+        
+        if type == "change" and not self.bay.is_active:
+            with transaction.atomic():
+                new_component = get_object_or_404(InventoryItem, id=data.get("component_id"), is_equiped=False)
+                
+                old_component = getattr(self.bay, component)
+                
+                if old_component:
+                    old_component.is_equiped = False
+                    old_component.save(update_fields=["is_equiped"])
+                
+
+                                
+                new_component.is_equiped = True
+                new_component.save(update_fields=["is_equiped"])
+                
+                setattr(self.bay, component, new_component)
+                
+                self.bay.save()
+
+            
         return self.get_view_model()

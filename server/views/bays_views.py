@@ -25,5 +25,14 @@ class GetBayDetail(View):
         return render(request, template_name="partials/modal_bay.html", context=context)
     
 class ChangeComponent(View):
-    def post(self, request, id, component_id):
-        pass
+    def post(self, request, id):
+        bay = BayService(bay_id=id).change_component(request.POST)
+        inventory = InventoryService(request.user.id)
+        context = {
+            "bay": bay,
+            "cpus": inventory.get_cpus(),
+            "gpus": inventory.get_gpus(),
+            "rams": inventory.get_rams(),
+            "ssds": inventory.get_ssds()
+        }
+        return render(request, template_name="partials/modal_bay.html", context=context)
