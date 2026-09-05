@@ -62,52 +62,9 @@
     #ia-models-page .alloc-line.installed { color: var(--dc-green); }
     #ia-models-page .alloc-line.training { color: #f59e0b; }
 
-    .btn-dc-install { background: #00a3c4; border-color: #00a3c4; color: #fff; }
-    .btn-dc-evolve  { background: #2d7a4b; border-color: #2d7a4b; color: #fff; }
-    .btn-dc-move    { background: #7c3aed; border-color: #7c3aed; color: #fff; }
-    .btn-dc-train   { background: #b45309; border-color: #b45309; color: #fff; }
-    .btn-dc-down    { background: #b91c1c; border-color: #b91c1c; color: #fff; }
-
     #ia-models-page .level-pill {
         font-size: 0.65rem; background: var(--dc-bg); border: 1px solid var(--dc-border-alt);
         color: var(--dc-purple); padding: 1px 8px; border-radius: 20px;
-    }
-
-    /* ===== Modal simples (JS puro, sem depender do Bootstrap JS) ===== */
-    .dc-modal-overlay {
-        display: none; position: fixed; inset: 0; z-index: 1050;
-        background: rgba(0, 0, 0, 0.6);
-        align-items: center; justify-content: center; padding: 20px;
-    }
-    .dc-modal-overlay.open { display: flex; }
-    .dc-modal-box {
-        background: var(--dc-panel); color: var(--dc-text); border: 1px solid var(--dc-border-alt);
-        border-radius: 14px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;
-    }
-    .dc-modal-header, .dc-modal-footer {
-        display: flex; align-items: center; justify-content: space-between; gap: 10px;
-        padding: 14px 18px;
-    }
-    .dc-modal-header { border-bottom: 1px solid var(--dc-border); }
-    .dc-modal-footer { border-top: 1px solid var(--dc-border); flex-wrap: wrap; }
-    .dc-modal-title { font-weight: 300; color: var(--dc-cyan); display: flex; align-items: center; gap: 8px; margin: 0; }
-    .dc-modal-body { padding: 16px 18px; }
-    .dc-modal-close { background: none; border: none; color: var(--dc-text-muted); font-size: 1.1rem; cursor: pointer; line-height: 1; }
-    .dc-modal-close:hover { color: var(--dc-text); }
-
-    .dc-spec-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-    .dc-spec-table th, .dc-spec-table td { border-bottom: 1px solid var(--dc-border); font-size: 0.8rem; padding: 6px 8px; text-align: left; }
-    .dc-spec-table th { color: var(--dc-text-muted); font-weight: 400; width: 45%; }
-
-    .dc-progress { background: var(--dc-bg); height: 8px; border-radius: 4px; overflow: hidden; }
-    .dc-progress-bar { height: 100%; background: #f59e0b; }
-
-    .allocation-box { background: var(--dc-panel-alt); border: 1px solid var(--dc-border-alt); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
-
-    .status-block { border: 1px dashed var(--dc-border-alt); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; }
-    .status-block-label {
-        font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em;
-        color: var(--dc-text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
     }
 </style>
 
@@ -124,159 +81,57 @@
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3">
 
-        <!-- ==================================================== -->
-        <!-- CARD ÚNICO — mostra os 3 blocos de status empilhados   -->
-        <!-- ==================================================== -->
-        <div class="col model-col">
-            <div class="model-card" onclick="openModal('modelModal-1')">
-                <div class="d-flex align-items-start gap-2">
-                    <div class="model-icon"><i class="fas fa-brain"></i></div>
-                    <div class="flex-grow-1">
-                        <h5>Llama 3 (8B)</h5>
-                        <div class="model-sub">Nível 1</div>
+        {% for model in models %}
+            <div
+                hx-get="{% url 'model:get_ia_detail' model.id %}"
+                hx-target="#ModelIaDetail"
+                hx-swap="innerHTML"
+                class="col model-col"
+                id="model-id-{{ model.id }}"
+            >
+                <div class="model-card">
+                    <div class="d-flex align-items-start gap-2">
+                        <div class="model-icon"><i class="fas fa-brain"></i></div>
+                        <div class="flex-grow-1">
+                            <h5>{{ model.name }}</h5>
+                            <div class="model-sub">{{ model.level }}</div>
+                        </div>
                     </div>
+
+                    <div class="spec-row"><span><i class="fas fa-desktop"></i> GPU mín.</span><span>{{ model.gpu_vram }}</span></div>
+                    <div class="spec-row"><span><i class="fas fa-tag"></i> Preço de compra</span><span>{{ model.price }}</span></div>
+
+                    <div class="alloc-line not-installed"><i class="fas fa-circle-question"></i> Não instalado</div>
+                    <div class="alloc-line installed"><i class="fas fa-server"></i> Web-01 &middot; Rack Alpha</div>
+                    <div class="alloc-line training"><i class="fas fa-bolt"></i> Treinando (40%)</div>
                 </div>
-
-                <div class="spec-row"><span><i class="fas fa-desktop"></i> GPU mín.</span><span>16 GB</span></div>
-                <div class="spec-row"><span><i class="fas fa-tag"></i> Preço de compra</span><span>$ 500.00</span></div>
-
-                <div class="alloc-line not-installed"><i class="fas fa-circle-question"></i> Não instalado</div>
-                <div class="alloc-line installed"><i class="fas fa-server"></i> Web-01 &middot; Rack Alpha</div>
-                <div class="alloc-line training"><i class="fas fa-bolt"></i> Treinando (40%)</div>
             </div>
-        </div>
+        {% endfor %}
 
     </div>
 
 </div>
 
-<div class="dc-modal-overlay" id="modelModal-1" onclick="if(event.target===this) closeModal('modelModal-1')">
-    <div class="dc-modal-box">
-        <div class="dc-modal-header">
-            <h5 class="dc-modal-title"><i class="fas fa-brain"></i> Llama 3 (8B)</h5>
-            <button type="button" class="dc-modal-close" onclick="closeModal('modelModal-1')" aria-label="Fechar">✕</button>
-        </div>
-        <div class="dc-modal-body">
-            <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-                <span class="level-pill"><i class="fas fa-star"></i> Nível 1</span>
-                <span class="badge bg-secondary">Não instalado</span>
-                <span class="badge bg-success">Instalado</span>
-                <span class="badge bg-warning text-dark">Treinando</span>
-            </div>
-
-            <table class="dc-spec-table">
-                <tbody>
-                    <tr><th><i class="fas fa-desktop"></i> GPU mínima</th><td>16 GB</td></tr>
-                    <tr><th><i class="fas fa-memory"></i> RAM mínima</th><td>32 GB</td></tr>
-                    <tr><th><i class="fas fa-hdd"></i> Armazenamento</th><td>8 GB</td></tr>
-                    <tr><th><i class="fas fa-tag"></i> Preço de compra</th><td>$ 500.00</td></tr>
-                    <tr><th><i class="fas fa-coins"></i> Receita base</th><td>$ 2.50 / tick</td></tr>
-                    <tr><th><i class="fas fa-bolt"></i> Consumo estimado</th><td>86 W</td></tr>
-                </tbody>
-            </table>
-
-            <!-- BLOCO 1: NÃO INSTALADO -->
-            <div class="status-block">
-                <div class="status-block-label"><i class="fas fa-circle-question"></i> Status: Não instalado</div>
-
-                <div class="allocation-box">
-                    <div class="text-muted small mb-1"><i class="fas fa-map-marker-alt"></i> Alocação atual</div>
-                    <div>Este modelo ainda não está instalado em nenhum servidor.</div>
-                </div>
-
-                <form method="post" action="/models/llama3/install">
-                    <label class="form-label small text-muted">Comprar e instalar em</label>
-                    <div class="input-group input-group-sm mb-2">
-                        <select name="server_id" class="form-select">
-                            <option value="srv-1">ML-01 (Rack Beta)</option>
-                            <option value="srv-2">ML-02 (Rack Beta)</option>
-                            <option value="srv-3">DB-01 (Rack Alpha)</option>
-                            <option value="srv-4">Web-01 (Rack Alpha)</option>
-                        </select>
-                        <button type="submit" class="btn btn-dc-install">
-                            <i class="fas fa-download"></i> Comprar &amp; Instalar
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- BLOCO 2: INSTALADO -->
-            <div class="status-block">
-                <div class="status-block-label"><i class="fas fa-check-circle"></i> Status: Instalado</div>
-
-                <div class="allocation-box">
-                    <div class="text-muted small mb-1"><i class="fas fa-map-marker-alt"></i> Alocação atual</div>
-                    <div>Rodando em <strong>Web-01</strong> (Rack Alpha).</div>
-                </div>
-
-                <form method="post" action="/models/llama3/move">
-                    <label class="form-label small text-muted">Mover para</label>
-                    <div class="input-group input-group-sm mb-2">
-                        <select name="server_id" class="form-select">
-                            <option value="srv-1">ML-01 (Rack Beta)</option>
-                            <option value="srv-2">ML-02 (Rack Beta)</option>
-                            <option value="srv-3">DB-01 (Rack Alpha)</option>
-                            <option value="srv-4" selected>Web-01 (Rack Alpha)</option>
-                        </select>
-                        <button type="submit" class="btn btn-dc-move">
-                            <i class="fas fa-arrows-alt"></i> Mover
-                        </button>
-                    </div>
-                </form>
-
-                <div class="d-flex gap-2 flex-wrap mt-2">
-                    <form method="post" action="/models/llama3/evolve">
-                        <button type="submit" class="btn btn-sm btn-dc-evolve"><i class="fas fa-arrow-up"></i> Evoluir</button>
-                    </form>
-                    <form method="post" action="/models/llama3/train">
-                        <button type="submit" class="btn btn-sm btn-dc-train"><i class="fas fa-play"></i> Treinar</button>
-                    </form>
-                    <form method="post" action="/models/llama3/uninstall">
-                        <button type="submit" class="btn btn-sm btn-dc-down"><i class="fas fa-power-off"></i> Baixar</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- BLOCO 3: TREINANDO -->
-            <div class="status-block">
-                <div class="status-block-label"><i class="fas fa-bolt"></i> Status: Treinando</div>
-
-                <div class="allocation-box">
-                    <div class="text-muted small mb-1"><i class="fas fa-map-marker-alt"></i> Alocação atual</div>
-                    <div>Em treinamento a partir de <strong>ML-01</strong> (Rack Beta).</div>
-                    <div class="mt-2">
-                        <div class="d-flex justify-content-between small text-muted">
-                            <span>Progresso do treinamento</span>
-                            <span>40%</span>
-                        </div>
-                        <div class="dc-progress">
-                            <div class="dc-progress-bar" style="width: 40%;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="dc-modal-footer">
-            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeModal('modelModal-1')">Fechar</button>
-        </div>
-    </div>
-</div>
+<!-- o htmx injeta aqui o modal já pronto vindo do partial -->
+<div id="ModelIaDetail"></div>
 
 <script>
-    function openModal(id) {
-        var el = document.getElementById(id);
-        if (el) el.classList.add('open');
-    }
-    function closeModal(id) {
-        var el = document.getElementById(id);
-        if (el) el.classList.remove('open');
-    }
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.dc-modal-overlay.open').forEach(function (el) {
-                el.classList.remove('open');
-            });
-        }
+    document.body.addEventListener("htmx:afterSwap", function (e) {
+        if (e.detail.target.id !== "ModelIaDetail") return;
+
+        const modalEl = e.detail.target.querySelector(".modal");
+        if (!modalEl) return;
+
+        // Reaproveita a instância se já existir, senão cria uma nova
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modalInstance.show();
+
+        // Ao fechar, destrói a instância e remove o modal do DOM
+        // (evita instâncias "fantasma" na próxima troca via htmx)
+        modalEl.addEventListener("hidden.bs.modal", function () {
+            modalInstance.dispose();
+            e.detail.target.innerHTML = "";
+        }, { once: true });
     });
 </script>
 
