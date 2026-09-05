@@ -1,7 +1,6 @@
 from server.models import Bay
 from server.viewmodels.bay_viewmodel import BayViewModel
 from django.shortcuts import get_object_or_404
-from user.services import inventory_services
 from user.models import InventoryItem
 from django.db import transaction
 
