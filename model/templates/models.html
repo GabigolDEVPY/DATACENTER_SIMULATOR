@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% block title %}Modelos de IA{% endblock %}
+
+{#
+    ATENÇÃO — como esse template funciona SEM JavaScript:
+    - Filtros (status / raridade / busca) são um <form method="get">. A view
+      precisa ler request.args (status, rarity, q) e filtrar a lista de
+      "models" antes de renderizar.
+    - Ações (instalar / evoluir / mover / treinar / baixar) são <form
+      method="post"> apontando para rotas do backend. Ajuste as URLs de
+      "action" abaixo para suas rotas reais (ou troque por url_for(...)).
+    - O "modal de detalhes" é um <div class="modal"> por modelo, aberto via
+      data-bs-toggle="modal" / data-bs-target — isso é comportamento nativo
+      do bundle JS do Bootstrap (já importado pelo base.html), não é script
+      escrito aqui.
+    - Progresso de treino é o valor de model.training_progress no momento do
+      render; sem JS não há atualização automática — a página só reflete o
+      progresso quando o usuário recarrega ou o servidor re-renderiza (ex:
+      após um redirect de POST).
+    - O <select> de raridade usa onchange="this.form.submit()" só para
+      autoenviar o form GET ao trocar a opção — isso é um atributo HTML
+      declarativo, não um script; se preferir zero onchange, remova o
+      atributo e deixe o usuário clicar em "Filtrar".
+    - Os dados de exemplo (models/servers) estão em {% set %} apenas para a
+      tela não ficar vazia; troque pelas variáveis reais que a sua view
+      passar em render_template(...).
+#}
+
+{% block extra_css %}
+<style>
+    :root {
+        --dc-bg: #0b0e14;
+        --dc-panel: #141a24;
+        --dc-panel-alt: #1a212b;
+        --dc-border: #1e2633;
+        --dc-border-alt: #2a3345;
+        --dc-text: #c8d6e5;
+        --dc-text-muted: #94a3b8;
+        --dc-cyan: #00d4ff;
+        --dc-cyan-dark: #00a3c4;
+        --dc-green: #4ade80;
+        --dc-legendary: #f59e0b;
+        --dc-common: #94a3b8;
+        --dc-rare: #3b82f6;
+        --dc-epic: #8b5cf6;
+        --dc-purple: #a78bfa;
+    }
+
+    #ia-models-page { background: var(--dc-bg); color: var(--dc-text); padding: 12px 4px 40px; }
+
+    #ia-models-page .page-header {
+        display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+        background: var(--dc-panel); padding: 14px 18px; border-radius: 12px; margin-bottom: 16px;
+        border-left: 4px solid var(--dc-cyan); gap: 10px;
+    }
+    #ia-models-page .page-header h2 { font-weight: 300; font-size: 1.25rem; margin: 0; display: flex; align-items: center; gap: 10px; }
+    #ia-models-page .page-header h2 i { color: var(--dc-cyan); }
+    #ia-models-page .page-header .summary { font-size: 0.75rem; color: var(--dc-text-muted); display: flex; gap: 16px; flex-wrap: wrap; }
+    #ia-models-page .page-header .summary span { display: flex; align-items: center; gap: 5px; }
+    #ia-models-page .page-header .summary i { color: var(--dc-cyan); }
+
+    #ia-models-page .filters-bar {
+        background: var(--dc-panel); border: 1px solid var(--dc-border); border-radius: 12px;
+        padding: 10px 14px; margin-bottom: 16px;
+    }
+    #ia-models-page .filters-bar .nav-pills .nav-link {
+        background: var(--dc-panel-alt); border: 1px solid var(--dc-border-alt); color: var(--dc-text-muted);
+        font-size: 0.75rem; margin-right: 4px;
+    }
+    #ia-models-page .filters-bar .nav-pills .nav-link.active { background: var(--dc-cyan-dark); border-color: var(--dc-cyan-dark); color: #fff; }
+    #ia-models-page .form-control-dark, #ia-models-page .form-select-dark {
+        background: var(--dc-bg); border: 1px solid var(--dc-border); color: var(--dc-text);
+    }
+    #ia-models-page .form-control-dark:focus, #ia-models-page .form-select-dark:focus {
+        background: var(--dc-bg); color: var(--dc-text); border-color: var(--dc-cyan);
+        box-shadow: 0 0 0 0.2rem rgba(0, 212, 255, 0.15);
+    }
+
+    #ia-models-page .model-card {
+        background: var(--dc-panel-alt); border: 1px solid var(--dc-border-alt); border-radius: 12px;
+        padding: 14px; height: 100%;
+    }
+    #ia-models-page .model-card.rarity-common { border-left: 3px solid var(--dc-common); }
+    #ia-models-page .model-card.rarity-rare { border-left: 3px solid var(--dc-rare); }
+    #ia-models-page .model-card.rarity-epic { border-left: 3px solid var(--dc-epic); box-shadow: 0 0 10px rgba(139,92,246,.15); }
+    #ia-models-page .model-card.rarity-legendary { border-left: 3px solid var(--dc-legendary); box-shadow: 0 0 14px rgba(245,158,11,.25); }
+
+    #ia-models-page .model-icon {
+        width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        background: var(--dc-bg); color: var(--dc-cyan); font-size: 1rem; flex-shrink: 0;
+    }
+    #ia-models-page .model-card h5 { font-size: 0.95rem; font-weight: 500; color: var(--dc-text); margin-bottom: 2px; }
+    #ia-models-page .model-card .model-sub { font-size: 0.7rem; color: var(--dc-text-muted); }
+    #ia-models-page .badge-rarity { font-size: 0.6rem; text-transform: uppercase; letter-spacing: .3px; }
+    #ia-models-page .badge-rarity.common { background: #1e2633; color: var(--dc-common); }
+    #ia-models-page .badge-rarity.rare { background: #1a2a3a; color: var(--dc-rare); }
+    #ia-models-page .badge-rarity.epic { background: #2a1a3a; color: var(--dc-epic); }
+    #ia-models-page .badge-rarity.legendary { background: #3a2a0a; color: var(--dc-legendary); }
+
+    #ia-models-page .spec-row {
+        font-size: 0.7rem; color: var(--dc-text-muted); display: flex; justify-content: space-between;
+        padding: 2px 0; border-bottom: 1px dashed var(--dc-border);
+    }
+    #ia-models-page .spec-row i { color: var(--dc-cyan); width: 14px; }
+
+    #ia-models-page .alloc-line {
+        font-size: 0.72rem; margin-top: 8px; padding: 5px 8px; border-radius: 8px;
+        background: var(--dc-bg); display: flex; align-items: center; gap: 6px;
+    }
+    #ia-models-page .alloc-line.not-installed { color: var(--dc-text-muted); }
+    #ia-models-page .alloc-line.installed { color: var(--dc-green); }
+    #ia-models-page .alloc-line.training { color: var(--dc-legendary); }
+
+    #ia-models-page .card-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    #ia-models-page .card-actions form { margin: 0; }
+    #ia-models-page .card-actions .btn { font-size: 0.68rem; padding: 3px 8px; border-radius: 6px; }
+
+    .btn-dc-install { background: #00a3c4; border-color: #00a3c4; color: #fff; }
+    .btn-dc-evolve  { background: #2d7a4b; border-color: #2d7a4b; color: #fff; }
+    .btn-dc-move    { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+    .btn-dc-train   { background: #b45309; border-color: #b45309; color: #fff; }
+    .btn-dc-down    { background: #b91c1c; border-color: #b91c1c; color: #fff; }
+    .btn-dc-detail  { background: var(--dc-border-alt); border-color: var(--dc-border-alt); color: var(--dc-text); }
+
+    #ia-models-page .level-pill {
+        font-size: 0.65rem; background: var(--dc-bg); border: 1px solid var(--dc-border-alt);
+        color: var(--dc-purple); padding: 1px 8px; border-radius: 20px;
+    }
+
+    .modal-dc .modal-content { background: var(--dc-panel); color: var(--dc-text); border: 1px solid var(--dc-border-alt); border-radius: 14px; }
+    .modal-dc .modal-header, .modal-dc .modal-footer { border-color: var(--dc-border); }
+    .modal-dc .modal-title { font-weight: 300; color: var(--dc-cyan); display: flex; align-items: center; gap: 8px; }
+    .modal-dc .btn-close { filter: invert(1) grayscale(1); }
+    .modal-dc .spec-table th, .modal-dc .spec-table td { border-color: var(--dc-border); color: var(--dc-text); font-size: 0.8rem; padding: 6px 8px; }
+    .modal-dc .spec-table th { color: var(--dc-text-muted); font-weight: 400; width: 45%; }
+    .modal-dc .progress { background: var(--dc-bg); height: 8px; }
+    .modal-dc .allocation-box { background: var(--dc-panel-alt); border: 1px solid var(--dc-border-alt); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+{#
+    ==========================================================================
+    DADOS DE EXEMPLO — remova este bloco {% set %} quando a view passar
+    "models" e "servers" reais via render_template(). Mantive aqui só para o
+    template renderizar sozinho.
+    ==========================================================================
+#}
+{% set servers = servers if servers is defined else [
+    {'id': 'srv-1', 'name': 'ML-01', 'rack': 'Rack Beta', 'cpu_cores': 64, 'gpu_mem': 80, 'ram': 512},
+    {'id': 'srv-2', 'name': 'ML-02', 'rack': 'Rack Beta', 'cpu_cores': 64, 'gpu_mem': 80, 'ram': 512},
+    {'id': 'srv-3', 'name': 'DB-01', 'rack': 'Rack Alpha', 'cpu_cores': 28, 'gpu_mem': 40, 'ram': 256},
+    {'id': 'srv-4', 'name': 'Web-01', 'rack': 'Rack Alpha', 'cpu_cores': 16, 'gpu_mem': 48, 'ram': 128},
+] %}
+{% set rarity_label = {'common': 'Comum', 'rare': 'Raro', 'epic': 'Épico', 'legendary': 'Lendário'} %}
+{% set models = models if models is defined else [
+    {'key': 'llama3', 'name': 'Llama 3 (8B)', 'rarity': 'rare', 'level': 1, 'min_cpu_cores': 8, 'min_gpu_mem': 16, 'min_ram': 32, 'storage_required': 8, 'revenue': 2.5, 'power_watts': 86, 'train_time': 45, 'train_reward': 80, 'status': 'installed', 'server_id': 'srv-4', 'training_progress': 0},
+    {'key': 'gpt4', 'name': 'GPT-4 (1.8T)', 'rarity': 'epic', 'level': 1, 'min_cpu_cores': 32, 'min_gpu_mem': 80, 'min_ram': 512, 'storage_required': 1000, 'revenue': 12.0, 'power_watts': 110, 'train_time': 120, 'train_reward': 300, 'status': 'installed', 'server_id': 'srv-3', 'training_progress': 0},
+    {'key': 'stable_diffusion', 'name': 'Stable Diffusion', 'rarity': 'common', 'level': 1, 'min_cpu_cores': 4, 'min_gpu_mem': 8, 'min_ram': 16, 'storage_required': 5, 'revenue': 1.8, 'power_watts': 83, 'train_time': 30, 'train_reward': 50, 'status': 'available', 'server_id': none, 'training_progress': 0},
+    {'key': 'whisper', 'name': 'Whisper (áudio)', 'rarity': 'common', 'level': 1, 'min_cpu_cores': 2, 'min_gpu_mem': 4, 'min_ram': 8, 'storage_required': 2, 'revenue': 0.8, 'power_watts': 77, 'train_time': 20, 'train_reward': 30, 'status': 'available', 'server_id': none, 'training_progress': 0},
+    {'key': 'mixtral', 'name': 'Mixtral 8x7B', 'rarity': 'rare', 'level': 1, 'min_cpu_cores': 16, 'min_gpu_mem': 48, 'min_ram': 128, 'storage_required': 40, 'revenue': 5.0, 'power_watts': 95, 'train_time': 70, 'train_reward': 150, 'status': 'training', 'server_id': 'srv-1', 'training_progress': 40},
+    {'key': 'claude', 'name': 'Claude 3 Opus', 'rarity': 'epic', 'level': 1, 'min_cpu_cores': 40, 'min_gpu_mem': 100, 'min_ram': 512, 'storage_required': 800, 'revenue': 15.0, 'power_watts': 116, 'train_time': 180, 'train_reward': 500, 'status': 'available', 'server_id': none, 'training_progress': 0},
+    {'key': 'gemini', 'name': 'Gemini Ultra', 'rarity': 'legendary', 'level': 1, 'min_cpu_cores': 48, 'min_gpu_mem': 128, 'min_ram': 1024, 'storage_required': 1500, 'revenue': 18.0, 'power_watts': 125, 'train_time': 300, 'train_reward': 800, 'status': 'available', 'server_id': none, 'training_progress': 0},
+] %}
+
+{% set status_filter = request.args.get('status', 'all') if request is defined else 'all' %}
+{% set rarity_filter = request.args.get('rarity', '') if request is defined else '' %}
+{% set search_query = request.args.get('q', '') if request is defined else '' %}
+
+{% set visible_models = [] %}
+{% for m in models %}
+    {% set keep = true %}
+    {% if status_filter == 'installed' and m.status != 'installed' %}{% set keep = false %}{% endif %}
+    {% if status_filter == 'available' and m.status != 'available' %}{% set keep = false %}{% endif %}
+    {% if status_filter == 'training' and m.status != 'training' %}{% set keep = false %}{% endif %}
+    {% if rarity_filter and m.rarity != rarity_filter %}{% set keep = false %}{% endif %}
+    {% if search_query and search_query.lower() not in m.name.lower() %}{% set keep = false %}{% endif %}
+    {% if keep %}{% set _ = visible_models.append(m) %}{% endif %}
+{% endfor %}
+
+<div id="ia-models-page">
+
+    {% with flashed = get_flashed_messages(with_categories=true) if get_flashed_messages is defined else [] %}
+        {% for category, message in flashed %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="page-header">
+        <h2><i class="fas fa-brain"></i> Modelos de IA</h2>
+        <div class="summary">
+            <span><i class="fas fa-check-circle"></i> Instalados: {{ models | selectattr('status', 'equalto', 'installed') | list | length }}</span>
+            <span><i class="fas fa-bolt"></i> Treinando: {{ models | selectattr('status', 'equalto', 'training') | list | length }}</span>
+            <span><i class="fas fa-coins"></i> Receita/min: $ {{ '%.2f' | format(models | selectattr('status', 'equalto', 'installed') | sum(attribute='revenue') * 60) }}</span>
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <form method="get" class="row gy-2 gx-2 align-items-center">
+            <div class="col-12 col-lg-auto">
+                <ul class="nav nav-pills flex-wrap">
+                    <li class="nav-item"><a class="nav-link {{ 'active' if status_filter == 'all' }}" href="?status=all{% if rarity_filter %}&rarity={{ rarity_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">Todos</a></li>
+                    <li class="nav-item"><a class="nav-link {{ 'active' if status_filter == 'installed' }}" href="?status=installed{% if rarity_filter %}&rarity={{ rarity_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">Instalados</a></li>
+                    <li class="nav-item"><a class="nav-link {{ 'active' if status_filter == 'available' }}" href="?status=available{% if rarity_filter %}&rarity={{ rarity_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">Disponíveis</a></li>
+                    <li class="nav-item"><a class="nav-link {{ 'active' if status_filter == 'training' }}" href="?status=training{% if rarity_filter %}&rarity={{ rarity_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">Em treino</a></li>
+                </ul>
+            </div>
+            <input type="hidden" name="status" value="{{ status_filter }}">
+            <div class="col-6 col-lg-2">
+                <select name="rarity" class="form-select form-select-sm form-select-dark" onchange="this.form.submit()">
+                    <option value="" {{ 'selected' if not rarity_filter }}>Toda raridade</option>
+                    <option value="common" {{ 'selected' if rarity_filter == 'common' }}>Comum</option>
+                    <option value="rare" {{ 'selected' if rarity_filter == 'rare' }}>Raro</option>
+                    <option value="epic" {{ 'selected' if rarity_filter == 'epic' }}>Épico</option>
+                    <option value="legendary" {{ 'selected' if rarity_filter == 'legendary' }}>Lendário</option>
+                </select>
+            </div>
+            <div class="col-6 col-lg-3">
+                <input type="text" name="q" value="{{ search_query }}" class="form-control form-control-sm form-control-dark" placeholder="Buscar modelo...">
+            </div>
+            <div class="col-6 col-lg-auto">
+                <button type="submit" class="btn btn-sm btn-dc-install"><i class="fas fa-filter"></i> Filtrar</button>
+            </div>
+            {% if rarity_filter or search_query or status_filter != 'all' %}
+            <div class="col-6 col-lg-auto">
+                <a href="?" class="btn btn-sm btn-outline-secondary">Limpar</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3">
+        {% for model in visible_models %}
+        {% set server = servers | selectattr('id', 'equalto', model.server_id) | first if model.server_id else none %}
+        <div class="col">
+            <div class="model-card rarity-{{ model.rarity }}">
+                <div class="d-flex align-items-start gap-2">
+                    <div class="model-icon"><i class="fas fa-brain"></i></div>
+                    <div class="flex-grow-1">
+                        <h5>{{ model.name }}</h5>
+                        <div class="model-sub">Nível {{ model.level }}</div>
+                    </div>
+                    <span class="badge badge-rarity {{ model.rarity }}">{{ rarity_label[model.rarity] }}</span>
+                </div>
+
+                <div class="spec-row"><span><i class="fas fa-microchip"></i> CPU mín.</span><span>{{ model.min_cpu_cores }} cores</span></div>
+                <div class="spec-row"><span><i class="fas fa-desktop"></i> GPU mín.</span><span>{{ model.min_gpu_mem }} GB</span></div>
+                <div class="spec-row"><span><i class="fas fa-coins"></i> Receita</span><span>$ {{ '%.2f' | format(model.revenue) }}/tick</span></div>
+
+                {% if model.status == 'training' %}
+                    <div class="alloc-line training"><i class="fas fa-bolt"></i> Treinando ({{ model.training_progress }}%)</div>
+                {% elif model.status == 'installed' and server %}
+                    <div class="alloc-line installed"><i class="fas fa-server"></i> {{ server.name }} &middot; {{ server.rack }}</div>
+                {% else %}
+                    <div class="alloc-line not-installed"><i class="fas fa-circle-question"></i> Não instalado</div>
+                {% endif %}
+
+                <div class="card-actions">
+                    <button type="button" class="btn btn-dc-detail" data-bs-toggle="modal" data-bs-target="#modelModal-{{ model.key }}">
+                        <i class="fas fa-circle-info"></i> Detalhes
+                    </button>
+
+                    {% if model.status == 'available' %}
+                    <form method="post" action="/models/{{ model.key }}/install">
+                        <input type="hidden" name="server_id" value="{{ servers[0].id if servers else '' }}">
+                        <button type="submit" class="btn btn-dc-install"><i class="fas fa-download"></i> Instalar</button>
+                    </form>
+                    {% endif %}
+
+                    {% if model.status == 'installed' %}
+                    <form method="post" action="/models/{{ model.key }}/evolve">
+                        <button type="submit" class="btn btn-dc-evolve"><i class="fas fa-arrow-up"></i> Evoluir</button>
+                    </form>
+                    <form method="post" action="/models/{{ model.key }}/uninstall">
+                        <button type="submit" class="btn btn-dc-down"><i class="fas fa-power-off"></i> Baixar</button>
+                    </form>
+                    {% endif %}
+
+                    {% if model.status != 'training' %}
+                    <form method="post" action="/models/{{ model.key }}/train">
+                        <button type="submit" class="btn btn-dc-train"><i class="fas fa-play"></i> Treinar</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ===== MODAL DE DETALHES DESTE MODELO ===== #}
+        <div class="modal fade modal-dc" id="modelModal-{{ model.key }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-brain"></i> {{ model.name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                            <span class="badge badge-rarity {{ model.rarity }}">{{ rarity_label[model.rarity] }}</span>
+                            <span class="level-pill"><i class="fas fa-star"></i> Nível {{ model.level }}</span>
+                            {% if model.status == 'installed' %}
+                                <span class="badge bg-success">Instalado</span>
+                            {% elif model.status == 'training' %}
+                                <span class="badge bg-warning text-dark">Treinando</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Não instalado</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="allocation-box">
+                            <div class="text-muted small mb-1"><i class="fas fa-map-marker-alt"></i> Alocação atual</div>
+                            {% if model.status == 'installed' and server %}
+                                <div>Rodando em <strong>{{ server.name }}</strong> ({{ server.rack }}).</div>
+                            {% elif model.status == 'training' %}
+                                <div>{% if server %}Em treinamento a partir de <strong>{{ server.name }}</strong> ({{ server.rack }}).{% else %}Em treinamento.{% endif %}</div>
+                                <div class="mt-2">
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span>Progresso do treinamento</span>
+                                        <span>{{ model.training_progress }}%</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: {{ model.training_progress }}%; background: #f59e0b;"></div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div>Este modelo ainda não está instalado em nenhum servidor.</div>
+                            {% endif %}
+                        </div>
+
+                        <table class="table spec-table">
+                            <tbody>
+                                <tr><th><i class="fas fa-microchip"></i> CPU mínima</th><td>{{ model.min_cpu_cores }} cores</td></tr>
+                                <tr><th><i class="fas fa-desktop"></i> GPU mínima</th><td>{{ model.min_gpu_mem }} GB</td></tr>
+                                <tr><th><i class="fas fa-memory"></i> RAM mínima</th><td>{{ model.min_ram }} GB</td></tr>
+                                <tr><th><i class="fas fa-hdd"></i> Armazenamento</th><td>{{ model.storage_required }} GB</td></tr>
+                                <tr><th><i class="fas fa-coins"></i> Receita base</th><td>$ {{ '%.2f' | format(model.revenue * model.level) }} / tick</td></tr>
+                                <tr><th><i class="fas fa-bolt"></i> Consumo estimado</th><td>{{ model.power_watts }} W</td></tr>
+                                <tr><th><i class="fas fa-clock"></i> Tempo de treino</th><td>{{ model.train_time }}s</td></tr>
+                                <tr><th><i class="fas fa-trophy"></i> Recompensa de treino</th><td>$ {{ model.train_reward }}</td></tr>
+                            </tbody>
+                        </table>
+
+                        {% if model.status != 'training' %}
+                        <form method="post" action="/models/{{ model.key }}/{{ 'move' if model.status == 'installed' else 'install' }}">
+                            <label class="form-label small text-muted">{{ 'Mover para' if model.status == 'installed' else 'Instalar em' }}</label>
+                            <div class="input-group input-group-sm mb-2">
+                                <select name="server_id" class="form-select form-select-dark">
+                                    {% for s in servers %}
+                                        {% set compatible = s.cpu_cores >= model.min_cpu_cores and s.gpu_mem >= model.min_gpu_mem and s.ram >= model.min_ram %}
+                                        <option value="{{ s.id }}" {{ 'disabled' if not compatible }} {{ 'selected' if model.server_id == s.id }}>
+                                            {{ s.name }} ({{ s.rack }}){{ '' if compatible else ' — specs insuficientes' }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn {{ 'btn-dc-move' if model.status == 'installed' else 'btn-dc-install' }}">
+                                    <i class="fas {{ 'fa-arrows-alt' if model.status == 'installed' else 'fa-download' }}"></i>
+                                    {{ 'Mover' if model.status == 'installed' else 'Instalar' }}
+                                </button>
+                            </div>
+                        </form>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer flex-wrap">
+                        {% if model.status == 'installed' %}
+                        <form method="post" action="/models/{{ model.key }}/evolve">
+                            <button type="submit" class="btn btn-sm btn-dc-evolve"><i class="fas fa-arrow-up"></i> Evoluir</button>
+                        </form>
+                        <form method="post" action="/models/{{ model.key }}/uninstall">
+                            <button type="submit" class="btn btn-sm btn-dc-down"><i class="fas fa-power-off"></i> Baixar</button>
+                        </form>
+                        {% endif %}
+                        {% if model.status != 'training' %}
+                        <form method="post" action="/models/{{ model.key }}/train">
+                            <button type="submit" class="btn btn-sm btn-dc-train"><i class="fas fa-play"></i> Treinar</button>
+                        </form>
+                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center text-muted py-4">Nenhum modelo encontrado com esses filtros.</div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
