@@ -9,5 +9,5 @@ class HomeView(LoginRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["models"] = AIModel.objects.all()
+        context["models"] = AIModel.objects.filter(level__lte=5).order_by('level')
         return context
