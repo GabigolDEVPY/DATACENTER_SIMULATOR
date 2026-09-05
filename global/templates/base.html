@@ -46,9 +46,14 @@
 
     <!-- CSS próprio -->
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}" />
+
+    <!-- background cinza escuro do app -->
+    <style>
+      body { background-color: #0b0e14; }
+    </style>
   </head>
 
-  <body class="bg-black text-white">
+  <body class="text-white">
     <div class="d-flex min-vh-100">
       
       {% include "navbar.html" %}
