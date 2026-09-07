@@ -1,51 +1,58 @@
 <div>
     <!-- ===== SIDEBAR ===== -->
     <nav id="sidebar" 
-         class="border-end sidebar-transition d-flex flex-column py-3" 
-         style="width: 80px; min-width: 80px;">
+         class="sidebar-transition d-flex flex-column py-3" 
+         style="width: 80px; min-width: 80px; height: 100vh; position: fixed; top: 0; left: 0; background: #141a24; border-right: 2px solid #1e2633; box-shadow: 4px 0 20px rgba(0, 0, 0, 0.6); overflow-y: auto;">
         
         <!-- Botão Toggle -->
-        <button id="toggleBtn" class="btn btn-outline-secondary mx-auto mb-4 w-75 d-flex align-items-center justify-content-center gap-2">
-            <i class="fas fa-chevron-right fs-5"></i>
-            <span class="sidebar-text fw-bold d-none">MENU</span>
+        <button id="toggleBtn" class="btn mx-auto mb-4 w-75 d-flex align-items-center justify-content-center gap-2"
+                style="background: #1e2633; border: 1px solid #2a3345; color: #c8d6e5; transition: all 0.2s;">
+            <i class="fas fa-chevron-right fs-5" style="color: #00d4ff;"></i>
+            <span class="sidebar-text fw-bold d-none" style="color: #c8d6e5;">MENU</span>
         </button>
     
         <!-- Links principais -->
-        <ul class="nav flex-column px-2 w-100">
-            <li class="nav-item mb-1">
-                <a href="" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'dashboard' %}active{% endif %}">
-                    <i class="fas fa-home fs-5 text-center"></i>
-                    <span class="sidebar-text d-none">Dashboard</span>
+        <ul class="nav flex-column px-2 w-100 mb-3">
+            <li class="nav-item mb-2">
+                <a href="" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'dashboard' %}active{% endif %}"
+                   style="color: #94a3b8; padding: 10px 12px; transition: all 0.2s; border: 1px solid transparent;">
+                    <i class="fas fa-home fs-5 text-center" style="color: #00d4ff;"></i>
+                    <span class="sidebar-text d-none" style="color: #c8d6e5;">Dashboard</span>
                 </a>
             </li>
-            <li class="nav-item mb-1">
-                <a href="{% url 'server:home' %}" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'server:home' %}active{% endif %}">
-                    <i class="fas fa-server fs-5 text-center"></i>
-                    <span class="sidebar-text d-none">Servidores</span>
+            <li class="nav-item mb-2">
+                <a href="{% url 'server:home' %}" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'server:home' %}active{% endif %}"
+                   style="color: #94a3b8; padding: 10px 12px; transition: all 0.2s; border: 1px solid transparent;">
+                    <i class="fas fa-server fs-5 text-center" style="color: #00d4ff;"></i>
+                    <span class="sidebar-text d-none" style="color: #c8d6e5;">Servidores</span>
                 </a>
             </li>
-            <li class="nav-item mb-1">
-                <a href="{% url 'shop:home' %}" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'shop:home' %}active{% endif %}">
-                    <i class="fas fa-shopping-cart fs-5 text-center"></i>
-                    <span class="sidebar-text d-none">Loja</span>
+            <li class="nav-item mb-2">
+                <a href="{% url 'shop:home' %}" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'shop:home' %}active{% endif %}"
+                   style="color: #94a3b8; padding: 10px 12px; transition: all 0.2s; border: 1px solid transparent;">
+                    <i class="fas fa-shopping-cart fs-5 text-center" style="color: #00d4ff;"></i>
+                    <span class="sidebar-text d-none" style="color: #c8d6e5;">Loja</span>
                 </a>
             </li>
-            <li class="nav-item mb-1">
-                <a href="" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'inventory' %}active{% endif %}">
-                    <i class="fas fa-boxes fs-5 text-center"></i>
-                    <span class="sidebar-text d-none">Inventário</span>
+            <li class="nav-item mb-2">
+                <a href="" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'inventory' %}active{% endif %}"
+                   style="color: #94a3b8; padding: 10px 12px; transition: all 0.2s; border: 1px solid transparent;">
+                    <i class="fas fa-boxes fs-5 text-center" style="color: #00d4ff;"></i>
+                    <span class="sidebar-text d-none" style="color: #c8d6e5;">Inventário</span>
                 </a>
             </li>
-            <li class="nav-item mb-1">
-                <a href="{% url 'model:home' %}" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'training' %}active{% endif %}">
-                    <i class="fas fa-brain fs-5 text-center"></i>
-                    <span class="sidebar-text d-none">Modelos</span>
+            <li class="nav-item mb-2">
+                <a href="{% url 'model:home' %}" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'training' %}active{% endif %}"
+                   style="color: #94a3b8; padding: 10px 12px; transition: all 0.2s; border: 1px solid transparent;">
+                    <i class="fas fa-brain fs-5 text-center" style="color: #00d4ff;"></i>
+                    <span class="sidebar-text d-none" style="color: #c8d6e5;">Modelos</span>
                 </a>
             </li>
-            <li class="nav-item mb-1">
-                <a href="" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'clients' %}active{% endif %}">
-                    <i class="fas fa-users fs-5 text-center"></i>
-                    <span class="sidebar-text d-none">Clientes</span>
+            <li class="nav-item mb-2">
+                <a href="" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'clients' %}active{% endif %}"
+                   style="color: #94a3b8; padding: 10px 12px; transition: all 0.2s; border: 1px solid transparent;">
+                    <i class="fas fa-users fs-5 text-center" style="color: #00d4ff;"></i>
+                    <span class="sidebar-text d-none" style="color: #c8d6e5;">Clientes</span>
                 </a>
             </li>
         </ul>
@@ -54,76 +61,123 @@
         <div class="mt-auto w-100 px-2">
     
             <!-- Status bar -->
-            <div id="sidebarStatus" class="d-flex flex-column w-100">
+            <div id="sidebarStatus" class="d-flex flex-column w-100 mb-3" style="background: #1a212b; border-radius: 8px; padding: 10px; border: 1px solid #1e2633;">
     
                 <!-- Modo fechado: ícones empilhados -->
-                <div class="sidebar-status-collapsed d-flex flex-column align-items-center gap-1">
-                    <div class="status-item collapsed-mode" title="Dinheiro">
-                        <i class="fas fa-coins text-warning" style="font-size: 16px;"></i>
-                        <span id="live-balance-close" class="status-value">{{ request.user.money|default:"0" }}</span>
+                <div class="sidebar-status-collapsed d-flex flex-column align-items-center gap-2">
+                    <div class="status-item collapsed-mode d-flex align-items-center gap-2" title="Dinheiro" style="font-size: 0.7rem; padding: 4px 0;">
+                        <i class="fas fa-coins" style="color: #f59e0b; font-size: 16px;"></i>
+                        <span id="live-balance-close" class="status-value" style="color: #4ade80; font-weight: 600;">{{ request.user.money|default:"0" }}</span>
                     </div>
-                    <div class="status-item collapsed-mode" title="Clientes">
-                        <i class="fas fa-user-tie text-info" style="font-size: 16px;"></i>
-                        <span class="status-value">{{ total_clients|default:"0" }}</span>
+                    <div class="status-item collapsed-mode d-flex align-items-center gap-2" title="Clientes" style="font-size: 0.7rem; padding: 4px 0;">
+                        <i class="fas fa-user-tie" style="color: #00d4ff; font-size: 16px;"></i>
+                        <span class="status-value" style="color: #c8d6e5;">{{ total_clients|default:"0" }}</span>
                     </div>
-                    <div class="status-item collapsed-mode" title="Energia">
-                        <i class="fas fa-bolt text-primary" style="font-size: 16px;"></i>
-                        <span id="energy-balance-close" class="status-value">{{ request.user.energy|default:"0" }}</span>
+                    <div class="status-item collapsed-mode d-flex align-items-center gap-2" title="Energia" style="font-size: 0.7rem; padding: 4px 0;">
+                        <i class="fas fa-bolt" style="color: #00d4ff; font-size: 16px;"></i>
+                        <span id="energy-balance-close" class="status-value" style="color: #c8d6e5;">{{ request.user.energy|default:"0" }}</span>
                     </div>
-                    <div class="status-item collapsed-mode" title="Servidores">
-                        <i class="fas fa-hdd text-success" style="font-size: 16px;"></i>
-                        <span class="status-value">{{ total_servers|default:"0" }}</span>
+                    <div class="status-item collapsed-mode d-flex align-items-center gap-2" title="Servidores" style="font-size: 0.7rem; padding: 4px 0;">
+                        <i class="fas fa-hdd" style="color: #4ade80; font-size: 16px;"></i>
+                        <span class="status-value" style="color: #c8d6e5;">{{ total_servers|default:"0" }}</span>
                     </div>
-                    <div class="status-item collapsed-mode" title="Nível">
-                        <i class="fas fa-star text-warning" style="font-size: 16px;"></i>
-                        <span class="status-value">{{ request.user.level|default:"1" }}</span>
+                    <div class="status-item collapsed-mode d-flex align-items-center gap-2" title="Nível" style="font-size: 0.7rem; padding: 4px 0;">
+                        <i class="fas fa-star" style="color: #f59e0b; font-size: 16px;"></i>
+                        <span class="status-value" style="color: #a78bfa; font-weight: 600;">{{ request.user.level|default:"1" }}</span>
                     </div>
                 </div>
     
                 <!-- Modo aberto: linhas com label e valor -->
-                <div class="sidebar-status-expanded d-none flex-column w-100 gap-1">
-                    <div class="status-item expanded-mode">
-                        <span class="status-label"><i class="fas fa-coins text-warning"></i>Dinheiro</span>
-                        <span id="live-balance" class="status-value">{{ request.user.money|default:"0" }}</span>
+                <div class="sidebar-status-expanded d-none flex-column w-100 gap-2">
+                    <div class="status-item expanded-mode d-flex justify-content-between align-items-center" style="font-size: 0.7rem; padding: 6px 4px; border-bottom: 1px solid #1e2633;">
+                        <span class="status-label" style="color: #94a3b8;"><i class="fas fa-coins" style="color: #f59e0b; margin-right: 6px;"></i>Dinheiro</span>
+                        <span id="live-balance" class="status-value" style="color: #4ade80; font-weight: 600;">{{ request.user.money|default:"0" }}</span>
                     </div>
-                    <div class="status-item expanded-mode">
-                        <span class="status-label"><i class="fas fa-user-tie text-info"></i>Clientes</span>
-                        <span class="status-value">{{ total_clients|default:"0" }}</span>
+                    <div class="status-item expanded-mode d-flex justify-content-between align-items-center" style="font-size: 0.7rem; padding: 6px 4px; border-bottom: 1px solid #1e2633;">
+                        <span class="status-label" style="color: #94a3b8;"><i class="fas fa-user-tie" style="color: #00d4ff; margin-right: 6px;"></i>Clientes</span>
+                        <span class="status-value" style="color: #c8d6e5;">{{ total_clients|default:"0" }}</span>
                     </div>
-                    <div class="status-item expanded-mode">
-                        <span class="status-label"><i class="fas fa-bolt text-primary"></i>Energia</span>
-                        <span id="energy-balance" class="status-value">{{ request.user.energy|default:"0" }}</span>
+                    <div class="status-item expanded-mode d-flex justify-content-between align-items-center" style="font-size: 0.7rem; padding: 6px 4px; border-bottom: 1px solid #1e2633;">
+                        <span class="status-label" style="color: #94a3b8;"><i class="fas fa-bolt" style="color: #00d4ff; margin-right: 6px;"></i>Energia</span>
+                        <span id="energy-balance" class="status-value" style="color: #c8d6e5;">{{ request.user.energy|default:"0" }}</span>
                     </div>
-                    <div class="status-item expanded-mode">
-                        <span class="status-label"><i class="fas fa-hdd text-success"></i>Servidores</span>
-                        <span class="status-value">{{ total_servers|default:"0" }}</span>
+                    <div class="status-item expanded-mode d-flex justify-content-between align-items-center" style="font-size: 0.7rem; padding: 6px 4px; border-bottom: 1px solid #1e2633;">
+                        <span class="status-label" style="color: #94a3b8;"><i class="fas fa-hdd" style="color: #4ade80; margin-right: 6px;"></i>Servidores</span>
+                        <span class="status-value" style="color: #c8d6e5;">{{ total_servers|default:"0" }}</span>
                     </div>
-                    <div class="status-item expanded-mode">
-                        <span class="status-label"><i class="fas fa-star text-warning"></i>Nível</span>
-                        <span class="status-value">{{ request.user.level|default:"1" }}</span>
+                    <div class="status-item expanded-mode d-flex justify-content-between align-items-center" style="font-size: 0.7rem; padding: 6px 4px;">
+                        <span class="status-label" style="color: #94a3b8;"><i class="fas fa-star" style="color: #f59e0b; margin-right: 6px;"></i>Nível</span>
+                        <span class="status-value" style="color: #a78bfa; font-weight: 600;">{{ request.user.level|default:"1" }}</span>
                     </div>
                 </div>
     
             </div>
     
             <!-- Configurações -->
-            <a href="" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.view_name == 'config' %}active{% endif %}">
-                <i class="fas fa-cog fs-5 text-center"></i>
-                <span class="sidebar-text d-none">Configurações</span>
+            <a href="" class="nav-link sidebar-link d-flex align-items-center gap-3 rounded-3 mb-2 {% if request.resolver_match.view_name == 'config' %}active{% endif %}"
+               style="color: #94a3b8; padding: 10px 12px; transition: all 0.2s; border: 1px solid transparent;">
+                <i class="fas fa-cog fs-5 text-center" style="color: #00d4ff;"></i>
+                <span class="sidebar-text d-none" style="color: #c8d6e5;">Configurações</span>
             </a>
     
             <!-- Logout -->
             <form method="post" action="{% url 'user:logout' %}" class="w-100">
                 {% csrf_token %}
-                <button type="submit" class="nav-link sidebar-link logout-link d-flex align-items-center gap-3 rounded-3 w-100 border-0 bg-transparent text-start">
-                    <i class="fas fa-sign-out-alt fs-5 text-center"></i>
-                    <span class="sidebar-text d-none">Sair</span>
+                <button type="submit" class="nav-link sidebar-link logout-link d-flex align-items-center gap-3 rounded-3 w-100 border-0"
+                        style="background: transparent; color: #94a3b8; padding: 10px 12px; transition: all 0.2s; text-align: start;">
+                    <i class="fas fa-sign-out-alt fs-5 text-center" style="color: #f87171;"></i>
+                    <span class="sidebar-text d-none" style="color: #f87171;">Sair</span>
                 </button>
             </form>
         </div>
     </nav>
-    
-
 </div>
 
-
+<style>
+    /* Estilos para hover e active da sidebar */
+    .sidebar-link:hover {
+        background: #1e2633 !important;
+        color: #c8d6e5 !important;
+        border-color: #2a3345 !important;
+    }
+    
+    .sidebar-link.active {
+        background: #00a3c4 !important;
+        color: #fff !important;
+        border-color: #00d4ff !important;
+    }
+    
+    .sidebar-link.active i {
+        color: #fff !important;
+    }
+    
+    .logout-link:hover {
+        background: #b91c1c !important;
+        color: #fff !important;
+    }
+    
+    .logout-link:hover i,
+    .logout-link:hover .sidebar-text {
+        color: #fff !important;
+    }
+    
+    #toggleBtn:hover {
+        background: #2a3345 !important;
+        border-color: #00d4ff !important;
+    }
+    
+    /* Ajuste para o conteúdo principal não ficar atrás da sidebar */
+    body {
+        padding-left: 80px;
+    }
+    
+    /* Quando a sidebar expandir */
+    #sidebar.expanded {
+        width: 250px !important;
+        min-width: 250px !important;
+    }
+    
+    #sidebar.expanded ~ * {
+        margin-left: 250px;
+    }
+</style>

@@ -1,209 +1,189 @@
-<style>
-    /* ===== Modal "Modelos de IA" no estilo do modal de Bay ===== */
-    .ia-modal .modal-content {
-        background: var(--dc-panel) !important;
-        color: var(--dc-text) !important;
-        border: 1px solid var(--dc-border-alt) !important;
-    }
-    .ia-modal .modal-header,
-    .ia-modal .modal-footer {
-        border-color: var(--dc-border) !important;
-    }
-    .ia-modal .modal-title { color: var(--dc-cyan); }
-
-    .ia-modal .btn-close {
-        filter: invert(1) grayscale(100%) brightness(1.6);
-        opacity: 0.75;
-    }
-    .ia-modal .btn-close:hover { opacity: 1; }
-
-    /* Tabela de specs */
-    .ia-modal .table {
-        --bs-table-bg: transparent;
-        --bs-table-color: var(--dc-text);
-        --bs-table-border-color: var(--dc-border);
-    }
-    .ia-modal .table th { color: var(--dc-text-muted); font-weight: 400; }
-
-    /* Cards internos (alocação atual) */
-    .ia-modal .card {
-        background: var(--dc-panel-alt) !important;
-        border: 1px solid var(--dc-border-alt) !important;
-        color: var(--dc-text) !important;
-    }
-
-    /* Blocos de status */
-    .ia-modal .status-block {
-        border: 1px dashed var(--dc-border-alt) !important;
-        background: transparent;
-    }
-    
-    .ia-modal .table td {
-    color: #e8e4dc;
-    font-weight: 600;
-    }
-
-    /* Selects e inputs — aqui mora o vazamento branco do Bootstrap */
-    .ia-modal .form-select,
-    .ia-modal .form-control {
-        background-color: var(--dc-bg) !important;
-        color: var(--dc-text) !important;
-        border: 1px solid var(--dc-border-alt) !important;
-    }
-    .ia-modal .form-select:focus,
-    .ia-modal .form-control:focus {
-        background-color: var(--dc-bg) !important;
-        color: var(--dc-text) !important;
-        border-color: var(--dc-cyan) !important;
-        box-shadow: 0 0 0 0.2rem rgba(0, 212, 255, 0.15) !important;
-    }
-    .ia-modal .form-select option {
-        background: var(--dc-bg);
-        color: var(--dc-text);
-    }
-    /* seta do select some no fundo escuro em alguns navegadores; força um SVG claro */
-    .ia-modal .form-select {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2394a3b8'%3e%3cpath d='M8 11L3 6h10z'/%3e%3c/svg%3e") !important;
-    }
-
-    .ia-modal .input-group-text {
-        background: var(--dc-bg) !important;
-        border-color: var(--dc-border-alt) !important;
-        color: var(--dc-text-muted) !important;
-    }
-
-    .ia-modal .form-label { color: var(--dc-text-muted) !important; }
-
-    /* Progress bar de treinamento */
-    .ia-modal .progress { background: var(--dc-bg) !important; }
-    .ia-modal .progress-bar { background: #f59e0b !important; }
-
-    .ia-modal .level-pill {
-        font-size: 0.65rem; background: var(--dc-bg); border: 1px solid var(--dc-border-alt);
-        color: var(--dc-purple); padding: 1px 8px; border-radius: 20px;
-    }
-</style>
-
-<div class="modal fade ia-modal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <h5 class="modal-title d-flex align-items-center gap-2">
-                    <i class="fas fa-brain"></i>{{ model.name }}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-            </div>
-
-            <div class="modal-body">
-                <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-                    <span class="level-pill"><i class="fas fa-star"></i> {{ model.level }}</span>
-                    <span class="badge bg-secondary">Não instalado</span>
-                    <span class="badge bg-success">Instalado</span>
-                    <span class="badge bg-warning text-dark">Treinando</span>
-                </div>
-
-                <table class="table table-sm align-middle mb-3">
-                    <tbody>
-                        <tr><th><i class="fas fa-desktop"></i> GPU mínima</th><td>{{ model.gpu_vram }}</td></tr>
-                        <tr><th><i class="fas fa-memory"></i> RAM mínima</th><td>{{ model.ram_gb }}</td></tr>
-                        <tr><th><i class="fas fa-hdd"></i> Armazenamento</th><td>{{ model.storage_gb }}</td></tr>
-                        <tr><th><i class="fas fa-tag"></i> Preço de compra</th><td>{{ model.price }}</td></tr>
-                        <tr><th><i class="fas fa-coins"></i> Receita base</th><td>{{ model.base_revenue }}</td></tr>
-                    </tbody>
-                </table>
-
-                <!-- BLOCO 1: NÃO INSTALADO -->
-                <div class="status-block rounded-3 p-3 mb-3">
-                    <div class="text-uppercase small text-muted mb-2"><i class="fas fa-circle-question"></i> Status: Não instalado</div>
-
-                    <div class="card mb-3">
-                        <div class="card-body py-2">
-                            <div class="text-muted small mb-1"><i class="fas fa-map-marker-alt"></i> Alocação atual</div>
-                            <div>Este modelo ainda não está instalado em nenhum servidor.</div>
-                        </div>
-                    </div>
-
-                    <form method="post" action="/models/llama3/install">
-                        <label class="form-label small">Comprar e instalar em</label>
-                        <div class="input-group input-group-sm mb-2">
-                            <select name="server_id" class="form-select">
-                                <option value="srv-1">ML-01 (Rack Beta)</option>
-                                <option value="srv-2">ML-02 (Rack Beta)</option>
-                                <option value="srv-3">DB-01 (Rack Alpha)</option>
-                                <option value="srv-4">Web-01 (Rack Alpha)</option>
-                            </select>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-download"></i> Comprar &amp; Instalar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- BLOCO 2: INSTALADO -->
-                <div class="status-block rounded-3 p-3 mb-3">
-                    <div class="text-uppercase small text-muted mb-2"><i class="fas fa-check-circle"></i> Status: Instalado</div>
-
-                    <div class="card mb-3">
-                        <div class="card-body py-2">
-                            <div class="text-muted small mb-1"><i class="fas fa-map-marker-alt"></i> Alocação atual</div>
-                            <div>Rodando em <strong>Web-01</strong> (Rack Alpha).</div>
-                        </div>
-                    </div>
-
-                    <form method="post" action="/models/llama3/move">
-                        <label class="form-label small">Mover para</label>
-                        <div class="input-group input-group-sm mb-2">
-                            <select name="server_id" class="form-select">
-                                <option value="srv-1">ML-01 (Rack Beta)</option>
-                                <option value="srv-2">ML-02 (Rack Beta)</option>
-                                <option value="srv-3">DB-01 (Rack Alpha)</option>
-                                <option value="srv-4" selected>Web-01 (Rack Alpha)</option>
-                            </select>
-                            <button type="submit" class="btn btn-outline-light">
-                                <i class="fas fa-arrows-alt"></i> Mover
-                            </button>
-                        </div>
-                    </form>
-
-                    <div class="d-flex gap-2 flex-wrap mt-2">
-                        <form method="post" action="/models/llama3/evolve">
-                            <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-arrow-up"></i> Evoluir</button>
-                        </form>
-                        <form method="post" action="/models/llama3/train">
-                            <button type="submit" class="btn btn-sm btn-warning"><i class="fas fa-play"></i> Treinar</button>
-                        </form>
-                        <form method="post" action="/models/llama3/uninstall">
-                            <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-power-off"></i> Baixar</button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- BLOCO 3: TREINANDO -->
-                <div class="status-block rounded-3 p-3 mb-0">
-                    <div class="text-uppercase small text-muted mb-2"><i class="fas fa-bolt"></i> Status: Treinando</div>
-
-                    <div class="card">
-                        <div class="card-body py-2">
-                            <div class="text-muted small mb-1"><i class="fas fa-map-marker-alt"></i> Alocação atual</div>
-                            <div>Em treinamento a partir de <strong>ML-01</strong> (Rack Beta).</div>
-                            <div class="mt-2">
-                                <div class="d-flex justify-content-between small text-muted">
-                                    <span>Progresso do treinamento</span>
-                                    <span>40%</span>
-                                </div>
-                                <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar" style="width: 40%;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
-            </div>
-        </div>
+<!-- Modal IA – Overlay centralizado (padrão customizado sem conflito CSS) -->
+<div
+  id="IaModalOverlay"
+  class="position-fixed top-0 start-0 w-100 h-100"
+  style="display: flex; z-index: 1050; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); justify-content: center; align-items: center;"
+  onclick="if (event.target.id === 'IaModalOverlay') closeIaModal();"
+>
+  <div
+    class="position-relative d-flex flex-column"
+    style="max-width: 680px; width: 95vw; max-height: 88vh; margin: auto;
+           background: #141a24; border: 1px solid #2a3345; border-radius: 16px;
+           padding: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8); color: #c8d6e5;"
+  >
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3"
+         style="border-bottom: 1px solid #1e2633; padding-bottom: 14px;">
+      <h2 class="d-flex align-items-center gap-2 mb-0" style="color: #00d4ff; font-size: 1.15rem; font-weight: 500;">
+        <i class="fas fa-brain"></i> {{ model.name|default:"Modelo IA" }}
+      </h2>
+      <button type="button"
+              class="btn-close"
+              onclick="closeIaModal();"
+              aria-label="Fechar"
+              style="filter: invert(1) grayscale(100%) brightness(1.6); opacity: 0.75; cursor: pointer;">
+      </button>
     </div>
+
+    <!-- BODY (scrollável) -->
+    <div style="overflow-y: auto; flex: 1; max-height: calc(88vh - 130px); padding-right: 4px;">
+
+      <!-- BADGES DE STATUS -->
+      <div class="d-flex gap-2 flex-wrap mb-3">
+        <span class="rarity-badge-sm" style="color: #a78bfa; background: #2a1a3a;">
+          <i class="fas fa-star"></i> Nível {{ model.level|default:1 }}
+        </span>
+        <span class="rarity-badge-sm" style="color: #94a3b8; background: #1e2633;">
+          <i class="fas fa-cube"></i> {{ model.mark_model|default:"GenAI" }}
+        </span>
+        {% if model.status == "running" %}
+          <span class="status-badge completed"><i class="fas fa-bolt"></i> Em Execução</span>
+        {% elif model.status == "training" %}
+          <span class="status-badge training"><i class="fas fa-brain"></i> Treinando</span>
+        {% elif model.status == "moving" %}
+          <span class="status-badge moving"><i class="fas fa-arrows-alt"></i> Movendo</span>
+        {% else %}
+          <span class="status-badge idle"><i class="fas fa-pause-circle"></i> Disponível / Parado</span>
+        {% endif %}
+      </div>
+
+      <!-- SPECS DO MODELO -->
+      <div class="panel mb-3" style="max-height: none;">
+        <h4><i class="fas fa-microchip"></i> Especificações & Requisitos</h4>
+        <div class="item">
+          <span class="time"><i class="fas fa-desktop" style="color: #00d4ff; margin-right: 6px;"></i> GPU VRAM Mínima</span>
+          <span>{{ model.gpu_vram|default:"16" }} GB</span>
+        </div>
+        <div class="item">
+          <span class="time"><i class="fas fa-memory" style="color: #00d4ff; margin-right: 6px;"></i> RAM Mínima</span>
+          <span>{{ model.ram_gb|default:"32" }} GB</span>
+        </div>
+        <div class="item">
+          <span class="time"><i class="fas fa-hdd" style="color: #00d4ff; margin-right: 6px;"></i> Armazenamento</span>
+          <span>{{ model.storage_gb|default:"100" }} GB</span>
+        </div>
+        <div class="item">
+          <span class="time"><i class="fas fa-sliders-h" style="color: #00d4ff; margin-right: 6px;"></i> Parâmetros</span>
+          <span>{{ model.params|default:"7B" }}</span>
+        </div>
+        <div class="item">
+          <span class="time"><i class="fas fa-tag" style="color: #00d4ff; margin-right: 6px;"></i> Preço</span>
+          <span class="text-money">$ {{ model.price|default:"1,200.00" }}</span>
+        </div>
+        <div class="item" style="border-bottom: none;">
+          <span class="time"><i class="fas fa-coins" style="color: #00d4ff; margin-right: 6px;"></i> Receita Base / min</span>
+          <span class="text-money">$ {{ model.base_revenue|default:"45.00" }}</span>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- ESTADO 1: INSTALAÇÃO / ALOCAÇÃO EM BAY     -->
+      <!-- ========================================== -->
+      <div class="panel mb-3" style="max-height: none; border-left: 3px solid #00d4ff;">
+        <h4><i class="fas fa-download"></i> 1. Instalar em uma Bay (Servidor)</h4>
+
+        <div class="item mb-2" style="border-bottom: 1px solid #1a212b; padding-bottom: 6px;">
+          <span class="time"><i class="fas fa-info-circle"></i> Alocação</span>
+          <span>Selecione a Bay com hardware compatível para hospedar a IA.</span>
+        </div>
+
+        <div class="form-group mb-0">
+          <label style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px;">Selecione a Bay de Destino:</label>
+          <div class="d-flex gap-2">
+            <select style="flex: 1; background: #0b0e14; border: 1px solid #1e2633; border-radius: 6px; color: #c8d6e5; padding: 6px 10px; font-size: 0.75rem;">
+              <option value="bay-1">Bay #01 — Rack Alpha [48GB VRAM / 64GB RAM] (Livre)</option>
+              <option value="bay-2">Bay #02 — Rack Alpha [24GB VRAM / 32GB RAM] (Livre)</option>
+              <option value="bay-3">Bay #03 — Rack Beta [80GB VRAM / 128GB RAM] (Livre)</option>
+            </select>
+            <button type="button" class="btn btn-primary d-flex align-items-center gap-1" style="white-space: nowrap;">
+              <i class="fas fa-play"></i> Instalar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- ESTADO 2: EM EXECUÇÃO (MOVER, EVOLUIR, ETC)-->
+      <!-- ========================================== -->
+      <div class="panel mb-3" style="max-height: none; border-left: 3px solid #4ade80;">
+        <h4><i class="fas fa-bolt"></i> 2. Gestão do Modelo em Execução</h4>
+
+        <div class="item mb-2" style="border-bottom: 1px solid #1a212b; padding-bottom: 6px;">
+          <span class="time"><i class="fas fa-server"></i> Localização Atual</span>
+          <span>Hospedado em <strong style="color: #4ade80;">Bay #01</strong> (Rack Alpha)</span>
+        </div>
+
+        <!-- Mover Bay -->
+        <div class="form-group mb-3">
+          <label style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px;">Mover / Migrar para outra Bay:</label>
+          <div class="d-flex gap-2">
+            <select style="flex: 1; background: #0b0e14; border: 1px solid #1e2633; border-radius: 6px; color: #c8d6e5; padding: 6px 10px; font-size: 0.75rem;">
+              <option value="bay-2">Bay #02 — Rack Alpha (Livre)</option>
+              <option value="bay-3">Bay #03 — Rack Beta (Livre)</option>
+              <option value="bay-4">Bay #04 — Rack Beta (Livre)</option>
+            </select>
+            <button type="button" class="btn d-flex align-items-center gap-1" style="white-space: nowrap;">
+              <i class="fas fa-arrows-alt"></i> Mover
+            </button>
+          </div>
+        </div>
+
+        <!-- Ações: Evoluir, Treinar, Parar -->
+        <label style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px;">Ações Rápidas:</label>
+        <div class="d-flex gap-2 flex-wrap">
+          <button type="button" class="btn btn-sm btn-success d-flex align-items-center gap-1">
+            <i class="fas fa-arrow-up"></i> Evoluir Modelo ($ 500)
+          </button>
+          <button type="button" class="btn btn-sm btn-warning d-flex align-items-center gap-1">
+            <i class="fas fa-brain"></i> Iniciar Treinamento
+          </button>
+          <button type="button" class="btn btn-sm btn-danger d-flex align-items-center gap-1">
+            <i class="fas fa-power-off"></i> Parar Execução
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- ESTADO 3: TREINAMENTO ATIVO                -->
+      <!-- ========================================== -->
+      <div class="panel mb-0" style="max-height: none; border-left: 3px solid #f59e0b;">
+        <h4><i class="fas fa-brain"></i> 3. Treinamento & Fine-Tuning</h4>
+
+        <div class="item" style="border-bottom: none; flex-direction: column; align-items: flex-start; gap: 8px;">
+          <div class="d-flex justify-content-between w-100" style="font-size: 0.7rem; color: #94a3b8;">
+            <span><i class="fas fa-microchip"></i> Hardware Alocado: <strong>Bay #01 (Rack Alpha)</strong></span>
+            <span>Época: <strong>14 / 20</strong></span>
+          </div>
+
+          <div class="w-100 mt-1">
+            <div class="d-flex justify-content-between" style="font-size: 0.68rem; color: #94a3b8; margin-bottom: 4px;">
+              <span>Progresso do Treinamento</span>
+              <span style="color: #f59e0b; font-weight: 600;">70%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="fill" style="width: 70%;"></div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center w-100 mt-2">
+            <small style="font-size: 0.65rem; color: #64748b;">
+              <i class="fas fa-clock"></i> Tempo restante estimado: ~ 02m 45s
+            </small>
+            <button type="button" class="btn btn-sm btn-danger d-flex align-items-center gap-1">
+              <i class="fas fa-stop"></i> Cancelar Treino
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid #1e2633; margin-top: 12px;">
+      <button type="button" class="btn btn-sm" onclick="closeIaModal();"
+              style="background: #1e2633; border: 1px solid #2a3345; color: #c8d6e5; border-radius: 6px; font-size: 0.75rem; padding: 5px 14px; cursor: pointer;">
+        Fechar
+      </button>
+    </div>
+  </div>
 </div>

@@ -3,6 +3,11 @@ from model.models import AIModel
 from django.shortcuts import get_object_or_404
 from user.services.inventory_services import InventoryService
 from dataclasses import dataclass
+from enum import Enum
+
+class status(Enum):
+    training = 1
+    
 
 @dataclass
 class IaModelViewModel:
@@ -11,7 +16,7 @@ class IaModelViewModel:
     level: int
     price: int
     base_revenue: Decimal
-    is_running: bool
+    status: str
     # specs
     mark_model: str
     gpu_vram: int
@@ -23,7 +28,7 @@ class IaModelViewModel:
 class IaModelContextServices:
     @staticmethod
     def get_ia_models(user_id):
-        ia_models_user = InventoryService(user_id=user_id).get_ia_models()
+        ia_models_user = InventoryService(user_id=user_id).get_ia_models().select_related("model", "model__mark_model")
         ia_models = AIModel.objects.filter(level=1)
               
         user_ia_models = [
@@ -33,7 +38,7 @@ class IaModelContextServices:
                 level = ia_model.model.level,
                 price = ia_model.model.price,
                 base_revenue = ia_model.model.base_revenue,
-                is_running = ia_model.is_running,
+                status = ia_model.status,
                 mark_model = ia_model.model.mark_model.name,
                 gpu_vram = ia_model.model.gpu_vram,
                 ram_gb = ia_model.model.ram_gb,

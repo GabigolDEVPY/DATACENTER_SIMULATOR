@@ -31,9 +31,15 @@ class InventoryItem(models.Model):
     
     
 class InventoryIaModel(models.Model):
+    class Status(models.TextChoices):
+        stopped = "stopped", "Stopped"
+        running = "running", "Running"
+        training = "training", "Training"
+        moving = "moving", "Moving"
+        
     inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name="ia_models")
     model = models.ForeignKey(AIModel, on_delete=models.CASCADE)
-    is_running = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.stopped)
 
     def __str__(self):
-        return f"{self.model.name} (Equipped: {self.is_running})"
+        return f"{self.model.name} (Status: {self.status})"
