@@ -1,9 +1,10 @@
-from user.models import Inventory, InventoryItem
+from user.models import Inventory, InventoryItem, InventoryIaModel
 
 class InventoryService:
     def __init__(self, user_id):
         self.inventory = Inventory.objects.filter(user=user_id).first()
     
+    #hardware items
     def get_cpus(self):
         cpus = InventoryItem.objects.filter(
             inventory=self.inventory, item__cpu__isnull=False,
@@ -37,6 +38,10 @@ class InventoryService:
             "gpus": self.get_gpus
         }
         
+    # ia model items
+    def get_ia_models(self):
+        ia_models = self.inventory.ia_models.all()
+        return ia_models
         
         
     

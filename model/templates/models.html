@@ -31,6 +31,27 @@
     #ia-models-page .page-header .summary span { display: flex; align-items: center; gap: 5px; }
     #ia-models-page .page-header .summary i { color: var(--dc-cyan); }
 
+    /* ---- Tabs ---- */
+    #ia-models-page .dc-tabs {
+        display: flex; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--dc-border-alt);
+    }
+    #ia-models-page .dc-tab-btn {
+        background: transparent; border: none; color: var(--dc-text-muted);
+        font-size: 0.85rem; padding: 10px 16px; cursor: pointer;
+        border-bottom: 2px solid transparent; transition: color .15s ease, border-color .15s ease;
+        display: flex; align-items: center; gap: 6px;
+    }
+    #ia-models-page .dc-tab-btn:hover { color: var(--dc-text); }
+    #ia-models-page .dc-tab-btn.active { color: var(--dc-cyan); border-bottom-color: var(--dc-cyan); }
+    #ia-models-page .dc-tab-btn .badge-count {
+        font-size: 0.65rem; background: var(--dc-bg); border: 1px solid var(--dc-border-alt);
+        color: var(--dc-purple); padding: 1px 7px; border-radius: 20px;
+    }
+
+    #ia-models-page .dc-tab-pane { display: none; }
+    #ia-models-page .dc-tab-pane.active { display: block; }
+
+    /* ---- Cards ---- */
     #ia-models-page .model-card {
         background: var(--dc-panel-alt); border: 1px solid var(--dc-border-alt); border-radius: 12px;
         padding: 14px; height: 100%; border-left: 3px solid var(--dc-cyan-dark);
@@ -40,6 +61,7 @@
         border-color: var(--dc-cyan);
         transform: translateY(-2px);
     }
+    #ia-models-page .model-card.owned { border-left-color: var(--dc-green); }
 
     #ia-models-page .model-icon {
         width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
@@ -66,6 +88,11 @@
         font-size: 0.65rem; background: var(--dc-bg); border: 1px solid var(--dc-border-alt);
         color: var(--dc-purple); padding: 1px 8px; border-radius: 20px;
     }
+
+    #ia-models-page .empty-state {
+        text-align: center; padding: 40px 10px; color: var(--dc-text-muted); font-size: 0.85rem;
+    }
+    #ia-models-page .empty-state i { font-size: 1.6rem; color: var(--dc-cyan-dark); display: block; margin-bottom: 8px; }
 </style>
 
 <div id="ia-models-page">
@@ -73,41 +100,101 @@
     <div class="page-header">
         <h2><i class="fas fa-brain"></i> Modelos de IA</h2>
         <div class="summary">
-            <span><i class="fas fa-check-circle"></i> Instalados: 2</span>
-            <span><i class="fas fa-bolt"></i> Treinando: 1</span>
+            <span><i class="fas fa-check-circle"></i> Instalados: {{ user_ia_models|length }}</span>
             <span><i class="fas fa-coins"></i> Receita/min: $ 870.00</span>
         </div>
     </div>
 
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3">
+    <!-- ===== TABS ===== -->
+    <div class="dc-tabs">
+        <button type="button" class="dc-tab-btn active" data-tab="meus-modelos">
+            <i class="fas fa-server"></i> Meus Modelos
+            <span class="badge-count">{{ user_ia_models|length }}</span>
+        </button>
+        <button type="button" class="dc-tab-btn" data-tab="modelos-disponiveis">
+            <i class="fas fa-store"></i> Modelos Disponíveis
+            <span class="badge-count">{{ ia_models|length }}</span>
+        </button>
+    </div>
 
-        {% for model in models %}
-            <div
-                hx-get="{% url 'model:get_ia_detail' model.id %}"
-                hx-target="#ModelIaDetail"
-                hx-swap="innerHTML"
-                class="col model-col"
-                id="model-id-{{ model.id }}"
-            >
-                <div class="model-card">
-                    <div class="d-flex align-items-start gap-2">
-                        <div class="model-icon"><i class="fas fa-brain"></i></div>
-                        <div class="flex-grow-1">
-                            <h5>{{ model.name }}</h5>
-                            <div class="model-sub">{{ model.level }}</div>
+    <!-- ===== TAB: MEUS MODELOS (instalados) ===== -->
+    <div class="dc-tab-pane active" id="tab-meus-modelos">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3">
+
+            {% for model in user_ia_models %}
+                <div
+                    hx-get="{% url 'model:get_ia_detail' model.id %}"
+                    hx-target="#ModelIaDetail"
+                    hx-swap="innerHTML"
+                    class="col model-col"
+                    id="owned-model-id-{{ model.id }}"
+                >
+                    <div class="model-card owned">
+                        <div class="d-flex align-items-start gap-2">
+                            <div class="model-icon"><i class="fas fa-brain"></i></div>
+                            <div class="flex-grow-1">
+                                <h5>{{ model.name }}</h5>
+                                <div class="model-sub">{{ model.mark_model }} &middot; Nível {{ model.level }}</div>
+                            </div>
                         </div>
+
+                        <div class="spec-row"><span><i class="fas fa-desktop"></i> GPU VRAM</span><span>{{ model.gpu_vram }} GB</span></div>
+                        <div class="spec-row"><span><i class="fas fa-memory"></i> RAM</span><span>{{ model.ram_gb }} GB</span></div>
+                        <div class="spec-row"><span><i class="fas fa-hdd"></i> Storage</span><span>{{ model.storage_gb }} GB</span></div>
+                        <div class="spec-row"><span><i class="fas fa-coins"></i> Receita base</span><span>$ {{ model.base_revenue }}</span></div>
+
+                        {% if model.is_running %}
+                            <div class="alloc-line installed"><i class="fas fa-bolt"></i> Em execução</div>
+                        {% else %}
+                            <div class="alloc-line not-installed"><i class="fas fa-pause-circle"></i> Parado</div>
+                        {% endif %}
                     </div>
-
-                    <div class="spec-row"><span><i class="fas fa-desktop"></i> GPU mín.</span><span>{{ model.gpu_vram }}</span></div>
-                    <div class="spec-row"><span><i class="fas fa-tag"></i> Preço de compra</span><span>{{ model.price }}</span></div>
-
-                    <div class="alloc-line not-installed"><i class="fas fa-circle-question"></i> Não instalado</div>
-                    <div class="alloc-line installed"><i class="fas fa-server"></i> Web-01 &middot; Rack Alpha</div>
-                    <div class="alloc-line training"><i class="fas fa-bolt"></i> Treinando (40%)</div>
                 </div>
-            </div>
-        {% endfor %}
+            {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    Você ainda não possui nenhum modelo instalado.
+                </div>
+            {% endfor %}
 
+        </div>
+    </div>
+
+    <!-- ===== TAB: MODELOS DISPONÍVEIS (Django) ===== -->
+    <div class="dc-tab-pane" id="tab-modelos-disponiveis">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3">
+
+            {% for model in ia_models %}
+                <div
+                    hx-get="{% url 'model:get_ia_detail' model.id %}"
+                    hx-target="#ModelIaDetail"
+                    hx-swap="innerHTML"
+                    class="col model-col"
+                    id="model-id-{{ model.id }}"
+                >
+                    <div class="model-card">
+                        <div class="d-flex align-items-start gap-2">
+                            <div class="model-icon"><i class="fas fa-brain"></i></div>
+                            <div class="flex-grow-1">
+                                <h5>{{ model.name }}</h5>
+                                <div class="model-sub">{{ model.level }}</div>
+                            </div>
+                        </div>
+
+                        <div class="spec-row"><span><i class="fas fa-desktop"></i> GPU mín.</span><span>{{ model.gpu_vram }}</span></div>
+                        <div class="spec-row"><span><i class="fas fa-tag"></i> Preço de compra</span><span>{{ model.price }}</span></div>
+
+                        <div class="alloc-line not-installed"><i class="fas fa-circle-question"></i> Não instalado</div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    Nenhum modelo disponível no momento.
+                </div>
+            {% endfor %}
+
+        </div>
     </div>
 
 </div>
@@ -122,16 +209,24 @@
         const modalEl = e.detail.target.querySelector(".modal");
         if (!modalEl) return;
 
-        // Reaproveita a instância se já existir, senão cria uma nova
         const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
         modalInstance.show();
 
-        // Ao fechar, destrói a instância e remove o modal do DOM
-        // (evita instâncias "fantasma" na próxima troca via htmx)
         modalEl.addEventListener("hidden.bs.modal", function () {
             modalInstance.dispose();
             e.detail.target.innerHTML = "";
         }, { once: true });
+    });
+
+    // ---- Controle das abas ----
+    document.querySelectorAll("#ia-models-page .dc-tab-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            document.querySelectorAll("#ia-models-page .dc-tab-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll("#ia-models-page .dc-tab-pane").forEach(p => p.classList.remove("active"));
+
+            this.classList.add("active");
+            document.getElementById("tab-" + this.dataset.tab).classList.add("active");
+        });
     });
 </script>
 

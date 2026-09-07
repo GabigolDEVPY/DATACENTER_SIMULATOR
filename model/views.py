@@ -3,6 +3,7 @@ from django.views.generic import View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import AIModel
 from django.shortcuts import get_object_or_404
+from model.services.ia_model_context_service import IaModelContextServices
 
 # Create your views here.
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -10,7 +11,9 @@ class HomeView(LoginRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["models"] = AIModel.objects.filter(level=1)
+        user_ia_models, ia_models = IaModelContextServices.get_ia_models(self.request.user.id)
+        context["ia_models"] = ia_models
+        context["user_ia_models"] = user_ia_models
         return context
     
 class IAModelDetailView(View):

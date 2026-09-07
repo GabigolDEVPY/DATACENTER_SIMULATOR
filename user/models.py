@@ -1,5 +1,6 @@
 from django.db import models
 from hardware.models import Hardware
+from model.models import AIModel
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
@@ -26,3 +27,13 @@ class InventoryItem(models.Model):
 
     def __str__(self):
         return f"{self.item.model} (Equipped: {self.is_equiped})"
+    
+    
+    
+class InventoryIaModel(models.Model):
+    inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name="ia_models")
+    model = models.ForeignKey(AIModel, on_delete=models.CASCADE)
+    is_running = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.model.name} (Equipped: {self.is_running})"

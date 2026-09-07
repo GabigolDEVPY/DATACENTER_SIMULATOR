@@ -1,5 +1,5 @@
 from django.contrib import admin
-from user.models import Inventory, InventoryItem, User
+from user.models import Inventory, InventoryItem, InventoryIaModel, User
 # Register your models here.
 
 @admin.register(User)
@@ -13,3 +13,7 @@ class InventoryAdmin(admin.ModelAdmin):
 @admin.register(InventoryItem)
 class InventoryItemAdmin(admin.ModelAdmin):
     list_display = ['item', 'is_equiped']
+    
+@admin.register(InventoryIaModel)
+class InventoryIaModelAdmin(admin.ModelAdmin):
+    list_display = ['model', 'is_running']
