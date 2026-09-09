@@ -29,7 +29,9 @@ class IaModelContextServices:
     @staticmethod
     def get_ia_models(user_id):
         ia_models_user = InventoryService(user_id=user_id).get_ia_models().select_related("model", "model__mark_model")
-        ia_models = AIModel.objects.filter(level=1)
+        user_model_ids = ia_models_user.values_list("model_id", flat=True)
+        
+        ia_models = AIModel.objects.filter(level=1).exclude(id__in=user_model_ids).select_related("mark_model")
               
         user_ia_models = [
             IaModelViewModel(
@@ -49,3 +51,37 @@ class IaModelContextServices:
         ]
         
         return user_ia_models, ia_models
+    
+    @staticmethod
+    def get_ia_model(user_id, model_id):
+        ia_models_user = (
+            InventoryService(user_id=user_id)
+            .get_ia_models()
+            .select_related("model", "model__mark_model")
+        )
+
+        ia_model = ia_models_user.filter(model_id=model_id).first()
+
+        if ia_model:
+            model = ia_model.model
+            status = ia_model.status
+        else:
+            model = get_object_or_404(
+                AIModel.objects.select_related("mark_model"),
+                id=model_id
+            )
+            status = False
+
+        return IaModelViewModel(
+            id=model.id,
+            name=model.name,
+            level=model.level,
+            price=model.price,
+            base_revenue=model.base_revenue,
+            status=status,
+            mark_model=model.mark_model.name,
+            gpu_vram=model.gpu_vram,
+            ram_gb=model.ram_gb,
+            storage_gb=model.storage_gb,
+            params=model.params,
+        )

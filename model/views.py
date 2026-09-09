@@ -1,8 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import AIModel
-from django.shortcuts import get_object_or_404
 from model.services.ia_model_context_service import IaModelContextServices
 
 # Create your views here.
@@ -18,8 +16,9 @@ class HomeView(LoginRequiredMixin, TemplateView):
     
 class IAModelDetailView(View):
     def get(self, request, id):
+        ia_model = IaModelContextServices.get_ia_model(self.request.user.id, id)
         context = {
-                "model": get_object_or_404(AIModel, id=id)
+                "model": ia_model
             }
         
         return render(request, template_name="partials/ia_modal.html", context=context)

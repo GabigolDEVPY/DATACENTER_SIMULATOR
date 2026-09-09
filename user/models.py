@@ -36,6 +36,7 @@ class InventoryIaModel(models.Model):
         running = "running", "Running"
         training = "training", "Training"
         moving = "moving", "Moving"
+        not_installed = "not_installed", "Not Installed"
         
     inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name="ia_models")
     model = models.ForeignKey(AIModel, on_delete=models.CASCADE)
