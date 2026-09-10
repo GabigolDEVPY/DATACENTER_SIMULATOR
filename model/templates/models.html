@@ -3,23 +3,221 @@
 
 {% block content %}
 
+<style>
+    /* ===== HEADER DE SEÇÃO ===== */
+    .header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        background: #141a24;
+        padding: 10px 18px;
+        border-radius: 12px;
+        margin-bottom: 14px;
+        border-left: 4px solid #00d4ff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+        gap: 6px;
+    }
+    .header h2 {
+        font-weight: 300;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+    }
+    .header h2 i {
+        color: #00d4ff;
+    }
+    .header-info {
+        display: flex;
+        gap: 14px;
+        font-size: 0.75rem;
+        color: #94a3b8;
+    }
+    .header-info span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .header-info i.icon-success {
+        color: #4ade80;
+    }
+    .header-info i.icon-coins {
+        color: #f59e0b;
+    }
+
+    /* ===== NAVBAR (usado aqui como abas) ===== */
+    .navbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        background: #141a24;
+        padding: 8px 16px;
+        border-radius: 12px;
+        border-bottom: 2px solid #1e2633;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    .navbar .nav-link {
+        color: #94a3b8;
+        text-decoration: none;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        transition: 0.2s;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+    }
+    .navbar .nav-link:hover {
+        background: #1e2633;
+        color: #c8d6e5;
+    }
+    .navbar .nav-link.active {
+        background: #00a3c4;
+        color: #fff;
+    }
+    .navbar .nav-link i {
+        margin-right: 6px;
+    }
+    .navbar .badge-count {
+        background: #1e2633;
+        padding: 1px 8px;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        color: #94a3b8;
+        margin-left: 4px;
+    }
+
+    /* ===== SEÇÕES (troca de aba) ===== */
+    .section {
+        display: none;
+    }
+    .section.active {
+        display: block;
+    }
+
+    /* ===== GRID DE MODELOS ===== */
+    .model-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+        margin-top: 10px;
+    }
+    .model-card {
+        background: #1a212b;
+        border-radius: 12px;
+        padding: 14px;
+        border: 1px solid #2a3345;
+        transition: border-color 0.3s;
+    }
+    .model-card:hover {
+        border-color: #00d4ff;
+    }
+    .model-card h4 {
+        font-weight: 500;
+        font-size: 1rem;
+        color: #00d4ff;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .model-card .actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .model-col {
+        cursor: pointer;
+    }
+
+    /* ===== SPECS EM LISTA (linha a linha, label x valor) ===== */
+    .specs-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin: 8px 0;
+    }
+    .specs-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+        color: #94a3b8;
+        padding: 3px 0;
+        border-bottom: 1px solid #1a212b;
+    }
+    .specs-row:last-child {
+        border-bottom: none;
+    }
+    .specs-row i {
+        color: #00d4ff;
+        margin-right: 4px;
+    }
+    .specs-row span:last-child {
+        color: #c8d6e5;
+    }
+    .text-money {
+        color: #4ade80;
+        font-weight: 600;
+    }
+
+    /* ===== STATUS BADGE ===== */
+    .status-badge {
+        font-size: 0.65rem;
+        padding: 2px 10px;
+        border-radius: 20px;
+        display: inline-block;
+    }
+    .status-badge.idle {
+        background: #1e2633;
+        color: #94a3b8;
+    }
+    .status-badge.training {
+        background: #b45309;
+        color: #fde68a;
+    }
+    .status-badge.completed {
+        background: #15803d;
+        color: #bbf7d0;
+    }
+    .status-badge.moving {
+        background: #1e3a5f;
+        color: #7dd3fc;
+    }
+
+    /* ===== ESTADO VAZIO ===== */
+    .empty-state {
+        grid-column: 1 / -1;
+        font-size: 0.85rem;
+        text-align: center;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 1.6rem;
+        color: #00a3c4;
+        display: block;
+        margin-bottom: 8px;
+    }
+</style>
+
 <div id="ia-models-page">
 
     <!-- HEADER DA PÁGINA -->
     <div class="header">
         <h2><i class="fas fa-brain"></i> Modelos de IA</h2>
-        <div class="d-flex gap-3" style="font-size: 0.75rem; color: #94a3b8;">
-            <span class="d-flex align-items-center gap-2">
-                <i class="fas fa-check-circle" style="color: #4ade80;"></i> Instalados: {{ user_ia_models|length }}
-            </span>
-            <span class="d-flex align-items-center gap-2">
-                <i class="fas fa-coins" style="color: #f59e0b;"></i> Receita/min: $ 870.00
-            </span>
+        <div class="header-info">
+            <span><i class="fas fa-check-circle icon-success"></i> Instalados: {{ user_ia_models|length }}</span>
+            <span><i class="fas fa-coins icon-coins"></i> Receita/min: $ 870.00</span>
         </div>
     </div>
 
     <!-- ABAS (lado a lado, alinhadas à esquerda) -->
-    <div class="navbar mb-3 tabs-navbar">
+    <div class="navbar mb-3">
         <button type="button" class="nav-link active" data-tab="meus-modelos">
             <i class="fas fa-server"></i> Meus Modelos
             <span class="badge-count">{{ user_ia_models|length }}</span>
@@ -85,8 +283,8 @@
                     </div>
                 </div>
             {% empty %}
-                <div class="slot-empty py-5" style="grid-column: 1 / -1; font-size: 0.85rem;">
-                    <i class="fas fa-inbox mb-2" style="font-size: 1.6rem; color: #00a3c4; display: block;"></i>
+                <div class="empty-state py-5">
+                    <i class="fas fa-inbox"></i>
                     Você ainda não possui nenhum modelo instalado.
                 </div>
             {% endfor %}
@@ -129,8 +327,8 @@
                     </div>
                 </div>
             {% empty %}
-                <div class="slot-empty py-5" style="grid-column: 1 / -1; font-size: 0.85rem;">
-                    <i class="fas fa-inbox mb-2" style="font-size: 1.6rem; color: #00a3c4; display: block;"></i>
+                <div class="empty-state py-5">
+                    <i class="fas fa-inbox"></i>
                     Nenhum modelo disponível no momento.
                 </div>
             {% endfor %}

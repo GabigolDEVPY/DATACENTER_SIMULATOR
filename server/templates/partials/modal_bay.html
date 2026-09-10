@@ -1,38 +1,240 @@
 {% load static %}
 
+<style>
+    /* ===== BAY HEADER ===== */
+    .bay-header {
+        border-bottom: 1px solid #1e2633 !important;
+    }
+    .bay-title {
+        font-size: 0.9rem;
+    }
+    .bay-title i {
+        color: #00d4ff;
+        font-size: 0.85rem;
+    }
+    .badge-temp {
+        font-size: 0.55rem;
+        border: 1px solid #2a3345;
+        font-weight: 500;
+    }
+    .bay-subtitle {
+        font-size: 0.62rem;
+    }
+
+    /* ===== SWITCH OFF/ON ===== */
+    .bay-switch-label {
+        font-size: 0.55rem;
+    }
+    .bay-switch {
+        cursor: pointer;
+        width: 2rem;
+        height: 1rem;
+        background-color: #1e2633;
+        border-color: #2a3345;
+    }
+
+    /* ===== TÍTULOS DE SEÇÃO ===== */
+    .bay-section-title {
+        font-size: 0.6rem;
+        letter-spacing: 0.5px;
+    }
+    .bay-section-title.with-border {
+        border-bottom: 1px solid #1e2633;
+        padding-bottom: 3px;
+        margin-bottom: 5px;
+    }
+
+    /* ===== CARDS DE MÉTRICA ===== */
+    .info-card {
+        background: #141a24;
+        border: 1px solid #1e2633;
+    }
+    .info-card i {
+        font-size: 0.85rem;
+    }
+    .info-card .info-label {
+        font-size: 0.48rem;
+    }
+    .info-card .info-value {
+        font-size: 0.68rem;
+    }
+    .icon-power { color: #fbbf24; }
+    .icon-money { color: #4ade80; }
+    .icon-usage { color: #60a5fa; }
+    .icon-ai { color: #ec4899; }
+    .icon-cpu { color: #f97316; }
+    .icon-vram { color: #a78bfa; }
+    .icon-ram { color: #34d399; }
+    .icon-storage { color: #f472b6; }
+
+    /* ===== SELECTS (peças) ===== */
+    .part-select {
+        width: 100%;
+        box-sizing: border-box;
+        background: #0b0e14;
+        border: 1px solid #2a3345;
+        color: #c8d6e5;
+        font-size: 0.72rem;
+        padding: 5px 24px 5px 8px;
+        border-radius: 6px;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%2394a3b8'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+    }
+    .part-select:focus {
+        border-color: #00d4ff;
+        box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.15);
+    }
+    .part-select:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .part-select option {
+        background: #0b0e14;
+        color: #c8d6e5;
+    }
+
+    /* ===== COMPACTAÇÃO GERAL (evitar scroll no modal) ===== */
+    .component-group {
+        margin-bottom: 8px !important;
+    }
+    .group-title {
+        font-size: 0.65rem;
+        color: #94a3b8;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 4px;
+    }
+
+    /* ===== MODO COMPACTO – sobrescreve o raritys.css p/ caber sem scroll ===== */
+    .bay-wrapper .bay-header {
+        margin-bottom: 6px !important;
+        padding-bottom: 3px !important;
+    }
+    .bay-wrapper .bay-title {
+        font-size: .85rem;
+    }
+    .bay-wrapper .bay-title i {
+        font-size: .78rem;
+    }
+    .bay-wrapper .bay-subtitle {
+        font-size: .58rem;
+    }
+    .bay-wrapper .badge-temp {
+        font-size: .5rem;
+    }
+
+    .bay-wrapper .info-section {
+        margin-bottom: 6px !important;
+    }
+    .bay-wrapper .info-card {
+        padding: 3px 6px !important;
+        gap: 5px !important;
+    }
+    .bay-wrapper .info-card i {
+        font-size: .7rem;
+    }
+    .bay-wrapper .info-card .info-label {
+        font-size: .42rem;
+    }
+    .bay-wrapper .info-card .info-value {
+        font-size: .62rem;
+    }
+
+    .bay-wrapper .bay-section-title {
+        font-size: .55rem;
+    }
+    .bay-wrapper .bay-section-title.with-border {
+        padding-bottom: 3px;
+        margin-bottom: 5px;
+    }
+
+    .bay-wrapper .card-border {
+        border-radius: 12px;
+    }
+    .bay-wrapper .card-border::after {
+        border-radius: 12px;
+    }
+    .bay-wrapper .card-glow-inner,
+    .bay-wrapper .card-glow-outer {
+        border-radius: 10px;
+    }
+    .bay-wrapper .card-inner {
+        padding: .55rem .6rem;
+        border-radius: 10px;
+        align-items: stretch;
+        text-align: left;
+        gap: 5px;
+    }
+    .bay-wrapper .card-wrapper:hover .card-border {
+        transform: none;
+    }
+    .bay-wrapper .rarity-badge {
+        font-size: 7px;
+        padding: 2px 8px;
+        margin-bottom: 0;
+        letter-spacing: .5px;
+        align-self: flex-start;
+    }
+    .bay-wrapper .card-label {
+        font-size: .68rem;
+        gap: 4px;
+    }
+    .bay-wrapper .card-label i {
+        font-size: .62rem;
+    }
+    .bay-wrapper .d-flex.flex-column.gap-1 {
+        gap: 5px !important;
+    }
+    .bay-wrapper .component-group {
+        margin-bottom: 7px !important;
+    }
+    .bay-wrapper .group-title {
+        font-size: .58rem;
+        margin-bottom: 3px;
+    }
+    .bay-wrapper .row.g-1 {
+        --bs-gutter-x: 6px;
+        --bs-gutter-y: 6px;
+    }
+</style>
+
 <!-- ====== BAY COMPACTA – TEMA ESCURO (estilo "card de raridade" do jogo) ====== -->
 <div class="bay-wrapper p-2" id="bay-modal-id-{{ bay.id }}">
 
     <!-- Cabeçalho da Bay -->
-    <div class="bay-header d-flex justify-content-between align-items-start border-bottom pb-1 mb-2" style="border-color: #1e2633 !important;">
+    <div class="bay-header d-flex justify-content-between align-items-start pb-1 mb-2">
         <div>
-            <h5 class="fw-bold mb-0 text-light d-flex align-items-center gap-2" style="font-size: 0.9rem;">
-                <i class="bi bi-server" style="color: #00d4ff; font-size: 0.85rem;"></i>
+            <h5 class="fw-bold mb-0 text-light bay-title d-flex align-items-center gap-2">
+                <i class="bi bi-server"></i>
                 Bay #{{ bay.id }}
-                <span class="badge bg-dark text-light ms-1" style="font-size:0.5rem; border:1px solid #2a3345; font-weight:500;">
+                <span class="badge bg-dark text-light ms-1 badge-temp">
                     <i class="bi bi-thermometer-half"></i> {{ bay.temperature|default:"42" }}°C
                 </span>
             </h5>
-            <small class="text-secondary" style="font-size: 0.58rem;">
+            <small class="text-secondary bay-subtitle">
                 <i class="bi bi-clock-history"></i> Ativo desde {{ bay.created_at|date:"d/m/Y" }}
             </small>
         </div>
 
         <div class="text-end">
-            <label class="form-label fw-semibold mb-0 text-secondary text-uppercase" style="font-size: 0.5rem;">OFF/ON</label>
+            <label class="form-label fw-semibold mb-0 text-secondary text-uppercase bay-switch-label">OFF/ON</label>
             <div class="form-check form-switch d-flex justify-content-end">
                 <input hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
                        hx-post="{% url 'server:change_status_bay' bay.id %}" 
-                       hx-target="#bay-id-{{ bay.id }}" 
+                       hx-target="#bay-modal-id-{{ bay.id }}" 
                        hx-swap="outerHTML" 
                        class="form-check-input bay-switch"  
                        type="checkbox" 
                        role="switch" 
-                       id="baySwitch" 
-                       type="checkbox"
+                       id="baySwitch"
                        data-bay-id="{{ bay.id }}"
-                       {% if bay.is_active %}checked{% endif %} 
-                       style="cursor:pointer; width:2rem; height:1rem; background-color: #1e2633; border-color: #2a3345;">
+                       {% if bay.is_active %}checked{% endif %}>
             </div>
         </div>
     </div>
@@ -41,80 +243,80 @@
     <!-- SEÇÃO 1 – CARDS DE INFORMAÇÃO RÁPIDA -->
     <!-- ================================================= -->
     <div class="info-section mb-2">
-        <h6 class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.52rem; letter-spacing:0.5px;">
+        <h6 class="text-uppercase text-secondary fw-bold mb-1 bay-section-title">
             <i class="bi bi-speedometer2 me-1"></i> Métricas da Bay
         </h6>
 
         <div class="row g-1">
             <div class="col-6 col-md-3 col-lg-3">
-                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
-                    <i class="bi bi-lightning-fill" style="color: #fbbf24; font-size: 0.8rem;"></i>
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
+                    <i class="bi bi-lightning-fill icon-power"></i>
                     <div>
-                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Consumo</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.total_watts }} W</h6>
+                        <span class="text-secondary text-uppercase info-label">Consumo</span>
+                        <h6 class="mb-0 text-light info-value">{{ bay.total_watts }} W</h6>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg-3">
-                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
-                    <i class="bi bi-currency-dollar" style="color: #4ade80; font-size: 0.8rem;"></i>
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
+                    <i class="bi bi-currency-dollar icon-money"></i>
                     <div>
-                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Valor</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">${{ bay.total_price }}</h6>
+                        <span class="text-secondary text-uppercase info-label">Valor</span>
+                        <h6 class="mb-0 text-light info-value">${{ bay.total_price }}</h6>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg-3">
-                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
-                    <i class="bi bi-cpu" style="color: #60a5fa; font-size: 0.8rem;"></i>
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
+                    <i class="bi bi-cpu icon-usage"></i>
                     <div>
-                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Uso médio</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.cpu_usage|default:"32" }}%</h6>
+                        <span class="text-secondary text-uppercase info-label">Uso médio</span>
+                        <h6 class="mb-0 text-light info-value">{{ bay.cpu_usage|default:"32" }}%</h6>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg-3">
-                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
-                    <i class="bi bi-brain" style="color: #ec4899; font-size: 0.8rem;"></i>
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
+                    <i class="bi bi-brain icon-ai"></i>
                     <div>
-                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">IA ativa</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ ai_model.name|default:"Nenhuma" }}</h6>
+                        <span class="text-secondary text-uppercase info-label">IA ativa</span>
+                        <h6 class="mb-0 text-light info-value">{{ ai_model.name|default:"Nenhuma" }}</h6>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg-3">
-                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
-                    <i class="bi bi-cpu" style="color: #f97316; font-size: 0.8rem;"></i>
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
+                    <i class="bi bi-cpu icon-cpu"></i>
                     <div>
-                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Processadores</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.total_processors|default:"0" }}</h6>
+                        <span class="text-secondary text-uppercase info-label">Processadores</span>
+                        <h6 class="mb-0 text-light info-value">{{ bay.total_processors|default:"0" }}</h6>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg-3">
-                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
-                    <i class="bi bi-memory" style="color: #a78bfa; font-size: 0.8rem;"></i>
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
+                    <i class="bi bi-memory icon-vram"></i>
                     <div>
-                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">VRAM</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.total_vram|default:"0" }} GB</h6>
+                        <span class="text-secondary text-uppercase info-label">VRAM</span>
+                        <h6 class="mb-0 text-light info-value">{{ bay.total_vram|default:"0" }} GB</h6>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg-3">
-                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
-                    <i class="bi bi-server" style="color: #34d399; font-size: 0.8rem;"></i>
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
+                    <i class="bi bi-server icon-ram"></i>
                     <div>
-                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">RAM</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.total_ram|default:"0" }} GB</h6>
+                        <span class="text-secondary text-uppercase info-label">RAM</span>
+                        <h6 class="mb-0 text-light info-value">{{ bay.total_ram|default:"0" }} GB</h6>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg-3">
-                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1" style="background: #141a24; border: 1px solid #1e2633;">
-                    <i class="bi bi-hdd-stack" style="color: #f472b6; font-size: 0.8rem;"></i>
+                <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
+                    <i class="bi bi-hdd-stack icon-storage"></i>
                     <div>
-                        <span class="text-secondary text-uppercase" style="font-size:0.42rem;">Armazenamento</span>
-                        <h6 class="mb-0 text-light" style="font-size: 0.62rem;">{{ bay.total_storage|default:"2" }} GB</h6>
+                        <span class="text-secondary text-uppercase info-label">Armazenamento</span>
+                        <h6 class="mb-0 text-light info-value">{{ bay.total_storage|default:"2" }} GB</h6>
                     </div>
                 </div>
             </div>
@@ -125,7 +327,7 @@
     <!-- SEÇÃO 2 – COMPONENTES COM RARIDADES -->
     <!-- ================================================= -->
     <div class="hardware-section">
-        <h6 class="text-uppercase text-secondary fw-bold" style="font-size:0.52rem; letter-spacing:0.5px; border-bottom:1px solid #1e2633; padding-bottom:3px; margin-bottom:6px;">
+        <h6 class="text-uppercase text-secondary fw-bold bay-section-title with-border">
             <i class="bi bi-grid-3x3-gap-fill me-1"></i> Hardware & IA
         </h6>
 

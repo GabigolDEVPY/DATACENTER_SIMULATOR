@@ -42,6 +42,7 @@
         hx-swap="innerHTML"
         class="rounded-1 d-flex align-items-center px-2 bay-card"
         id="bay-id-{{ bay.id }}"
+        {% if bay_oob %}hx-swap-oob="true"{% endif %}
     >
     <div class="rounded-circle me-2 {% if bay.is_active %}blink-green{% else %}blink-red{% endif %}" style="width: 6px; height: 6px;">
         <label class="text-secondary" style="font-size: 8px;">{{ bay.watts }}</label>

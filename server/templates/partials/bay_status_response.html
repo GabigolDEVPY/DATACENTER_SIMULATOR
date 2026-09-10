@@ -1,0 +1,8 @@
+{% comment %}
+Resposta do toggle OFF/ON da bay.
+O alvo principal do swap é #bay-modal-id-N (painel do modal), então o
+modal_bay.html entra como conteúdo principal; o card do rack (#bay-id-N)
+é atualizado em paralelo via hx-swap-oob.
+{% endcomment %}
+{% include "partials/modal_bay.html" %}
+{% include "partials/bay.html" with bay=bay bay_oob=True %}
