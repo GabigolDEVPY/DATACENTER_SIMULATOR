@@ -276,6 +276,8 @@
                                 <span class="status-badge training"><i class="fas fa-brain"></i> Treinando</span>
                             {% elif model.status == "moving" %}
                                 <span class="status-badge moving"><i class="fas fa-arrows-alt"></i> Movendo</span>
+                            {% elif model.status == "not_installed" %}
+                                <span class="status-badge idle"><i class="fas fa-circle-question"></i> Não instalado</span>
                             {% else %}
                                 <span class="status-badge idle"><i class="fas fa-pause-circle"></i> Parado</span>
                             {% endif %}
