@@ -17,8 +17,6 @@ class HomeView(LoginRequiredMixin, TemplateView):
 class IAModelDetailView(LoginRequiredMixin, View):
     def get(self, request, id):
         ia_model = IaModelContextServices.get_ia_model(self.request.user.id, id)
-        context = {
-                "model": ia_model
-            }
+        context = {"model": ia_model}
         
         return render(request, template_name="partials/ia_modal.html", context=context)
