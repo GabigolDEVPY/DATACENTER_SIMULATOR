@@ -1,6 +1,7 @@
 from django.db import models
 from user.models import InventoryItem
 from user.models import User
+from model.models import AIInstance
 
 
 
@@ -37,3 +38,17 @@ class Bay(models.Model):
     def __str__(self):
         return f" {self.name}"
 
+class StorageAllocation(models.Model):
+    bay = models.ForeignKey(
+        Bay,
+        on_delete=models.CASCADE,
+        related_name="storage_allocations"
+    )
+
+    ai_instance = models.ForeignKey(
+        AIInstance,
+        on_delete=models.CASCADE,
+        related_name="storage_allocations"
+    )
+
+    allocated_gb = models.BigIntegerField()
