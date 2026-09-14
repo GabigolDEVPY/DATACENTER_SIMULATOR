@@ -24,7 +24,7 @@ class AIModel(models.Model):
 class AIInstance(models.Model):
     model = models.ForeignKey(AIModel,on_delete=models.CASCADE,related_name="instances")
 
-    bay = models.ForeignKey(Bay,on_delete=models.CASCADE,related_name="ai_instances")
+    bay = models.ForeignKey("server.models.Bay", on_delete=models.CASCADE,related_name="ai_instances")
 
-    status = models.CharField(...)
-    started_at = models.DateTimeField(...)
+    status = models.CharField(max_length=100)
+    started_at = models.DateTimeField()
