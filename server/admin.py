@@ -12,4 +12,4 @@ class BayAdmin(admin.ModelAdmin):
     
 @admin.register(StorageAllocation)
 class StorageAllocationAdmin(admin.ModelAdmin):
-    list_display = ["bay", "ai_instance", "allocated_gb"]
+    list_display = ["bay", "ai_model", "allocated_gb"]

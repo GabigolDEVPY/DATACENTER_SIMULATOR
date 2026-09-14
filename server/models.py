@@ -1,7 +1,6 @@
 from django.db import models
 from user.models import InventoryItem
 from user.models import User
-from model.models import AIInstance
 
 
 
@@ -45,8 +44,8 @@ class StorageAllocation(models.Model):
         related_name="storage_allocations"
     )
 
-    ai_instance = models.ForeignKey(
-        AIInstance,
+    ai_model = models.ForeignKey(
+        "model.AIModel",
         on_delete=models.CASCADE,
         related_name="storage_allocations"
     )

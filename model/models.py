@@ -1,5 +1,4 @@
 from django.db import models
-from server.models import Bay
 
 class MarkModel(models.Model):
     name = models.CharField(max_length=100)
@@ -24,7 +23,7 @@ class AIModel(models.Model):
 class AIInstance(models.Model):
     model = models.ForeignKey(AIModel,on_delete=models.CASCADE,related_name="instances")
 
-    bay = models.ForeignKey("server.models.Bay", on_delete=models.CASCADE,related_name="ai_instances")
+    bay = models.ForeignKey("server.Bay", on_delete=models.CASCADE, related_name="ai_instances")
 
     status = models.CharField(max_length=100)
     started_at = models.DateTimeField()
