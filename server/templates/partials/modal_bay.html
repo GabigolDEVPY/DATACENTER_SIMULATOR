@@ -74,8 +74,8 @@
         background: #0b0e14;
         border: 1px solid #2a3345;
         color: #c8d6e5;
-        font-size: 0.72rem;
-        padding: 5px 24px 5px 8px;
+        font-size: 0.68rem;
+        padding: 5px 22px 5px 8px;
         border-radius: 6px;
         outline: none;
         cursor: pointer;
@@ -165,8 +165,8 @@
         border-radius: 10px;
     }
     .bay-wrapper .card-inner {
-        padding: .55rem .6rem;
-        border-radius: 10px;
+        padding: .5rem .55rem;
+        border-radius: 9px;
         align-items: stretch;
         text-align: left;
         gap: 5px;
@@ -175,18 +175,18 @@
         transform: none;
     }
     .bay-wrapper .rarity-badge {
-        font-size: 7px;
-        padding: 2px 8px;
+        font-size: 6.5px;
+        padding: 2px 7px;
         margin-bottom: 0;
         letter-spacing: .5px;
         align-self: flex-start;
     }
     .bay-wrapper .card-label {
-        font-size: .68rem;
+        font-size: .65rem;
         gap: 4px;
     }
     .bay-wrapper .card-label i {
-        font-size: .62rem;
+        font-size: .6rem;
     }
     .bay-wrapper .d-flex.flex-column.gap-1 {
         gap: 5px !important;
@@ -201,6 +201,152 @@
     .bay-wrapper .row.g-1 {
         --bs-gutter-x: 6px;
         --bs-gutter-y: 6px;
+    }
+
+    /* ===== CARD DE ARMAZENAMENTO (lateral) ===== */
+    .storage-card {
+        background: #141a24;
+        border: 1px solid #1e2633;
+        border-radius: 10px;
+        padding: 7px 9px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .storage-card-title {
+        font-size: 0.62rem;
+        color: #f9fafb;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin: 0;
+    }
+    .storage-card-title i {
+        color: #f472b6;
+        font-size: 0.7rem;
+    }
+    .storage-ssd-line {
+        font-size: 0.58rem;
+        color: #94a3b8;
+    }
+    .storage-ssd-line strong {
+        color: #c8d6e5;
+        font-weight: 500;
+    }
+    .storage-label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.5rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 2px;
+    }
+    .storage-bar-track {
+        width: 100%;
+        height: 8px;
+        background: #0b0e14;
+        border: 1px solid #1e2633;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    .storage-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #f472b6, #ec4899);
+        border-radius: 6px 0 0 6px;
+        transition: width .3s ease;
+    }
+    .storage-usage-text {
+        font-size: 0.56rem;
+        color: #c8d6e5;
+        margin-top: 2px;
+    }
+    .storage-free-text {
+        font-size: 0.52rem;
+        color: #4ade80;
+    }
+    .storage-divider {
+        border-top: 1px solid #1e2633;
+        margin: 4px 0;
+    }
+    .ai-instances-title {
+        font-size: 0.55rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 2px;
+    }
+    .ai-instance-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.58rem;
+        color: #c8d6e5;
+        padding: 2px 0;
+    }
+    .ai-instance-row .ai-instance-size {
+        color: #a78bfa;
+        font-variant-numeric: tabular-nums;
+    }
+    .ai-instances-empty {
+        font-size: 0.55rem;
+        color: #64748b;
+        font-style: italic;
+        padding: 2px 0;
+    }
+    .ai-instances-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+    .btn-allocate-storage {
+        background: #0b0e14;
+        border: 1px dashed #2a3345;
+        color: #94a3b8;
+        font-size: 0.55rem;
+        border-radius: 6px;
+        padding: 5px 8px;
+        width: 100%;
+        text-align: center;
+        cursor: pointer;
+        transition: all .15s ease;
+    }
+    .btn-allocate-storage:hover {
+        border-color: #00d4ff;
+        color: #00d4ff;
+        background: rgba(0, 212, 255, 0.06);
+    }
+
+    /* ===== LAYOUT GERAL: conteúdo à esquerda + storage lateral à direita ===== */
+    .bay-main-row {
+        display: flex;
+        gap: 10px;
+        align-items: stretch;
+    }
+    .bay-content-col {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    .bay-storage-col {
+        flex: 0 0 260px;
+        max-width: 260px;
+        display: flex;
+    }
+    .bay-storage-col .storage-card {
+        width: 100%;
+        height: 100%;
+    }
+    @media (max-width: 768px) {
+        .bay-main-row {
+            flex-direction: column;
+        }
+        .bay-storage-col {
+            flex: 1 1 auto;
+            max-width: 100%;
+            width: 100%;
+        }
     }
 </style>
 
@@ -240,7 +386,7 @@
     </div>
 
     <!-- ================================================= -->
-    <!-- SEÇÃO 1 – CARDS DE INFORMAÇÃO RÁPIDA -->
+    <!-- SEÇÃO 1 – CARDS DE INFORMAÇÃO RÁPIDA (ocupa 100% em cima) -->
     <!-- ================================================= -->
     <div class="info-section mb-2">
         <h6 class="text-uppercase text-secondary fw-bold mb-1 bay-section-title">
@@ -248,7 +394,7 @@
         </h6>
 
         <div class="row g-1">
-            <div class="col-6 col-md-3 col-lg-3">
+            <div class="col-6 col-md-3">
                 <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
                     <i class="bi bi-lightning-fill icon-power"></i>
                     <div>
@@ -257,7 +403,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3 col-lg-3">
+            <div class="col-6 col-md-3">
                 <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
                     <i class="bi bi-currency-dollar icon-money"></i>
                     <div>
@@ -266,7 +412,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3 col-lg-3">
+            <div class="col-6 col-md-3">
                 <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
                     <i class="bi bi-cpu icon-usage"></i>
                     <div>
@@ -275,7 +421,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3 col-lg-3">
+            <div class="col-6 col-md-3">
                 <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
                     <i class="bi bi-brain icon-ai"></i>
                     <div>
@@ -284,7 +430,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3 col-lg-3">
+            <div class="col-6 col-md-3">
                 <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
                     <i class="bi bi-cpu icon-cpu"></i>
                     <div>
@@ -293,7 +439,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3 col-lg-3">
+            <div class="col-6 col-md-3">
                 <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
                     <i class="bi bi-memory icon-vram"></i>
                     <div>
@@ -302,7 +448,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3 col-lg-3">
+            <div class="col-6 col-md-3">
                 <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
                     <i class="bi bi-server icon-ram"></i>
                     <div>
@@ -311,7 +457,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3 col-lg-3">
+            <div class="col-6 col-md-3">
                 <div class="info-card rounded-2 p-1 h-100 d-flex align-items-center gap-1">
                     <i class="bi bi-hdd-stack icon-storage"></i>
                     <div>
@@ -324,6 +470,13 @@
     </div>
 
     <!-- ================================================= -->
+    <!-- LAYOUT INFERIOR: peças (hardware) à esquerda, armazenamento à direita -->
+    <!-- ================================================= -->
+    <div class="bay-main-row">
+
+    <div class="bay-content-col">
+
+    <!-- ================================================= -->
     <!-- SEÇÃO 2 – COMPONENTES COM RARIDADES -->
     <!-- ================================================= -->
     <div class="hardware-section">
@@ -334,7 +487,7 @@
         <!-- ---------- GRUPO: itens únicos (CPU, Armazenamento, IA) ---------- -->
         <div class="component-group mb-2">
             <div class="row g-1">
-                <div class="col-6 col-md-4">
+                <div class="col-4">
                     <div class="card-wrapper rarity-{{ bay.cpu.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
@@ -364,7 +517,7 @@
                     </div>
                 </div>
 
-                <div class="col-6 col-md-4">
+                <div class="col-4">
                     <div class="card-wrapper rarity-{{ bay.ssd.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
@@ -394,7 +547,7 @@
                     </div>
                 </div>
 
-                <div class="col-6 col-md-4">
+                <div class="col-4">
                     <div class="card-wrapper rarity-mythic">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
@@ -430,7 +583,7 @@
         <div class="component-group mb-2">
             <span class="group-title"><i class="bi bi-gpu-card"></i> GPUs</span>
             <div class="row g-1">
-                <div class="col-6 col-md-4">
+                <div class="col-4">
                     <div class="card-wrapper rarity-{{ bay.gpu1.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
@@ -459,7 +612,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4">
+                <div class="col-4">
                     <div class="card-wrapper rarity-{{ bay.gpu2.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
@@ -488,7 +641,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4">
+                <div class="col-4">
                     <div class="card-wrapper rarity-{{ bay.gpu3.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
@@ -524,7 +677,7 @@
         <div class="component-group mb-1">
             <span class="group-title"><i class="bi bi-memory"></i> RAM</span>
             <div class="row g-1">
-                <div class="col-6 col-md-4">
+                <div class="col-4">
                     <div class="card-wrapper rarity-{{ bay.ram1.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
@@ -553,7 +706,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4">
+                <div class="col-4">
                     <div class="card-wrapper rarity-{{ bay.ram2.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
@@ -582,7 +735,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4">
+                <div class="col-4">
                     <div class="card-wrapper rarity-{{ bay.ram3.rarity }}">
                         <div class="card-glow-outer"></div>
                         <div class="card-border">
@@ -615,4 +768,58 @@
         </div>
 
     </div><!-- /hardware-section -->
+
+    </div><!-- /bay-content-col -->
+
+    <!-- Coluna direita: card de armazenamento detalhado + instâncias de IA -->
+    <div class="bay-storage-col">
+        <div class="storage-card">
+            <h6 class="storage-card-title">
+                <i class="bi bi-hdd-stack-fill"></i> Armazenamento
+            </h6>
+            <div class="storage-ssd-line">
+                SSD: <strong>Samsung 4TB</strong>
+            </div>
+
+            <div>
+                <div class="storage-label-row">
+                    <span>Storage</span>
+                    <span>32%</span>
+                </div>
+                <div class="storage-bar-track">
+                    <div class="storage-bar-fill" style="width: 32%;"></div>
+                </div>
+                <div class="storage-usage-text">
+                    1.280 GB / 4.000 GB
+                </div>
+                <div class="storage-free-text">
+                    Livre: 2.720 GB
+                </div>
+            </div>
+
+            <div class="storage-divider"></div>
+
+            <div class="ai-instances-title">AI Instances</div>
+            <div class="ai-instances-list">
+                <div class="ai-instance-row">
+                    <span>Llama 70B</span>
+                    <span class="ai-instance-size">150 GB</span>
+                </div>
+                <div class="ai-instance-row">
+                    <span>Stable Diffusion</span>
+                    <span class="ai-instance-size">80 GB</span>
+                </div>
+                <div class="ai-instance-row">
+                    <span>Embedding Model</span>
+                    <span class="ai-instance-size">40 GB</span>
+                </div>
+            </div>
+
+            <button type="button" class="btn-allocate-storage">
+                <i class="bi bi-plus-lg"></i> Allocate Storage
+            </button>
+        </div>
+    </div><!-- /bay-storage-col -->
+
+    </div><!-- /bay-main-row -->
 </div>
