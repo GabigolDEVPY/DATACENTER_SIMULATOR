@@ -27,4 +27,3 @@ class BayViewModel:
     allocate_storage: int
     storage_percentage: int
     storage_allocations: Optional[Any]
-    
