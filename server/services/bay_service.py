@@ -1,4 +1,4 @@
-from server.models import Bay
+from server.models import Bay, StorageAllocation
 from server.viewmodels.bay_viewmodel import BayViewModel
 from django.shortcuts import get_object_or_404
 from user.models import InventoryItem
@@ -28,6 +28,18 @@ class BayService:
             self.bay.ram2.item.ram if self.bay.ram2 else None,
             self.bay.ram3.item.ram if self.bay.ram3 else None,
             ]))
+        
+    def get_storage_percentage(self):
+        percentage = (self.get_allocate_space_storage() / self.get_total_storage()) * 100
+        return f"{percentage:.2f}"
+    
+    def get_allocate_space_storage(self):
+        allocate_gb = sum(item.allocated_gb for item in self.bay.storage_allocations.all())
+        return allocate_gb
+        
+    def get_storage_allocations(self):
+        instances = self.bay.storage_allocations.all()
+        return instances
     
         
     def get_power(self):
@@ -84,11 +96,13 @@ class BayService:
            total_vram=self.get_total_vram(),
            total_processors=self.get_total_processors(),
            total_storage=self.get_total_storage(),      
-                 
+           allocate_storage=self.get_allocate_space_storage(),
+           storage_allocations=self.get_storage_allocations(),
+           storage_percentage=self.get_storage_percentage()
+            
         )        
         
     def change_status(self):
-        print("chegou aqui")
         self.bay.is_active = not self.bay.is_active
         self.bay.save(update_fields=["is_active"])
         return self.get_view_model()

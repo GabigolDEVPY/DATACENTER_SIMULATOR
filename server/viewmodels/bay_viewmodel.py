@@ -24,4 +24,7 @@ class BayViewModel:
     total_vram: int
     total_processors: int
     total_storage: int
+    allocate_storage: int
+    storage_percentage: int
+    storage_allocations: Optional[Any]
     

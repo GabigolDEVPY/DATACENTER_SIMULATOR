@@ -26,6 +26,7 @@ class GetBayDetail(View):
         }
         return render(request, template_name="partials/modal_bay.html", context=context)
     
+    
 class ChangeComponent(View):
     def post(self, request, id):
         bay = BayService(bay_id=id).change_component(request.POST)

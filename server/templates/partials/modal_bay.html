@@ -284,11 +284,22 @@
         align-items: center;
         font-size: 0.58rem;
         color: #c8d6e5;
-        padding: 2px 0;
+        padding: 3px 0;
+        border-bottom: 1px solid #1a212d;
+    }
+    .ai-instance-row:last-child {
+        border-bottom: none;
     }
     .ai-instance-row .ai-instance-size {
         color: #a78bfa;
         font-variant-numeric: tabular-nums;
+        flex-shrink: 0;
+        margin-left: 6px;
+    }
+    .ai-instance-row .ai-instance-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     .ai-instances-empty {
         font-size: 0.55rem;
@@ -296,11 +307,77 @@
         font-style: italic;
         padding: 2px 0;
     }
+
+    /* ===== LISTA DE AI INSTANCES COM SCROLL CUSTOMIZADO =====
+       - altura máxima fixa, com scroll interno quando exceder
+       - barra fina, sem "botões" de seta, cor discreta que combina com o tema
+    */
     .ai-instances-list {
         display: flex;
         flex-direction: column;
         gap: 0;
+        max-height: 260px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 6px;
+        margin-right: -6px;
+
+        /* Firefox */
+        scrollbar-width: thin;
+        scrollbar-color: #2a3345 transparent;
     }
+    /* Chrome / Edge / Safari (WebKit) */
+    .ai-instances-list::-webkit-scrollbar {
+        width: 4px;
+        height: 0;
+    }
+    .ai-instances-list::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .ai-instances-list::-webkit-scrollbar-thumb {
+        background-color: #2a3345;
+        border-radius: 999px;
+        border: none;
+    }
+    .ai-instances-list::-webkit-scrollbar-thumb:hover {
+        background-color: #a78bfa;
+    }
+    /* remove as setinhas de cima/baixo em qualquer engine WebKit/Blink */
+    .ai-instances-list::-webkit-scrollbar-button:single-button,
+    .ai-instances-list::-webkit-scrollbar-button:start,
+    .ai-instances-list::-webkit-scrollbar-button:end,
+    .ai-instances-list::-webkit-scrollbar-button {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        background: transparent !important;
+    }
+    .ai-instances-list::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+    /* leve fade no topo/rodapé para indicar que há mais conteúdo pra rolar */
+    .ai-instances-scroll-wrap {
+        position: relative;
+    }
+    .ai-instances-scroll-wrap::before,
+    .ai-instances-scroll-wrap::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 6px;
+        height: 10px;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .ai-instances-scroll-wrap::before {
+        top: 0;
+        background: linear-gradient(#141a24, transparent);
+    }
+    .ai-instances-scroll-wrap::after {
+        bottom: 0;
+        background: linear-gradient(transparent, #141a24);
+    }
+
     .btn-allocate-storage {
         background: #0b0e14;
         border: 1px dashed #2a3345;
@@ -332,6 +409,7 @@
     .bay-storage-col {
         flex: 0 0 260px;
         max-width: 260px;
+        min-height: 420px;
         display: flex;
     }
     .bay-storage-col .storage-card {
@@ -778,46 +856,41 @@
                 <i class="bi bi-hdd-stack-fill"></i> Armazenamento
             </h6>
             <div class="storage-ssd-line">
-                SSD: <strong>Samsung 4TB</strong>
+                SSD: <strong>{{ bay.ssd.model }}</strong>
             </div>
 
             <div>
                 <div class="storage-label-row">
                     <span>Storage</span>
-                    <span>32%</span>
+                    <span>{{ bay.storage_percentage }}%</span>
                 </div>
                 <div class="storage-bar-track">
-                    <div class="storage-bar-fill" style="width: 32%;"></div>
+                    <div class="storage-bar-fill" style="width: {{ bay.storage_percentage }}%;"></div>
                 </div>
                 <div class="storage-usage-text">
-                    1.280 GB / 4.000 GB
+                    {{ bay.allocate_storage|default:"2" }} GB / {{ bay.total_storage|default:"2" }} GB
                 </div>
                 <div class="storage-free-text">
-                    Livre: 2.720 GB
+                    {{ bay.free_storage }}
                 </div>
             </div>
 
             <div class="storage-divider"></div>
 
             <div class="ai-instances-title">AI Instances</div>
-            <div class="ai-instances-list">
-                <div class="ai-instance-row">
-                    <span>Llama 70B</span>
-                    <span class="ai-instance-size">150 GB</span>
-                </div>
-                <div class="ai-instance-row">
-                    <span>Stable Diffusion</span>
-                    <span class="ai-instance-size">80 GB</span>
-                </div>
-                <div class="ai-instance-row">
-                    <span>Embedding Model</span>
-                    <span class="ai-instance-size">40 GB</span>
+
+            <div class="ai-instances-scroll-wrap">
+                <div class="ai-instances-list">
+                    {% for model in bay.storage_allocations %}
+                        <div class="ai-instance-row">
+                            <span class="ai-instance-name">{{ model.ai_model.name }}</span>
+                            <span class="ai-instance-size">{{ model.ai_model.storage_gb }} GB</span>
+                        </div>
+                    {% empty %}
+                        <div class="ai-instances-empty">Nenhuma instância alocada</div>
+                    {% endfor %}
                 </div>
             </div>
-
-            <button type="button" class="btn-allocate-storage">
-                <i class="bi bi-plus-lg"></i> Allocate Storage
-            </button>
         </div>
     </div><!-- /bay-storage-col -->
 
