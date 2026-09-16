@@ -98,6 +98,44 @@
         color: #c8d6e5;
     }
 
+    /* ===== LINHA SELECT + BOTÃO REMOVER (X) ===== */
+    .part-select-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        width: 100%;
+    }
+    .part-select-row .part-select {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    .btn-remove-part {
+        flex: 0 0 auto;
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #0b0e14;
+        border: 1px solid #2a3345;
+        color: #94a3b8;
+        border-radius: 6px;
+        font-size: 0.6rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+        transition: all .15s ease;
+    }
+    .btn-remove-part:hover {
+        border-color: #f87171;
+        color: #f87171;
+        background: rgba(248, 113, 113, 0.08);
+    }
+    .btn-remove-part:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
     /* ===== COMPACTAÇÃO GERAL (evitar scroll no modal) ===== */
     .component-group {
         margin-bottom: 8px !important;
@@ -574,21 +612,24 @@
                                 <span class="rarity-badge">{{ bay.cpu.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-cpu"></i> CPU</span>
-                                    <select class="part-select"
-                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                        hx-post="{% url "server:change_component_bay" bay.id %}"
-                                        hx-trigger="change"
-                                        hx-target="#bay-modal-id-{{ bay.id }}"
-                                        hx-swap="outerHTML"
-                                        name="component_id"
-                                        hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "cpu"}'
-                                        {% if bay.is_active %}disabled{% endif %}
-                                    >
-                                        <option>{{ bay.cpu.model|default:"selecione um item" }}</option>
-                                        {% for inventoryitem in cpus %}
-                                            <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.cpu.model }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <div class="part-select-row">
+                                        <select class="part-select"
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:change_component_bay" bay.id %}"
+                                            hx-trigger="change"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "cpu"}'
+                                            {% if bay.is_active %}disabled{% endif %}
+                                        >
+                                            <option>{{ bay.cpu.model|default:"selecione um item" }}</option>
+                                            {% for inventoryitem in cpus %}
+                                                <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.cpu.model }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -604,21 +645,34 @@
                                 <span class="rarity-badge">{{ bay.ssd.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-hdd-stack"></i> Armazenamento</span>
-                                    <select class="part-select"
-                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                        hx-post="{% url "server:change_component_bay" bay.id %}"
-                                        hx-trigger="change"
-                                        hx-target="#bay-modal-id-{{ bay.id }}"
-                                        hx-swap="outerHTML"
-                                        name="component_id"
-                                        hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ssd"}'
-                                        {% if bay.is_active %}disabled{% endif %}
-                                    >
-                                        <option>{{ bay.ssd.model|default:"selecione um item" }}</option>
-                                        {% for inventoryitem in ssds %}
-                                            <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ssd.model }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <div class="part-select-row">
+                                        <select class="part-select"
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:change_component_bay" bay.id %}"
+                                            hx-trigger="change"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ssd"}'
+                                            {% if bay.is_active %}disabled{% endif %}
+                                        >
+                                            <option>{{ bay.ssd.model|default:"selecione um item" }}</option>
+                                            {% for inventoryitem in ssds %}
+                                                <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ssd.model }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:change_component_bay" bay.id %}"
+                                            hx-trigger="remove"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "remove", "component": "ssd"}'
+
+                                         type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                        
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -634,21 +688,24 @@
                                 <span class="rarity-badge">Mítico</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-cpu-fill"></i> IA</span>
-                                    <select class="part-select"
-                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                        hx-post="{% url "server:change_component_bay" bay.id %}"
-                                        hx-trigger="change"
-                                        hx-target="#bay-modal-id-{{ bay.id }}"
-                                        hx-swap="outerHTML"
-                                        name="component_id"
-                                        hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ai_model"}'
-                                        {% if bay.is_active %}disabled{% endif %}
-                                    >
-                                        <option>{{ bay.ai_model.name|default:"Nenhum" }}</option>
-                                        {% for inventoryitem in ai_models %}
-                                            <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ai_model.name }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <div class="part-select-row">
+                                        <select class="part-select"
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:change_component_bay" bay.id %}"
+                                            hx-trigger="change"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ai_model"}'
+                                            {% if bay.is_active %}disabled{% endif %}
+                                        >
+                                            <option>{{ bay.ai_model.name|default:"Nenhum" }}</option>
+                                            {% for inventoryitem in ai_models %}
+                                                <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ai_model.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -670,21 +727,24 @@
                                 <span class="rarity-badge">{{ bay.gpu1.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #1</span>
-                                    <select class="part-select"
-                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                        hx-post="{% url "server:change_component_bay" bay.id %}"
-                                        hx-trigger="change"
-                                        hx-target="#bay-modal-id-{{ bay.id }}"
-                                        hx-swap="outerHTML"
-                                        name="component_id"
-                                        hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "gpu1"}'
-                                        {% if bay.is_active %}disabled{% endif %}
-                                    >
-                                        <option>{{ bay.gpu1.model|default:"selecione um item" }}</option>
-                                        {% for inventoryitem in gpus %}
-                                            <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.gpu.model }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <div class="part-select-row">
+                                        <select class="part-select"
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:change_component_bay" bay.id %}"
+                                            hx-trigger="change"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "gpu1"}'
+                                            {% if bay.is_active %}disabled{% endif %}
+                                        >
+                                            <option>{{ bay.gpu1.model|default:"selecione um item" }}</option>
+                                            {% for inventoryitem in gpus %}
+                                                <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.gpu.model }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -699,21 +759,24 @@
                                 <span class="rarity-badge">{{ bay.gpu2.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #2</span>
-                                    <select class="part-select"
-                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                        hx-post="{% url "server:change_component_bay" bay.id %}"
-                                        hx-trigger="change"
-                                        hx-target="#bay-modal-id-{{ bay.id }}"
-                                        hx-swap="outerHTML"
-                                        name="component_id"
-                                        hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "gpu2"}'
-                                        {% if bay.is_active %}disabled{% endif %}
-                                    >
-                                        <option>{{ bay.gpu2.model|default:"selecione um item" }}</option>
-                                        {% for inventoryitem in gpus %}
-                                            <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.gpu.model }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <div class="part-select-row">
+                                        <select class="part-select"
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:change_component_bay" bay.id %}"
+                                            hx-trigger="change"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "gpu2"}'
+                                            {% if bay.is_active %}disabled{% endif %}
+                                        >
+                                            <option>{{ bay.gpu2.model|default:"selecione um item" }}</option>
+                                            {% for inventoryitem in gpus %}
+                                                <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.gpu.model }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -728,21 +791,24 @@
                                 <span class="rarity-badge">{{ bay.gpu3.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-gpu-card"></i> GPU #3</span>
-                                    <select class="part-select"
-                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                        hx-post="{% url "server:change_component_bay" bay.id %}"
-                                        hx-trigger="change"
-                                        hx-target="#bay-modal-id-{{ bay.id }}"
-                                        hx-swap="outerHTML"
-                                        name="component_id"
-                                        hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "gpu3"}'
-                                        {% if bay.is_active %}disabled{% endif %}
-                                    >
-                                        <option>{{ bay.gpu3.model|default:"selecione um item" }}</option>
-                                        {% for inventoryitem in gpus %}
-                                            <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.gpu.model }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <div class="part-select-row">
+                                        <select class="part-select"
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:change_component_bay" bay.id %}"
+                                            hx-trigger="change"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "gpu3"}'
+                                            {% if bay.is_active %}disabled{% endif %}
+                                        >
+                                            <option>{{ bay.gpu3.model|default:"selecione um item" }}</option>
+                                            {% for inventoryitem in gpus %}
+                                                <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.gpu.model }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -764,21 +830,24 @@
                                 <span class="rarity-badge">{{ bay.ram1.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #1</span>
-                                    <select class="part-select"
-                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                        hx-post="{% url "server:change_component_bay" bay.id %}"
-                                        hx-trigger="change"
-                                        hx-target="#bay-modal-id-{{ bay.id }}"
-                                        hx-swap="outerHTML"
-                                        name="component_id"
-                                        hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ram1"}'
-                                        {% if bay.is_active %}disabled{% endif %}
-                                    >
-                                        <option>{{ bay.ram1.model|default:"selecione a RAM" }}</option>
-                                        {% for inventoryitem in rams %}
-                                            <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ram.model }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <div class="part-select-row">
+                                        <select class="part-select"
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:change_component_bay" bay.id %}"
+                                            hx-trigger="change"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ram1"}'
+                                            {% if bay.is_active %}disabled{% endif %}
+                                        >
+                                            <option>{{ bay.ram1.model|default:"selecione a RAM" }}</option>
+                                            {% for inventoryitem in rams %}
+                                                <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ram.model }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -793,21 +862,24 @@
                                 <span class="rarity-badge">{{ bay.ram2.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #2</span>
-                                    <select class="part-select"
-                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                        hx-post="{% url "server:change_component_bay" bay.id %}"
-                                        hx-trigger="change"
-                                        hx-target="#bay-modal-id-{{ bay.id }}"
-                                        hx-swap="outerHTML"
-                                        name="component_id"
-                                        hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ram2"}'
-                                        {% if bay.is_active %}disabled{% endif %}
-                                    >
-                                        <option>{{ bay.ram2.model|default:"selecione a RAM" }}</option>
-                                        {% for inventoryitem in rams %}
-                                            <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ram.model }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <div class="part-select-row">
+                                        <select class="part-select"
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:change_component_bay" bay.id %}"
+                                            hx-trigger="change"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ram2"}'
+                                            {% if bay.is_active %}disabled{% endif %}
+                                        >
+                                            <option>{{ bay.ram2.model|default:"selecione a RAM" }}</option>
+                                            {% for inventoryitem in rams %}
+                                                <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ram.model }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -822,21 +894,24 @@
                                 <span class="rarity-badge">{{ bay.ram3.rarity }}</span>
                                 <div class="d-flex flex-column gap-1 w-100">
                                     <span class="card-label"><i class="bi bi-memory"></i> RAM #3</span>
-                                    <select class="part-select"
-                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                        hx-post="{% url "server:change_component_bay" bay.id %}"
-                                        hx-trigger="change"
-                                        hx-target="#bay-modal-id-{{ bay.id }}"
-                                        hx-swap="outerHTML"
-                                        name="component_id"
-                                        hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ram3"}'
-                                        {% if bay.is_active %}disabled{% endif %}
-                                    >
-                                        <option>{{ bay.ram3.model|default:"selecione a RAM" }}</option>
-                                        {% for inventoryitem in rams %}
-                                            <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ram.model }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <div class="part-select-row">
+                                        <select class="part-select"
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:change_component_bay" bay.id %}"
+                                            hx-trigger="change"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "change", "component": "ram3"}'
+                                            {% if bay.is_active %}disabled{% endif %}
+                                        >
+                                            <option>{{ bay.ram3.model|default:"selecione a RAM" }}</option>
+                                            {% for inventoryitem in rams %}
+                                                <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ram.model }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
