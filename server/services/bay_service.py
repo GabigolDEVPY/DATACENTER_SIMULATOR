@@ -33,7 +33,10 @@ class BayService:
         ]))
 
     def get_storage_percentage(self):
-        percentage = (self.get_allocate_space_storage() / self.get_total_storage()) * 100
+        allocate_storage = self.get_allocate_space_storage()
+        if allocate_storage == 0:
+            return f"{0:.2f}"
+        percentage = (allocate_storage / self.get_total_storage()) * 100
         return f"{percentage:.2f}"
 
     def get_allocate_space_storage(self):
@@ -126,4 +129,23 @@ class BayService:
 
             self.components = self._build_components()
 
+        return self.get_view_model()
+
+
+    def remove_component(self, data):
+        component_target = data.get("component")
+        old_component = getattr(self.bay, component_target)
+        
+        with transaction.atomic():
+            if old_component:
+
+                old_component.is_equiped = False
+                old_component.save(update_fields=["is_equiped"])
+            
+            setattr(self.bay, component_target, None)
+            
+            self.bay.save()
+            
+            self.components = self._build_components()
+        
         return self.get_view_model()

@@ -24,3 +24,9 @@ class ChangeComponent(View):
         bay, components = BayContextService.change_component(request.POST, request.user.id, id)
         context = {"bay": bay, **components}
         return render(request, template_name="partials/modal_bay.html", context=context)
+    
+class RemoveComponent(View):
+    def post(self, request, id):
+        bay, components = BayContextService.remove_component(request.POST, request.user.id, id)
+        context = {"bay": bay, **components}
+        return render(request, template_name="partials/modal_bay.html", context=context)

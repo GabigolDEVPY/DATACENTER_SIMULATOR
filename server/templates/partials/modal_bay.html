@@ -661,10 +661,10 @@
                                                 <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ssd.model }}</option>
                                             {% endfor %}
                                         </select>
+                                        arrumar aqui
                                         <button
                                             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                            hx-post="{% url "server:change_component_bay" bay.id %}"
-                                            hx-trigger="remove"
+                                            hx-post="{% url "server:remove_component_bay" bay.id %}"
                                             hx-target="#bay-modal-id-{{ bay.id }}"
                                             hx-swap="outerHTML"
                                             name="component_id"

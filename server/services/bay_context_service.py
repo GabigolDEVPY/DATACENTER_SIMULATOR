@@ -19,6 +19,12 @@ class BayContextService:
         bay = BayService(bay_id).change_status()
         components = InventoryService(user_id).get_components()
         return bay, components
+    
+    @staticmethod
+    def remove_component(data, user_id, bay_id):
+        bay = BayService(bay_id).remove_component(data)
+        components = InventoryService(user_id).get_components()
+        return bay, components
         
     
         
