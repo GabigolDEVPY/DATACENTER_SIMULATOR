@@ -16,9 +16,12 @@ class BayService:
             "ram1__item__ram",
             "ram2__item__ram",
             "ram3__item__ram"
-        ), id=bay_id )
-    
-        self.components = list(filter(None, [
+        ), id=bay_id)
+
+        self.components = self._build_components()
+
+    def _build_components(self):
+        return list(filter(None, [
             self.bay.cpu.item.cpu if self.bay.cpu else None,
             self.bay.ssd.item.ssd if self.bay.ssd else None,
             self.bay.gpu1.item.gpu if self.bay.gpu1 else None,
@@ -27,23 +30,22 @@ class BayService:
             self.bay.ram1.item.ram if self.bay.ram1 else None,
             self.bay.ram2.item.ram if self.bay.ram2 else None,
             self.bay.ram3.item.ram if self.bay.ram3 else None,
-            ]))
-        
+        ]))
+
     def get_storage_percentage(self):
         percentage = (self.get_allocate_space_storage() / self.get_total_storage()) * 100
         return f"{percentage:.2f}"
-    
+
     def get_allocate_space_storage(self):
         allocate_gb = sum(item.allocated_gb for item in self.bay.storage_allocations.all())
         return allocate_gb
-        
+
     def get_storage_allocations(self):
         instances = self.bay.storage_allocations.all()
         return instances
-    
-        
+
     def get_power(self):
-        power = sum(item.get_power() for item in self.components)
+        power = sum(item.get_power for item in self.components)
         return power
 
     def get_total_watts(self):
@@ -53,28 +55,23 @@ class BayService:
     def get_total_price(self):
         total_price = sum(getattr(item, "price", 0) for item in self.components)
         return total_price
-    
+
     def get_total_ram(self):
         total_ram = sum(getattr(item, "ram_gb", 0) for item in self.components)
         return total_ram
-    
+
     def get_total_vram(self):
         total_vram = sum(getattr(item, "vram", 0) for item in self.components)
         return total_vram
-    
+
     def get_total_processors(self):
         total_processors = self.bay.cpu.item.cpu.cores if self.bay.cpu else 0
         return total_processors
-    
+
     def get_total_storage(self):
         total_storage = self.bay.ssd.item.ssd.ssd_gb if self.bay.ssd else 0
         return total_storage
-    
-    def change_status(self):    
-        self.bay.is_active = not self.bay.is_active
-        self.bay.save(update_fields=["is_active"])
-    
-    
+
     def get_view_model(self):
         return BayViewModel(
            id=self.bay.id,
@@ -95,13 +92,12 @@ class BayService:
            total_ram=self.get_total_ram(),
            total_vram=self.get_total_vram(),
            total_processors=self.get_total_processors(),
-           total_storage=self.get_total_storage(),      
+           total_storage=self.get_total_storage(),
            allocate_storage=self.get_allocate_space_storage(),
            storage_allocations=self.get_storage_allocations(),
            storage_percentage=self.get_storage_percentage()
-            
-        )        
-        
+        )
+
     def change_status(self):
         self.bay.is_active = not self.bay.is_active
         self.bay.save(update_fields=["is_active"])
@@ -110,25 +106,24 @@ class BayService:
     def change_component(self, data):
         type = data.get("action")
         component = data.get("component")
-        
+
         if type == "change" and not self.bay.is_active:
             with transaction.atomic():
                 new_component = get_object_or_404(InventoryItem, id=data.get("component_id"), is_equiped=False)
-                
+
                 old_component = getattr(self.bay, component)
-                
+
                 if old_component:
                     old_component.is_equiped = False
                     old_component.save(update_fields=["is_equiped"])
-                
 
-                                
                 new_component.is_equiped = True
                 new_component.save(update_fields=["is_equiped"])
-                
+
                 setattr(self.bay, component, new_component)
-                
+
                 self.bay.save()
 
-            
+            self.components = self._build_components()
+
         return self.get_view_model()
