@@ -628,7 +628,14 @@
                                                 <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.cpu.model }}</option>
                                             {% endfor %}
                                         </select>
-                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                        <button
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:remove_component_bay" bay.id %}"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "remove", "component": "cpu"}'
+                                            type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
                                     </div>
                                 </div>
                             </div>
@@ -661,7 +668,6 @@
                                                 <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ssd.model }}</option>
                                             {% endfor %}
                                         </select>
-                                        arrumar aqui
                                         <button
                                             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                                             hx-post="{% url "server:remove_component_bay" bay.id %}"
@@ -669,9 +675,7 @@
                                             hx-swap="outerHTML"
                                             name="component_id"
                                             hx-vals='{"bay_id": {{ bay.id }}, "action": "remove", "component": "ssd"}'
-
-                                         type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
-                                        
+                                            type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
                                     </div>
                                 </div>
                             </div>
@@ -704,7 +708,14 @@
                                                 <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ai_model.name }}</option>
                                             {% endfor %}
                                         </select>
-                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                        <button
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:remove_component_bay" bay.id %}"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "remove", "component": "ai_model"}'
+                                            type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
                                     </div>
                                 </div>
                             </div>
@@ -743,7 +754,14 @@
                                                 <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.gpu.model }}</option>
                                             {% endfor %}
                                         </select>
-                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                        <button
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:remove_component_bay" bay.id %}"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "remove", "component": "gpu1"}'
+                                            type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
                                     </div>
                                 </div>
                             </div>
@@ -775,7 +793,14 @@
                                                 <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.gpu.model }}</option>
                                             {% endfor %}
                                         </select>
-                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                        <button
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:remove_component_bay" bay.id %}"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "remove", "component": "gpu2"}'
+                                            type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
                                     </div>
                                 </div>
                             </div>
@@ -807,7 +832,14 @@
                                                 <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.gpu.model }}</option>
                                             {% endfor %}
                                         </select>
-                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                        <button
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:remove_component_bay" bay.id %}"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "remove", "component": "gpu3"}'
+                                            type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
                                     </div>
                                 </div>
                             </div>
@@ -846,7 +878,14 @@
                                                 <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ram.model }}</option>
                                             {% endfor %}
                                         </select>
-                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                        <button
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:remove_component_bay" bay.id %}"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "remove", "component": "ram1"}'
+                                            type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
                                     </div>
                                 </div>
                             </div>
@@ -878,7 +917,14 @@
                                                 <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ram.model }}</option>
                                             {% endfor %}
                                         </select>
-                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                        <button
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:remove_component_bay" bay.id %}"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "remove", "component": "ram2"}'
+                                            type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
                                     </div>
                                 </div>
                             </div>
@@ -910,7 +956,14 @@
                                                 <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ram.model }}</option>
                                             {% endfor %}
                                         </select>
-                                        <button type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
+                                        <button
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-post="{% url "server:remove_component_bay" bay.id %}"
+                                            hx-target="#bay-modal-id-{{ bay.id }}"
+                                            hx-swap="outerHTML"
+                                            name="component_id"
+                                            hx-vals='{"bay_id": {{ bay.id }}, "action": "remove", "component": "ram3"}'
+                                            type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
                                     </div>
                                 </div>
                             </div>
