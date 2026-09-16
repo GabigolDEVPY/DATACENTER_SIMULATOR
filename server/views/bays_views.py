@@ -1,38 +1,26 @@
 from django.shortcuts import render
 from django.views.generic import View
 from server.services.bay_service import BayService
-from user.services.inventory_services import InventoryService
+from server.services.bay_context_service import BayContextService
 
 
 
 class ChangeStatusBay(View):
     def post(self, request, id):
-        bay = BayService(id).change_status()
-        inventory = InventoryService(request.user.id)
-        context = {
-            "bay": bay,
-            **inventory.get_components()
-        }
+        bay, components = BayContextService.change_status(request.user.id, id)
+        context = {"bay": bay, "components": components}
         return render(request, template_name="partials/bay_status_response.html", context=context)
     
     
 class GetBayDetail(View):
     def get(self, request, id):
-        bay = BayService(bay_id=id).get_view_model()
-        inventory = InventoryService(request.user.id)
-        context = {
-            "bay": bay,
-            **inventory.get_components()
-        }
+        bay, components = BayContextService.get_bay_model_context(request.user.id, bay_id=id)
+        context = {"bay": bay, "components": components}
         return render(request, template_name="partials/modal_bay.html", context=context)
     
     
 class ChangeComponent(View):
     def post(self, request, id):
-        bay = BayService(bay_id=id).change_component(request.POST)
-        inventory = InventoryService(request.user.id)
-        context = {
-            "bay": bay,
-            **inventory.get_components()
-        }
+        bay, components = BayService.change_component(request.POST, request.user.id, id)
+        context = {"bay": bay,"components":components}
         return render(request, template_name="partials/modal_bay.html", context=context)
