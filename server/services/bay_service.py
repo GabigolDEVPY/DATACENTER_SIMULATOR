@@ -133,19 +133,20 @@ class BayService:
 
 
     def remove_component(self, data):
-        component_target = data.get("component")
-        old_component = getattr(self.bay, component_target)
-        
-        with transaction.atomic():
-            if old_component:
+        if not self.bay.is_active:
+            component_target = data.get("component")
+            old_component = getattr(self.bay, component_target)
+            
+            with transaction.atomic():
+                if old_component:
 
-                old_component.is_equiped = False
-                old_component.save(update_fields=["is_equiped"])
-            
-            setattr(self.bay, component_target, None)
-            
-            self.bay.save()
-            
-            self.components = self._build_components()
+                    old_component.is_equiped = False
+                    old_component.save(update_fields=["is_equiped"])
+                
+                setattr(self.bay, component_target, None)
+                
+                self.bay.save()
+                
+                self.components = self._build_components()
         
         return self.get_view_model()
