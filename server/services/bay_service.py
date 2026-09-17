@@ -104,7 +104,6 @@ class BayService:
     def change_status(self):
         self.bay.is_active = not self.bay.is_active
         self.bay.save(update_fields=["is_active"])
-        return self.get_view_model()
 
     def change_component(self, data):
         type = data.get("action")
@@ -129,7 +128,6 @@ class BayService:
 
             self.components = self._build_components()
 
-        return self.get_view_model()
 
 
     def remove_component(self, data):
@@ -149,4 +147,3 @@ class BayService:
                 
                 self.components = self._build_components()
         
-        return self.get_view_model()
