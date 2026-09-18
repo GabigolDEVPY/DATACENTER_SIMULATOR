@@ -1,5 +1,7 @@
 from model.viewmodels.ia_model_view_model import IaModelViewModel
 from model.services.model_service import ModelService
+from user.models import User
+from server.models import Bay
 
 
 
@@ -27,6 +29,9 @@ class IaModelContextServices:
         ia_model = service.get_user_model(model_id)
 
         if ia_model:
+            user = User.objects.get(pk=user_id)
+            bays = Bay.objects.filter(rack__user=user)
+            print(bays)
             model_view = IaModelViewModel.from_model(ia_model.model, status=ia_model.status)
             
         else:

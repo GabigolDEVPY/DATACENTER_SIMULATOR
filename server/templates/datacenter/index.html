@@ -1,20 +1,141 @@
 {% extends "base.html" %}
 {% load static %} 
- {% block content %}
- <link rel="stylesheet" href="{% static 'css/raritys.css' %}">
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/raritys.css' %}">
 <script src="{% static "scripts/scripts.js" %}"></script>
 <script src="{% static "scripts/bay_scripts.js" %}"></script>
 
+<style>
+    .server-farm-wrapper {
+        position: relative;
+        width: 100%;
+        padding: 40px 0;
+    }
 
-<div class="row col-24 mx-auto justify-content-center align-items-center">
-    {% for hack in hacks %}
-        {% include "partials/rack.html" %}
+    .rack-row {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 40px;
+        flex-wrap: nowrap;
+    }
 
-        {% if not forloop.last %}
-            <div class="wire"></div>
-        {% endif %}
-    {% endfor %}
+    .rack-row.top-row {
+        margin-bottom: 90px;
+    }
+
+    .rack-slot {
+        position: relative;
+    }
+
+    #wireSvg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+        overflow: visible;
+    }
+
+    .wire-base {
+        fill: none;
+        stroke: #0d3b1e;
+        stroke-width: 5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .wire-glow {
+        fill: none;
+        stroke: #39ff6a;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: drop-shadow(0 0 4px #39ff6a) drop-shadow(0 0 10px #2bff5c) drop-shadow(0 0 18px #1aff4d);
+        stroke-dasharray: 14 10;
+        animation: flowWire 1.4s linear infinite;
+        opacity: 0.95;
+    }
+
+    @keyframes flowWire {
+        to {
+            stroke-dashoffset: -24;
+        }
+    }
+</style>
+
+<div class="server-farm-wrapper">
+    <svg id="wireSvg" xmlns="http://www.w3.org/2000/svg">
+        <path id="wireBasePath" class="wire-base"></path>
+        <path id="wireGlowPath" class="wire-glow"></path>
+    </svg>
+
+    <div class="rack-row top-row">
+        {% for hack in hacks|slice:":5" %}
+            <div class="rack-slot" data-rack>
+                {% include "partials/rack.html" %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="rack-row bottom-row">
+        {% for hack in hacks|slice:"5:10" %}
+            <div class="rack-slot" data-rack>
+                {% include "partials/rack.html" %}
+            </div>
+        {% endfor %}
+    </div>
 </div>
+
+<script>
+    (function () {
+        function buildWirePath() {
+            const wrapper = document.querySelector('.server-farm-wrapper');
+            const svg = document.getElementById('wireSvg');
+            const basePath = document.getElementById('wireBasePath');
+            const glowPath = document.getElementById('wireGlowPath');
+            const racks = document.querySelectorAll('.rack-slot');
+
+            if (!wrapper || !racks.length) return;
+
+            const wrapperRect = wrapper.getBoundingClientRect();
+
+            svg.setAttribute('width', wrapperRect.width);
+            svg.setAttribute('height', wrapperRect.height);
+            svg.setAttribute('viewBox', `0 0 ${wrapperRect.width} ${wrapperRect.height}`);
+
+            const points = Array.from(racks).map(rack => {
+                const r = rack.getBoundingClientRect();
+                return {
+                    x: r.left + r.width / 2 - wrapperRect.left,
+                    y: r.top + r.height / 2 - wrapperRect.top
+                };
+            });
+
+            if (points.length < 2) return;
+
+            // Liga em sequência (rack 1 -> 2 -> 3 ... -> 10) e fecha o circuito voltando ao primeiro
+            let d = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length; i++) {
+                d += ` L ${points[i].x} ${points[i].y}`;
+            }
+            d += ` L ${points[0].x} ${points[0].y}`;
+
+            basePath.setAttribute('d', d);
+            glowPath.setAttribute('d', d);
+        }
+
+        window.addEventListener('load', buildWirePath);
+        window.addEventListener('resize', buildWirePath);
+
+        // Recalcula caso as racks demorem a renderizar (imagens, fontes etc.)
+        setTimeout(buildWirePath, 300);
+    })();
+</script>
 
 <div
   id="ModalBay"
