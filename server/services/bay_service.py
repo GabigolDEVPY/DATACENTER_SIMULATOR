@@ -74,6 +74,10 @@ class BayService:
     def get_total_storage(self):
         total_storage = self.bay.ssd.item.ssd.ssd_gb if self.bay.ssd else 0
         return total_storage
+    
+    def get_ai_allocations(self):
+        ai_allocations = self.bay.ai_allocations.all()
+        return ai_allocations
 
     def get_view_model(self):
         return BayViewModel(

@@ -173,6 +173,8 @@
         gap: 5px;
     }
     .btn-ia:hover { background: #2a3345; border-color: #00d4ff; color: #fff; }
+    .btn-ia:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-ia:disabled:hover { background: #1e2633; border-color: #2a3345; color: #c8d6e5; }
     .btn-ia-sm { padding: 3px 9px; font-size: 0.68rem; }
     .btn-ia-primary { background: #00a3c4; border-color: #00a3c4; color: #fff; }
     .btn-ia-primary:hover { background: #00b8d4; border-color: #00d4ff; }
@@ -182,6 +184,89 @@
     .btn-ia-success:hover { background: #16a34a; border-color: #22c55e; }
     .btn-ia-warning { background: #b45309; border-color: #b45309; color: #fff; }
     .btn-ia-warning:hover { background: #d97706; border-color: #f59e0b; }
+
+    /* ===== SELETOR DE BAYS COM MULTIPLICADOR ===== */
+    .bay-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 220px;
+        overflow-y: auto;
+        padding-right: 2px;
+    }
+    .bay-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #0b0e14;
+        border: 1px solid #1e2633;
+        border-radius: 8px;
+        padding: 8px 10px;
+        transition: border-color 0.2s, background 0.2s;
+    }
+    .bay-row.selected {
+        border-color: #00d4ff;
+        background: rgba(0, 212, 255, 0.06);
+    }
+    .bay-row.is-disabled {
+        opacity: 0.45;
+        pointer-events: none;
+    }
+
+    /* checkbox estilizado com X */
+    .bay-check { margin: 0; cursor: pointer; display: flex; }
+    .bay-check input { display: none; }
+    .bay-x {
+        width: 22px;
+        height: 22px;
+        border-radius: 5px;
+        border: 2px solid #334155;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: transparent;
+        font-size: 0.7rem;
+        transition: all 0.15s;
+    }
+    .bay-check input:checked + .bay-x {
+        border-color: #00d4ff;
+        background: #00d4ff;
+        color: #0b0e14;
+    }
+
+    .bay-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        line-height: 1.3;
+        font-size: 0.75rem;
+    }
+    .bay-info strong { color: #c8d6e5; font-weight: 500; }
+    .bay-info small { color: #94a3b8; font-size: 0.65rem; }
+    .bay-info small b { color: #4ade80; }
+
+    /* botão multiplicador 1x / 2x / 3x ... */
+    .bay-mult {
+        min-width: 48px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        background: #0b0e14;
+        color: #00d4ff;
+        border: 1px solid #00d4ff;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.2s;
+    }
+    .bay-mult:hover:not(:disabled) { background: rgba(0, 212, 255, 0.15); }
+    .bay-mult:active:not(:disabled) { transform: scale(0.94); }
+    .bay-mult:disabled {
+        color: #475569;
+        border-color: #334155;
+        cursor: not-allowed;
+    }
+
+    .bay-summary { color: #94a3b8; font-size: 0.72rem; }
 
     /* FOOTER */
     .ia-modal-footer {
@@ -279,7 +364,7 @@
               <select class="ia-select">
                 {% for bay in bays_avaliable %}
 
-                  <option value="bay-1">{{ bay.name }}</option>
+                  <option value="{{ bay.id }}">{{ bay.name }}</option>
 
                 {% endfor %}
               </select>
@@ -290,7 +375,7 @@
           </div>
         </div>
 
-        <!-- ESTADO 2: PARADO (MOVER, EVOLUIR, ETC) -->
+        <!-- ESTADO 2: PARADO (RODAR EM BAYS, EVOLUIR, ETC) -->
         {% elif model.status == "stopped" %}
         <div class="panel no-max mb-3 border-success-ia">
           <h4><i class="fas fa-bolt"></i> 2. Gestão do Modelo Parado</h4>
@@ -300,18 +385,44 @@
             <span>Hospedado em <strong style="color: #4ade80;">Bay #01</strong> (Rack Alpha)</span>
           </div>
 
+          <!-- Seletor de Bays + multiplicador de instâncias -->
           <div class="form-group mb-3">
-            <label class="ia-label">Mover / Migrar para outra Bay:</label>
-            <div class="d-flex gap-2">
-              <select class="ia-select">
-                <option value="bay-2">Bay #02 — Rack Alpha (Livre)</option>
-                <option value="bay-3">Bay #03 — Rack Beta (Livre)</option>
-                <option value="bay-4">Bay #04 — Rack Beta (Livre)</option>
-              </select>
-              <button type="button" class="btn-ia" style="white-space: nowrap;">
-                <i class="fas fa-arrows-alt"></i> Mover
-              </button>
-            </div>
+            <label class="ia-label">Rodar o modelo nas Bays (marque a bay e escolha quantas instâncias):</label>
+
+            <form method="post" action="" id="iaRunForm">
+              {% csrf_token %}
+
+              <div class="bay-list">
+                {% for bay in bays_avaliable %}
+                <div class="bay-row {% if not bay.max_instances %}is-disabled{% endif %}" data-max="{{ bay.max_instances|default:1 }}">
+                  <label class="bay-check" title="Selecionar esta bay">
+                    <input type="checkbox" name="bays" value="{{ bay.id }}" class="bay-toggle"
+                           {% if not bay.max_instances %}disabled{% endif %}>
+                    <span class="bay-x"><i class="fas fa-times"></i></span>
+                  </label>
+
+                  <div class="bay-info">
+                    <strong>{{ bay.name }}</strong>
+                    <small>
+                      {% if bay.rack %}{{ bay.rack.name }} · {% endif %}suporta até <b>{{ bay.max_instances|default:0 }}x</b>
+                    </small>
+                  </div>
+
+                  <button type="button" class="bay-mult" disabled title="Clique para aumentar as instâncias">1x</button>
+                  <input type="hidden" name="qty_{{ bay.id }}" value="1">
+                </div>
+                {% empty %}
+                <p class="mb-0" style="color: #94a3b8; font-size: 0.75rem;">Nenhuma bay disponível.</p>
+                {% endfor %}
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <span class="bay-summary" id="iaBaySummary">Nenhuma bay selecionada</span>
+                <button type="submit" class="btn-ia btn-ia-primary" id="iaRunBtn" style="white-space: nowrap;" disabled>
+                  <i class="fas fa-play"></i> Rodar
+                </button>
+              </div>
+            </form>
           </div>
 
           <label class="ia-label">Ações Rápidas:</label>
@@ -327,6 +438,53 @@
             </button>
           </div>
         </div>
+
+        <script>
+        /* IIFE (não depende de DOMContentLoaded, pois o modal pode ser injetado via AJAX) */
+        (function () {
+            var form = document.getElementById('iaRunForm');
+            if (!form) return;
+
+            var rows = form.querySelectorAll('.bay-row');
+            var summary = document.getElementById('iaBaySummary');
+            var runBtn = document.getElementById('iaRunBtn');
+
+            function updateSummary() {
+                var bays = 0, total = 0;
+                rows.forEach(function (row) {
+                    if (row.querySelector('.bay-toggle').checked) {
+                        bays++;
+                        total += parseInt(row.querySelector('input[type=hidden]').value, 10);
+                    }
+                });
+                summary.textContent = bays
+                    ? total + ' instância(s) em ' + bays + ' bay(s)'
+                    : 'Nenhuma bay selecionada';
+                runBtn.disabled = bays === 0;
+            }
+
+            rows.forEach(function (row) {
+                var toggle = row.querySelector('.bay-toggle');
+                var btn = row.querySelector('.bay-mult');
+                var qty = row.querySelector('input[type=hidden]');
+                var max = parseInt(row.dataset.max, 10) || 1;
+
+                toggle.addEventListener('change', function () {
+                    row.classList.toggle('selected', toggle.checked);
+                    btn.disabled = !toggle.checked;
+                    updateSummary();
+                });
+
+                btn.addEventListener('click', function () {
+                    var n = parseInt(qty.value, 10) + 1;
+                    if (n > max) n = 1;   // depois do máximo, volta para 1x
+                    qty.value = n;
+                    btn.textContent = n + 'x';
+                    updateSummary();
+                });
+            });
+        })();
+        </script>
 
         <!-- ESTADO 3: TREINAMENTO ATIVO -->
         {% elif model.status == "training" %}
