@@ -32,10 +32,9 @@ class AIInstance(models.Model):
     
     model = models.ForeignKey(AIModel,on_delete=models.CASCADE,related_name="instances")
 
-    bay = models.ForeignKey("server.Bay", on_delete=models.CASCADE, related_name="ai_instances")
 
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.not_installed)
-    started_at = models.DateTimeField()
+    started_at = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
         return f"{self.model.name} (Status: {self.status})"

@@ -12,7 +12,7 @@ class AIModelAdmin(admin.ModelAdmin):
     
 @admin.register(AIInstance)
 class AIInstanceAdmin(admin.ModelAdmin):
-    list_display = ('model', 'bay', 'status', 'started_at')
+    list_display = ('model', 'status', 'started_at')
     
 
 @admin.register(AIInstanceBay)
