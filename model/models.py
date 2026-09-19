@@ -27,3 +27,8 @@ class AIInstance(models.Model):
 
     status = models.CharField(max_length=100)
     started_at = models.DateTimeField()
+    
+    
+class AIInstanceBay(models.Model):
+    ai_instance = models.ForeignKey(AIInstance, on_delete=models.CASCADE, related_name="allocated_bays")
+    bay = models.ForeignKey("server.Bay",on_delete=models.CASCADE,related_name="ai_allocations")

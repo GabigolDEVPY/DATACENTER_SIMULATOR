@@ -272,13 +272,16 @@
             <span>Selecione a Bay com hardware compatível para hospedar a IA.</span>
           </div>
 
+          <!-- Selecionar Bay pra instalar o Modelo -->
           <div class="form-group mb-0">
             <label class="ia-label">Selecione a Bay de Destino:</label>
             <div class="d-flex gap-2">
               <select class="ia-select">
-                <option value="bay-1">Bay #01 — Rack Alpha [48GB VRAM / 64GB RAM] (Livre)</option>
-                <option value="bay-2">Bay #02 — Rack Alpha [24GB VRAM / 32GB RAM] (Livre)</option>
-                <option value="bay-3">Bay #03 — Rack Beta [80GB VRAM / 128GB RAM] (Livre)</option>
+                {% for bay in bays_avaliable %}
+
+                  <option value="bay-1">{{ bay.name }}</option>
+
+                {% endfor %}
               </select>
               <button type="button" class="btn-ia btn-ia-primary" style="white-space: nowrap;">
                 <i class="fas fa-play"></i> Instalar

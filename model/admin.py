@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AIModel, MarkModel, AIInstance
+from .models import AIModel, MarkModel, AIInstance, AIInstanceBay
 # Register your models here.
 
 @admin.register(MarkModel)
@@ -13,3 +13,8 @@ class AIModelAdmin(admin.ModelAdmin):
 @admin.register(AIInstance)
 class AIInstanceAdmin(admin.ModelAdmin):
     list_display = ('model', 'bay', 'status', 'started_at')
+    
+
+@admin.register(AIInstanceBay)
+class AIInstanceBayAdmin(admin.ModelAdmin):
+    list_display = ('ai_instance', 'bay')
