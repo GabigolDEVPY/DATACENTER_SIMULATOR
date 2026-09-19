@@ -1,12 +1,11 @@
-from model.models import AIModel
-from user.services.inventory_services import InventoryService
+from model.models import AIInstance, AIModel
 from django.shortcuts import get_object_or_404
 
 
 class ModelService:
     def __init__(self, user_id):
         self.user_id = user_id
-        self.user_ia_models = InventoryService(user_id=user_id).get_ia_models().select_related("model", "model__mark_model")
+        self.user_ia_models = AIInstance.objects.filter(user_id=user_id).select_related("model", "model__mark_model")
         
     def get_user_models(self):
         return self.user_ia_models

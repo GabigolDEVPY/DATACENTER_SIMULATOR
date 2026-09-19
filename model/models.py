@@ -21,14 +21,29 @@ class AIModel(models.Model):
     
     
 class AIInstance(models.Model):
+    class Status(models.TextChoices):
+        stopped = "stopped", "Stopped"
+        running = "running", "Running"
+        training = "training", "Training"
+        moving = "moving", "Moving"
+        not_installed = "not_installed", "Not Installed"
+    
+    user = models.ForeignKey("user.User", on_delete=models.CASCADE, related_name="ai_instances")
+    
     model = models.ForeignKey(AIModel,on_delete=models.CASCADE,related_name="instances")
 
     bay = models.ForeignKey("server.Bay", on_delete=models.CASCADE, related_name="ai_instances")
 
-    status = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.not_installed)
     started_at = models.DateTimeField()
+    
+    def __str__(self):
+        return f"{self.model.name} (Status: {self.status})"
     
     
 class AIInstanceBay(models.Model):
     ai_instance = models.ForeignKey(AIInstance, on_delete=models.CASCADE, related_name="allocated_bays")
     bay = models.ForeignKey("server.Bay",on_delete=models.CASCADE,related_name="ai_allocations")
+    
+    def __str__(self):
+        return f"AI Instance: {self.ai_instance.model.name} allocated to Bay: {self.bay.name}"

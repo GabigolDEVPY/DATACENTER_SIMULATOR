@@ -1,7 +1,9 @@
-from user.models import Inventory, InventoryItem, InventoryIaModel
+from model.models import AIInstance
+from user.models import Inventory, InventoryItem
 
 class InventoryService:
     def __init__(self, user_id):
+        self.user_id = user_id
         self.inventory = Inventory.objects.filter(user=user_id).first()
     
     #hardware items
@@ -38,10 +40,6 @@ class InventoryService:
             "gpus": self.get_gpus
         }
         
-    # ia model items
+    # ia model instances
     def get_ia_models(self):
-        ia_models = self.inventory.ia_models.all()
-        return ia_models
-        
-        
-    
+        return AIInstance.objects.filter(user_id=self.user_id)

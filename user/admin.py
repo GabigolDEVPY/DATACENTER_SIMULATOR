@@ -14,6 +14,3 @@ class InventoryAdmin(admin.ModelAdmin):
 class InventoryItemAdmin(admin.ModelAdmin):
     list_display = ['item', 'is_equiped']
     
-@admin.register(InventoryIaModel)
-class InventoryIaModelAdmin(admin.ModelAdmin):
-    list_display = ['model', 'status']
