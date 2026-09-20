@@ -1,7 +1,7 @@
 <!-- ============================================================ -->
 <!-- MODAL IA – Detalhes / Gestão do Modelo                       -->
 <!-- Estilo unificado com o painel principal (dark / cyberpunk)   -->
-<!-- Bootstrap já está importado no projeto, então não é reimportado aqui -->
+<!-- Bootstrap e HTMX já estão importados no projeto              -->
 <!-- ============================================================ -->
 <style>
     /* ===== MODAL IA - BASE ===== */
@@ -117,6 +117,20 @@
     .panel .item .label-ic i { color: #00d4ff; margin-right: 6px; }
     .text-money { color: #4ade80; font-weight: 600; }
 
+    /* MENSAGEM DE ERRO */
+    .ia-errors {
+        background: rgba(185, 28, 28, 0.12);
+        border: 1px solid #7f1d1d;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-bottom: 10px;
+        font-size: 0.72rem;
+        color: #fca5a5;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
     /* BORDAS DE ESTADO (segue paleta de rarity/slot) */
     .border-info-ia { border-left: 3px solid #00d4ff; }
     .border-success-ia { border-left: 3px solid #4ade80; }
@@ -184,6 +198,9 @@
     .btn-ia-success:hover { background: #16a34a; border-color: #22c55e; }
     .btn-ia-warning { background: #b45309; border-color: #b45309; color: #fff; }
     .btn-ia-warning:hover { background: #d97706; border-color: #f59e0b; }
+
+    /* Estado de loading do HTMX (botão pisca enquanto envia) */
+    .btn-ia.htmx-request { opacity: 0.6; pointer-events: none; }
 
     /* ===== SELETOR DE BAYS COM MULTIPLICADOR ===== */
     .bay-list {
@@ -277,9 +294,11 @@
 </style>
 
 <!-- Modal IA – Overlay centralizado -->
+<!-- hx-headers: envia o CSRF em TODAS as requisições HTMX feitas dentro do modal -->
 <div
   id="IaModalOverlay"
   class="position-fixed top-0 start-0 w-100 h-100"
+  hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
   onclick="if (event.target.id === 'IaModalOverlay') closeIaModal();"
 >
   <div class="position-relative d-flex flex-column ia-modal">
@@ -345,6 +364,15 @@
         </div>
       </div>
 
+      <!-- ERROS RETORNADOS PELA VIEW (qualquer ação) -->
+      {% if errors %}
+      <div class="ia-errors">
+        {% for e in errors %}
+          <span><i class="fas fa-exclamation-circle"></i> {{ e }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       {% if model.status %}
 
         <!-- ESTADO 1: INSTALAÇÃO / ALOCAÇÃO EM BAY -->
@@ -358,21 +386,28 @@
           </div>
 
           <!-- Selecionar Bay pra instalar o Modelo -->
-          <div class="form-group mb-0">
+          <form
+            class="form-group mb-0"
+            hx-post="{% url 'ia_model_install' model.id %}"
+            hx-target="#IaModalOverlay"
+            hx-swap="outerHTML"
+            hx-disabled-elt="find button"
+          >
+            {% csrf_token %}
             <label class="ia-label">Selecione a Bay de Destino:</label>
             <div class="d-flex gap-2">
-              <select class="ia-select">
+              <select class="ia-select" name="bay_id" required>
                 {% for bay in bays_avaliable %}
-
                   <option value="{{ bay.id }}">{{ bay.name }}</option>
-
+                {% empty %}
+                  <option value="" disabled selected>Nenhuma bay disponível</option>
                 {% endfor %}
               </select>
-              <button type="button" class="btn-ia btn-ia-primary" style="white-space: nowrap;">
+              <button type="submit" class="btn-ia btn-ia-primary" style="white-space: nowrap;">
                 <i class="fas fa-play"></i> Instalar
               </button>
             </div>
-          </div>
+          </form>
         </div>
 
         <!-- ESTADO 2: PARADO (RODAR EM BAYS, EVOLUIR, ETC) -->
@@ -389,7 +424,17 @@
           <div class="form-group mb-3">
             <label class="ia-label">Rodar o modelo nas Bays (marque a bay e escolha quantas instâncias):</label>
 
-            <form method="post" action="" id="iaRunForm">
+            <!--
+              HTMX: envia bays marcadas (name="bays") + quantidades (name="qty_<id>")
+              A resposta (modal renderizado novamente) substitui o overlay inteiro.
+            -->
+            <form
+              id="iaRunForm"
+              hx-post="{% url 'model:ia_model_run' model.id %}"
+              hx-target="#IaModalOverlay"
+              hx-swap="outerHTML"
+              hx-disabled-elt="#iaRunBtn"
+            >
               {% csrf_token %}
 
               <div class="bay-list">
@@ -427,20 +472,31 @@
 
           <label class="ia-label">Ações Rápidas:</label>
           <div class="d-flex gap-2 flex-wrap">
-            <button type="button" class="btn-ia btn-ia-sm btn-ia-success">
+            <button type="button" class="btn-ia btn-ia-sm btn-ia-success"
+                    {% comment %} hx-post="{% url 'ia_model_upgrade' model.id %}" {% endcomment %}
+                    hx-target="#IaModalOverlay"
+                    hx-swap="outerHTML"
+                    hx-confirm="Evoluir o modelo por $ 500?">
               <i class="fas fa-arrow-up"></i> Evoluir Modelo ($ 500)
             </button>
-            <button type="button" class="btn-ia btn-ia-sm btn-ia-warning">
+            <button type="button" class="btn-ia btn-ia-sm btn-ia-warning"
+                    {% comment %} hx-post="{% url 'ia_model_train' model.id %}" {% endcomment %}
+                    hx-target="#IaModalOverlay"
+                    hx-swap="outerHTML">
               <i class="fas fa-brain"></i> Iniciar Treinamento
             </button>
-            <button type="button" class="btn-ia btn-ia-sm btn-ia-danger">
+            <button type="button" class="btn-ia btn-ia-sm btn-ia-danger"
+                    {% comment %} hx-post="{% url 'ia_model_stop' model.id %}" {% endcomment %}
+                    hx-target="#IaModalOverlay"
+                    hx-swap="outerHTML"
+                    hx-confirm="Parar a execução do modelo?">
               <i class="fas fa-power-off"></i> Parar Execução
             </button>
           </div>
         </div>
 
         <script>
-        /* IIFE (não depende de DOMContentLoaded, pois o modal pode ser injetado via AJAX) */
+        /* IIFE (não depende de DOMContentLoaded, pois o modal é injetado via HTMX) */
         (function () {
             var form = document.getElementById('iaRunForm');
             if (!form) return;
@@ -511,7 +567,11 @@
               <small style="font-size: 0.65rem; color: #64748b;">
                 <i class="fas fa-clock"></i> Tempo restante estimado: ~ 02m 45s
               </small>
-              <button type="button" class="btn-ia btn-ia-sm btn-ia-danger">
+              <button type="button" class="btn-ia btn-ia-sm btn-ia-danger"
+                      hx-post="{% url 'ia_model_cancel_train' model.id %}"
+                      hx-target="#IaModalOverlay"
+                      hx-swap="outerHTML"
+                      hx-confirm="Cancelar o treinamento? O progresso será perdido.">
                 <i class="fas fa-stop"></i> Cancelar Treino
               </button>
             </div>
@@ -543,7 +603,11 @@
               <small style="font-size: 0.65rem; color: #64748b;">
                 <i class="fas fa-clock"></i> Tempo restante estimado: ~ 02m 45s
               </small>
-              <button type="button" class="btn-ia btn-ia-sm btn-ia-danger">
+              <button type="button" class="btn-ia btn-ia-sm btn-ia-danger"
+                      hx-post="{% url 'ia_model_cancel_move' model.id %}"
+                      hx-target="#IaModalOverlay"
+                      hx-swap="outerHTML"
+                      hx-confirm="Cancelar o movimento do modelo?">
                 <i class="fas fa-stop"></i> Cancelar Movimento
               </button>
             </div>
@@ -559,8 +623,12 @@
       {% else %}
         <!-- SEM STATUS: MODELO AINDA NÃO ADQUIRIDO -->
         <div class="text-center">
-          <button type="button" class="btn-ia btn-ia-sm btn-ia-success">
-            <i class="fas fa-arrow-up"></i> Comprar
+          <button type="button" class="btn-ia btn-ia-sm btn-ia-success"
+                  hx-post="{% url 'ia_model_buy' model.id %}"
+                  hx-target="#IaModalOverlay"
+                  hx-swap="outerHTML"
+                  hx-confirm="Comprar este modelo por $ {{ model.price }}?">
+            <i class="fas fa-shopping-cart"></i> Comprar
           </button>
         </div>
       {% endif %}
