@@ -1,153 +1,203 @@
-from server.models import Bay, StorageAllocation
-from server.viewmodels.bay_viewmodel import BayViewModel
-from django.shortcuts import get_object_or_404
-from user.models import InventoryItem
 from django.db import transaction
+from django.shortcuts import get_object_or_404
+
+from server.models import Bay
+from server.viewmodels.bay_viewmodel import BayViewModel
+from user.models import InventoryItem
+
+
+class BayError(Exception):
+    """Erro de regra de negócio relacionado à Bay."""
 
 
 class BayService:
-    def __init__(self, bay_id):
-        self.bay = get_object_or_404(Bay.objects.select_related(
-            "cpu__item__cpu",
-            "ssd__item__ssd",
-            "gpu1__item__gpu",
-            "gpu2__item__gpu",
-            "gpu3__item__gpu",
-            "ram1__item__ram",
-            "ram2__item__ram",
-            "ram3__item__ram"
-        ), id=bay_id)
+    COMPONENT_FIELDS = {
+        "cpu": "cpu",
+        "ssd": "ssd",
+        "gpu1": "gpu",
+        "gpu2": "gpu",
+        "gpu3": "gpu",
+        "ram1": "ram",
+        "ram2": "ram",
+        "ram3": "ram",
+    }
 
-        self.components = self._build_components()
+    SELECT_RELATED = [
+        f"{field}__item__{kind}" for field, kind in COMPONENT_FIELDS.items()
+    ]
 
-    def _build_components(self):
-        return list(filter(None, [
-            self.bay.cpu.item.cpu if self.bay.cpu else None,
-            self.bay.ssd.item.ssd if self.bay.ssd else None,
-            self.bay.gpu1.item.gpu if self.bay.gpu1 else None,
-            self.bay.gpu2.item.gpu if self.bay.gpu2 else None,
-            self.bay.gpu3.item.gpu if self.bay.gpu3 else None,
-            self.bay.ram1.item.ram if self.bay.ram1 else None,
-            self.bay.ram2.item.ram if self.bay.ram2 else None,
-            self.bay.ram3.item.ram if self.bay.ram3 else None,
-        ]))
+    def __init__(self, bay=None, bay_id=None):
+        """Aceita uma Bay já carregada (evita query extra) ou um id."""
+        if bay is None:
+            bay = get_object_or_404(
+                Bay.objects.select_related(*self.SELECT_RELATED), id=bay_id
+            )
+        self.bay = bay
+        self._components = None
 
-    def get_storage_percentage(self):
-        allocate_storage = self.get_allocate_space_storage()
-        if allocate_storage == 0:
-            return f"{0:.2f}"
-        percentage = (allocate_storage / self.get_total_storage()) * 100
-        return f"{percentage:.2f}"
+    # ---------- Componentes ----------
 
-    def get_allocate_space_storage(self):
-        allocate_gb = sum(item.allocated_gb for item in self.bay.storage_allocations.all())
-        return allocate_gb
+    def _get_component(self, field):
+        """Retorna o componente concreto (cpu/ssd/gpu/ram) de um slot."""
+        slot = getattr(self.bay, field)
+        if not slot:
+            return None
+        return getattr(slot.item, self.COMPONENT_FIELDS[field])
 
-    def get_storage_allocations(self):
-        instances = self.bay.storage_allocations.all()
-        return instances
+    @property
+    def components(self):
+        if self._components is None:
+            self._components = [
+                c for c in (self._get_component(f) for f in self.COMPONENT_FIELDS)
+                if c is not None
+            ]
+        return self._components
 
-    def get_power(self):
-        power = sum(item.get_power for item in self.components)
-        return power
+    def _invalidate_components(self):
+        self._components = None
+
+    def _sum(self, attr):
+        return sum(getattr(c, attr, 0) or 0 for c in self.components)
+
+    # ---------- Totais ----------
 
     def get_total_watts(self):
-        total_watts = sum(getattr(item, "watts", 0) for item in self.components)
-        return total_watts
+        return self._sum("watts")
 
     def get_total_price(self):
-        total_price = sum(getattr(item, "price", 0) for item in self.components)
-        return total_price
+        return self._sum("price")
 
     def get_total_ram(self):
-        total_ram = sum(getattr(item, "ram_gb", 0) for item in self.components)
-        return total_ram
+        return self._sum("ram_gb")
 
     def get_total_vram(self):
-        total_vram = sum(getattr(item, "vram", 0) for item in self.components)
-        return total_vram
+        return self._sum("vram")
 
     def get_total_processors(self):
-        total_processors = self.bay.cpu.item.cpu.cores if self.bay.cpu else 0
-        return total_processors
+        cpu = self._get_component("cpu")
+        return cpu.cores if cpu else 0
 
     def get_total_storage(self):
-        total_storage = self.bay.ssd.item.ssd.ssd_gb if self.bay.ssd else 0
-        return total_storage
-    
+        ssd = self._get_component("ssd")
+        return ssd.ssd_gb if ssd else 0
+
+    # ---------- Storage ----------
+
+    def get_allocate_space_storage(self):
+        return sum(a.allocated_gb for a in self.get_storage_allocations())
+
+    def get_free_storage(self):
+        return self.get_total_storage() - self.get_allocate_space_storage()
+
+    def get_storage_percentage(self):
+        total = self.get_total_storage()
+        if total == 0:
+            return "0.00"
+        return f"{(self.get_allocate_space_storage() / total) * 100:.2f}"
+
+    def get_storage_allocations(self):
+        return self.bay.storage_allocations.all()
+
+    def has_storage_for(self, storage_gb):
+        return self.get_free_storage() >= storage_gb
+
+    # ---------- IA ----------
+
     def get_ai_allocations(self):
-        ai_allocations = self.bay.ai_allocations.all()
-        return ai_allocations
+        return self.bay.ai_allocations.select_related("ai_instance__model")
 
-    def get_view_model(self):
-        return BayViewModel(
-           id=self.bay.id,
-           name=self.bay.name,
-           is_active=self.bay.is_active,
+    def get_free_resources(self):
+        """RAM e VRAM livres depois de descontar as instâncias já alocadas."""
+        vram = self.get_total_vram()
+        ram = self.get_total_ram()
 
-           cpu=self.bay.cpu.item.cpu if self.bay.cpu else None,
-           ssd=self.bay.ssd.item.ssd if self.bay.ssd else None,
-           gpu1=self.bay.gpu1.item.gpu if self.bay.gpu1 else None,
-           gpu2=self.bay.gpu2.item.gpu if self.bay.gpu2 else None,
-           gpu3=self.bay.gpu3.item.gpu if self.bay.gpu3 else None,
-           ram1=self.bay.ram1.item.ram if self.bay.ram1 else None,
-           ram2=self.bay.ram2.item.ram if self.bay.ram2 else None,
-           ram3=self.bay.ram3.item.ram if self.bay.ram3 else None,
+        for allocation in self.get_ai_allocations():
+            model = allocation.ai_instance.model
+            vram -= model.gpu_vram
+            ram -= model.ram_gb
 
-           total_watts=self.get_total_watts(),
-           total_price=self.get_total_price(),
-           total_ram=self.get_total_ram(),
-           total_vram=self.get_total_vram(),
-           total_processors=self.get_total_processors(),
-           total_storage=self.get_total_storage(),
-           allocate_storage=self.get_allocate_space_storage(),
-           storage_allocations=self.get_storage_allocations(),
-           storage_percentage=self.get_storage_percentage()
-        )
+        return max(ram, 0), max(vram, 0)
+
+    def get_max_instances_available(self, model):
+        """Quantas instâncias de `model` ainda cabem nesta bay."""
+        free_ram, free_vram = self.get_free_resources()
+
+        limits = []
+        if model.ram_gb:
+            limits.append(free_ram // model.ram_gb)
+        if model.gpu_vram:
+            limits.append(free_vram // model.gpu_vram)
+
+        return int(min(limits)) if limits else 0
+
+    # ---------- Ações ----------
+
+    def _validate_slot(self, field):
+        if field not in self.COMPONENT_FIELDS:
+            raise BayError(f"Slot inválido: {field}")
+
+    def _ensure_inactive(self):
+        if self.bay.is_active:
+            raise BayError("Desligue a bay antes de alterar componentes.")
 
     def change_status(self):
         self.bay.is_active = not self.bay.is_active
         self.bay.save(update_fields=["is_active"])
 
-    def change_component(self, data):
-        type = data.get("action")
-        component = data.get("component")
+    def change_component(self, field, component_id, user_id):
+        self._validate_slot(field)
+        self._ensure_inactive()
 
-        if type == "change" and not self.bay.is_active:
-            with transaction.atomic():
-                new_component = get_object_or_404(InventoryItem, id=data.get("component_id"), is_equiped=False)
+        with transaction.atomic():
+            new_component = get_object_or_404(
+                InventoryItem,
+                id=component_id,
+                is_equiped=False,
+                user_id=user_id,  # ajuste o nome do campo conforme seu model
+            )
 
-                old_component = getattr(self.bay, component)
+            self._unequip(getattr(self.bay, field))
 
-                if old_component:
-                    old_component.is_equiped = False
-                    old_component.save(update_fields=["is_equiped"])
+            new_component.is_equiped = True
+            new_component.save(update_fields=["is_equiped"])
 
-                new_component.is_equiped = True
-                new_component.save(update_fields=["is_equiped"])
+            setattr(self.bay, field, new_component)
+            self.bay.save(update_fields=[field])
 
-                setattr(self.bay, component, new_component)
+        self._invalidate_components()
 
-                self.bay.save()
+    def remove_component(self, field):
+        self._validate_slot(field)
+        self._ensure_inactive()
 
-            self.components = self._build_components()
+        with transaction.atomic():
+            self._unequip(getattr(self.bay, field))
+            setattr(self.bay, field, None)
+            self.bay.save(update_fields=[field])
 
+        self._invalidate_components()
 
+    @staticmethod
+    def _unequip(item):
+        if item:
+            item.is_equiped = False
+            item.save(update_fields=["is_equiped"])
 
-    def remove_component(self, data):
-        if not self.bay.is_active:
-            component_target = data.get("component")
-            old_component = getattr(self.bay, component_target)
-            
-            with transaction.atomic():
-                if old_component:
+    # ---------- ViewModel ----------
 
-                    old_component.is_equiped = False
-                    old_component.save(update_fields=["is_equiped"])
-                
-                setattr(self.bay, component_target, None)
-                
-                self.bay.save()
-                
-                self.components = self._build_components()
-        
+    def get_view_model(self):
+        return BayViewModel(
+            id=self.bay.id,
+            name=self.bay.name,
+            is_active=self.bay.is_active,
+            **{field: self._get_component(field) for field in self.COMPONENT_FIELDS},
+            total_watts=self.get_total_watts(),
+            total_price=self.get_total_price(),
+            total_ram=self.get_total_ram(),
+            total_vram=self.get_total_vram(),
+            total_processors=self.get_total_processors(),
+            total_storage=self.get_total_storage(),
+            allocate_storage=self.get_allocate_space_storage(),
+            storage_allocations=self.get_storage_allocations(),
+            storage_percentage=self.get_storage_percentage(),
+        )
