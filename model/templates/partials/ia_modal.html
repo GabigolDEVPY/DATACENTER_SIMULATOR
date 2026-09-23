@@ -330,6 +330,8 @@
           <span class="status-badge training"><i class="fas fa-brain"></i> Treinando</span>
         {% elif model.status == "moving" %}
           <span class="status-badge moving"><i class="fas fa-arrows-alt"></i> Movendo</span>
+        {% elif model.status == "installing" %}
+          <span class="status-badge moving"><i class="fas fa-arrows-alt"></i> Instalando</span>
         {% else %}
           <span class="status-badge idle"><i class="fas fa-pause-circle"></i> Disponível / Parado</span>
         {% endif %}
@@ -579,7 +581,43 @@
           </div>
         </div>
 
-        <!-- ESTADO 4: MOVENDO ATIVO -->
+        <!-- ESTADO 4: INSTALANDO -->
+        {% elif model.status == "installing" %}
+        <div class="panel no-max border-warning-ia">
+          <h4><i class="fas fa-brain"></i> 3. Instalando </h4>
+
+          <div class="item" style="border-bottom: none; flex-direction: column; align-items: flex-start; gap: 8px;">
+            <div class="d-flex justify-content-between w-100" style="font-size: 0.7rem; color: #94a3b8;">
+              <span><i class="fas fa-microchip"></i> Hardware Alocado: <strong>Bay #01 (Rack Alpha)</strong></span>
+              <span>Época: <strong>14 / 20</strong></span>
+            </div>
+
+            <div class="w-100 mt-1">
+              <div class="d-flex justify-content-between" style="font-size: 0.68rem; color: #94a3b8; margin-bottom: 4px;">
+                <span>Progresso do Treinamento</span>
+                <span style="color: #f59e0b; font-weight: 600;">70%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="fill" style="width: 70%;"></div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center w-100 mt-2">
+              <small style="font-size: 0.65rem; color: #64748b;">
+                <i class="fas fa-clock"></i> Tempo restante estimado: ~ 02m 45s
+              </small>
+              <button type="button" class="btn-ia btn-ia-sm btn-ia-danger"
+                      {% comment %} hx-post="{% url 'ia_model_cancel_train' model.id %}" {% endcomment %}
+                      hx-target="#IaModalOverlay"
+                      hx-swap="outerHTML"
+                      hx-confirm="Cancelar o treinamento? O progresso será perdido.">
+                <i class="fas fa-stop"></i> Cancelar Treino
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESTADO 5: MOVENDO ATIVO -->
         {% elif model.status == "moving" %}
         <div class="panel no-max border-warning-ia">
           <h4><i class="fas fa-arrows-alt"></i> 4. Movendo Modelo</h4>

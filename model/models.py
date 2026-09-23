@@ -27,6 +27,7 @@ class AIInstance(models.Model):
         training = "training", "Training"
         moving = "moving", "Moving"
         not_installed = "not_installed", "Not Installed"
+        installing = "installing", "Installing"
     
     user = models.ForeignKey("user.User", on_delete=models.CASCADE, related_name="ai_instances")
     
