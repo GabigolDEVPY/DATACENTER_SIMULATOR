@@ -29,3 +29,11 @@ class IaModelRun(LoginRequiredMixin, View):
         print(request.POST)
         # TODO: validar com um Form/Serializer e chamar um service (ex: ModelRunService)
         return JsonResponse({"status": "ok"})
+    
+class IaModelInstall(LoginRequiredMixin, View):
+    def post(self, request):
+        
+        IaModelContextServices.install_ia_model(request.user.id, request.POST)
+        context = IaModelContextServices.get_ia_model(request.user.id, request.POST.get("ia_model_id"))
+        
+        return render(request, "partials/ia_modal.html", context=context)

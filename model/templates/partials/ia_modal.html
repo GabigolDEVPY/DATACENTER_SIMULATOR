@@ -388,12 +388,13 @@
           <!-- Selecionar Bay pra instalar o Modelo -->
           <form
             class="form-group mb-0"
-            hx-post="{% url 'ia_model_install' model.id %}"
+            hx-post="{% url 'model:ia_model_install' %}" 
             hx-target="#IaModalOverlay"
             hx-swap="outerHTML"
             hx-disabled-elt="find button"
           >
             {% csrf_token %}
+            <input type="hidden" name="ia_model_id" value="{{ model.id }}">
             <label class="ia-label">Selecione a Bay de Destino:</label>
             <div class="d-flex gap-2">
               <select class="ia-select" name="bay_id" required>

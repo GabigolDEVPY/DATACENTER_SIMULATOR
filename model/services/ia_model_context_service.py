@@ -1,4 +1,4 @@
-from model.services.model_service import ModelService
+from model.services.models_service import ModelsService
 from model.viewmodels.bay_option_view_model import BayOption
 from model.viewmodels.ia_model_view_model import IaModelViewModel
 from server.models import Bay
@@ -8,7 +8,7 @@ from server.services.bay_service import BayService
 class IaModelContextServices:
     @staticmethod
     def get_ia_models(user_id):
-        service = ModelService(user_id=user_id)
+        service = ModelsService(user_id=user_id)
 
         return {
             "user_ia_models": [
@@ -47,7 +47,7 @@ class IaModelContextServices:
 
     @classmethod
     def get_ia_model(cls, user_id, model_id):
-        service = ModelService(user_id)
+        service = ModelsService(user_id)
         user_model = service.get_user_model(model_id)
 
         if not user_model:
@@ -63,3 +63,16 @@ class IaModelContextServices:
             context["bays_avaliable"] = cls._get_bays_for_run(user_id, model_view)
 
         return context
+    
+    @staticmethod
+    def install_ia_model(user_id, data):
+        service = ModelsService(user_id)
+        
+        ia_instance = service.get_user_model(data.get("ia_model_id"))  # retorna um AIInstance
+        bay = BayService(bay_id=data.get("bay_id")).allocate_space_for_model(ia_instance.model, ia_instance.model.storage_gb) #cria uma alocação do modelo dentro da bay
+        ia_instance.status = "stopped"
+        ia_instance.save(update_fields=["status"])
+              
+        pass
+        
+        

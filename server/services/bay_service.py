@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 
-from server.models import Bay
+from server.models import Bay, StorageAllocation
 from server.viewmodels.bay_viewmodel import BayViewModel
 from user.models import InventoryItem
 
@@ -82,6 +82,9 @@ class BayService:
         return ssd.ssd_gb if ssd else 0
 
     # ---------- Storage ----------
+    def allocate_space_for_model(self, ia_model, allocated_gb):
+        StorageAllocation.objects.create(bay=self.bay, ai_model=ia_model, allocated_gb=allocated_gb)
+        
 
     def get_allocate_space_storage(self):
         return sum(a.allocated_gb for a in self.get_storage_allocations())
