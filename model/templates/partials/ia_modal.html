@@ -562,7 +562,7 @@
                 <span style="color: #f59e0b; font-weight: 600;">70%</span>
               </div>
               <div class="progress-bar">
-                <div class="fill" style="width: 70%;"></div>
+                <div class="fill"  style="width: 70%;"></div>
               </div>
             </div>
 
@@ -598,7 +598,7 @@
                 <span style="color: #f59e0b; font-weight: 600;">70%</span>
               </div>
               <div class="progress-bar">
-                <div class="fill" style="width: 70%;"></div>
+                <div class="fill" id="progress_bar_id" style="width: 0%;"></div>
               </div>
             </div>
 
@@ -616,6 +616,23 @@
             </div>
           </div>
         </div>
+        <script>
+          const progress_bar = document.getElementById("progress_bar_id");
+          const time_progress = {{ time }};
+          let progress = 0;
+
+          const interval = setInterval(() => {
+            progress += time_progress;
+            progress_bar.style.width = `${progress}%`;
+            
+            if (progress >=100) {
+              progress = 100;
+              progress_bar.style.width = `${progress}%`;
+              clearInterval(interval);
+            }
+          }, 1000);
+          
+        </script>
 
         <!-- ESTADO 5: MOVENDO ATIVO -->
         {% elif model.status == "moving" %}
@@ -682,3 +699,4 @@
     </div>
   </div>
 </div>
+<!-- vars -->
