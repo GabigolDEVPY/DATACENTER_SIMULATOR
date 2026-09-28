@@ -8,16 +8,16 @@ from server.services.bay_service import BayService
 class IaModelContextServices:
     @staticmethod
     def get_ia_models(user_id):
-        service = ModelsService(user_id=user_id)
+        models_service = ModelsService(user_id=user_id)
 
         return {
             "user_ia_models": [
                 IaModelViewModel.from_model(item.model, status=item.status)
-                for item in service.get_user_models()
+                for item in models_service.get_user_models()
             ],
             "ia_models": [
                 IaModelViewModel.from_model(model, status="stopped")
-                for model in service.get_available_models()
+                for model in models_service.get_available_models()
             ],
         }
 

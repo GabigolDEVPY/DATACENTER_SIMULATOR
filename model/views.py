@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.views import View
 from django.views.generic import TemplateView
 
-from model.services.ia_model_context_service import IaModelContextServices
+from model.services.IaApplicationService import IaModelContextServices
 
 
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -26,7 +26,6 @@ class IAModelDetailView(LoginRequiredMixin, View):
 
 class IaModelRun(LoginRequiredMixin, View):
     def post(self, request, id):
-        # TODO: validar com um Form/Serializer e chamar um service (ex: ModelRunService)
         return JsonResponse({"status": "ok"})
     
 class IaModelInstall(LoginRequiredMixin, View):
