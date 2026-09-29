@@ -47,3 +47,13 @@ class AIInstanceBay(models.Model):
     
     def __str__(self):
         return f"AI Instance: {self.ai_instance.model.name} allocated to Bay: {self.bay.name}"
+    
+class IaInstallationTask(models.Model):
+    ai_instance = models.ForeignKey(AIInstance, on_delete=models.CASCADE, related_name="ia_installation")
+    allocate_bay = models.ForeignKey("server.StorageAllocation", on_delete=models.CASCADE, related_name="ia_installation")
+    
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Installation Task for AI Instance: {self.ai_instance.model.name} on Bay: {self.allocate_bay.bay.name}"
