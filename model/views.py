@@ -32,7 +32,7 @@ class IaModelInstall(LoginRequiredMixin, View):
     def post(self, request):
         
         time = IaModelContextService.install_ia_model(request.user.id, request.POST)
-        context = IaModelContextService.get_ia_models(request.user.id, request.POST.get("ia_model_id"))
+        context = IaModelContextService.get_model_context(request.user.id, request.POST.get("ia_model_id"))
         context["time"] = time
         
         return render(request, "partials/ia_modal.html", context=context)
