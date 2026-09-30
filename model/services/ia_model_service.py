@@ -3,17 +3,17 @@ from server.services.bay_service import BayService
 
 class IaModelService:
     @staticmethod
-    def install_ia_model(user_id, data):
+    def install_ia_model(user_id, model_id):
         models_service = ModelsService(user_id)
         
-        instance = models_service.get_user_model(data.get("ia_model_id"))  # retorna um AIInstance
+        instance = models_service.get_user_model(model_id)  # retorna um AIInstance
         
         if not instance:
             raise ValueError("Modelo não encontrado")
         
         model = instance.model
         
-        bay_service = BayService(bay_id=data.get("ia_model_id"))
+        bay_service = BayService(bay_id=model_id)
         
         bay_service.allocate_space_for_model(model, model.storage_gb) #cria uma alocação do modelo dentro da bay
         
