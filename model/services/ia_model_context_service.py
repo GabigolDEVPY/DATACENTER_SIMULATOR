@@ -70,16 +70,4 @@ class IaModelContextService:
         ]
 
     
-    @staticmethod
-    def install_ia_model(user_id, data):
-        service = ModelsService(user_id)
-        
-        ia_instance = service.get_user_model(data.get("ia_model_id"))  # retorna um AIInstance
-        BayService(bay_id=data.get("bay_id")).allocate_space_for_model(ia_instance.model, ia_instance.model.storage_gb) #cria uma alocação do modelo dentro da bay
-        ia_instance.status = "installing"
-        ia_instance.save(update_fields=["status"])
-        time = 1
-              
-        return time
-        
         

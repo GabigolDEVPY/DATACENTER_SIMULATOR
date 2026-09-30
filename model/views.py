@@ -5,6 +5,7 @@ from django.views import View
 from django.views.generic import TemplateView
 
 from model.services.ia_model_context_service import IaModelContextService
+from model.services.ia_model_service import IaModelService
 
 
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -31,7 +32,7 @@ class IaModelRun(LoginRequiredMixin, View):
 class IaModelInstall(LoginRequiredMixin, View):
     def post(self, request):
         
-        time = IaModelContextService.install_ia_model(request.user.id, request.POST)
+        time = IaModelService.install_ia_model(request.user.id, request.POST)
         context = IaModelContextService.get_model_context(request.user.id, request.POST.get("ia_model_id"))
         context["time"] = time
         
