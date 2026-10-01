@@ -185,22 +185,3 @@ class BayService:
         if item:
             item.is_equiped = False
             item.save(update_fields=["is_equiped"])
-
-    # ---------- ViewModel ----------
-
-    def get_view_model(self):
-        return BayViewModel(
-            id=self.bay.id,
-            name=self.bay.name,
-            is_active=self.bay.is_active,
-            **{field: self._get_component(field) for field in self.COMPONENT_FIELDS},
-            total_watts=self.get_total_watts(),
-            total_price=self.get_total_price(),
-            total_ram=self.get_total_ram(),
-            total_vram=self.get_total_vram(),
-            total_processors=self.get_total_processors(),
-            total_storage=self.get_total_storage(),
-            allocate_storage=self.get_allocate_space_storage(),
-            storage_allocations=self.get_storage_allocations(),
-            storage_percentage=self.get_storage_percentage(),
-        )

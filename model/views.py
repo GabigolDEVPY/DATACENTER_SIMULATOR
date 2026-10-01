@@ -29,6 +29,7 @@ class IaModelRun(LoginRequiredMixin, View):
     def post(self, request, id):
         return JsonResponse({"status": "ok"})
     
+    
 class IaModelInstall(LoginRequiredMixin, View):
     def post(self, request):
         
