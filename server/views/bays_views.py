@@ -28,5 +28,6 @@ class ChangeComponent(View):
     
 class RemoveComponent(View):
     def post(self, request, id):
-        context = BayApplicationService.remove_component(request.POST, request.user.id, id)
+        service = BayService(bay_id=id).remove_component(request.POST.get("field"))
+        context = BayContextService.get_bay_context(request.user.id, id)
         return render(request, template_name="partials/modal_bay.html", context=context)

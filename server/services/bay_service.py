@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 
 from server.models import Bay, StorageAllocation
 from server.viewmodels.bay_viewmodel import BayViewModel
-from user.models import InventoryItem
+from user.models import InventoryItem, Inventory
 
 
 class BayError(Exception):
@@ -150,13 +150,14 @@ class BayService:
     def change_component(self, field, component_id, user_id):
         self._validate_slot(field)
         self._ensure_inactive()
+        self.inventory = Inventory.objects.filter(user=user_id).first()
 
         with transaction.atomic():
             new_component = get_object_or_404(
                 InventoryItem,
                 id=component_id,
                 is_equiped=False,
-                user_id=user_id,  # ajuste o nome do campo conforme seu model
+                inventory=self.inventory
             )
 
             self._unequip(getattr(self.bay, field))
@@ -171,11 +172,11 @@ class BayService:
 
     def remove_component(self, field):
         self._validate_slot(field)
-        self._ensure_inactive()
+        self._ensure_inactive() # Verificar se a Bay esta desligada
 
         with transaction.atomic():
             self._unequip(getattr(self.bay, field))
-            setattr(self.bay, field, None)
+            setattr(self.bay, field, None) # setar o campo para None/Vazio
             self.bay.save(update_fields=[field])
 
         self._invalidate_components()
