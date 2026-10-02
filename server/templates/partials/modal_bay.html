@@ -682,46 +682,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="col-4">
-                    <div class="card-wrapper rarity-mythic">
-                        <div class="card-glow-outer"></div>
-                        <div class="card-border">
-                            <div class="card-inner">
-                                <div class="card-glow-inner"></div>
-                                <span class="rarity-badge">Mítico</span>
-                                <div class="d-flex flex-column gap-1 w-100">
-                                    <span class="card-label"><i class="bi bi-cpu-fill"></i> IA</span>
-                                    <div class="part-select-row">
-                                        <select class="part-select"
-                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                            hx-post="{% url "server:change_component_bay" bay.id %}"
-                                            hx-trigger="change"
-                                            hx-target="#bay-modal-id-{{ bay.id }}"
-                                            hx-swap="outerHTML"
-                                            name="component_id"
-                                            hx-vals='{"field": "ia"}'
-                                            {% if bay.is_active %}disabled{% endif %}
-                                        >
-                                            <option>{{ bay.ai_model.name|default:"Nenhum" }}</option>
-                                            {% for inventoryitem in ai_models %}
-                                                <option value="{{ inventoryitem.id }}">{{ inventoryitem.item.ai_model.name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                        <button
-                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                            hx-post="{% url "server:remove_component_bay" bay.id %}"
-                                            hx-target="#bay-modal-id-{{ bay.id }}"
-                                            hx-swap="outerHTML"
-                                            name="component_id"
-                                            hx-vals='{"field": "ia"}'
-                                            type="button" class="btn-remove-part" title="Remover peça" {% if bay.is_active %}disabled{% endif %}>&times;</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 

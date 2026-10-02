@@ -680,7 +680,7 @@
         <!-- SEM STATUS: MODELO AINDA NÃO ADQUIRIDO -->
         <div class="text-center">
           <button type="button" class="btn-ia btn-ia-sm btn-ia-success"
-                  hx-post="{% url 'ia_model_buy' model.id %}"
+                  {% comment %} hx-post="{% url 'ia_model_buy' model.id %}" {% endcomment %}
                   hx-target="#IaModalOverlay"
                   hx-swap="outerHTML"
                   hx-confirm="Comprar este modelo por $ {{ model.price }}?">
