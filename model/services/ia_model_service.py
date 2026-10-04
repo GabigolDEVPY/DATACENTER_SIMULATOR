@@ -23,4 +23,4 @@ class IaModelService:
         time = 1
               
         return time
-        
+         

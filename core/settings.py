@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'hardware',
     'user',
     'model',
+    'operation',
 ]
 
 MIDDLEWARE = [
