@@ -11,7 +11,8 @@ class InstallationService:
 
         task = IaInstallationTask.objects.create(
             ai_instance=instance,
-            finished_at=finished_at
+            finished_at=finished_at,
+            time=time
         )
 
         return task

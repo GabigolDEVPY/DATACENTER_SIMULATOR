@@ -33,6 +33,8 @@ class IaModelService:
             / Decimal(str(ssd.speed))
             * Decimal("12")
         )
+        
+        InstallationService.start(instance, time)
 
         progress_per_second = Decimal("100") / time
 
