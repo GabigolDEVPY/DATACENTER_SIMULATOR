@@ -18,3 +18,4 @@ class AIInstanceAdmin(admin.ModelAdmin):
 @admin.register(AIInstanceBay)
 class AIInstanceBayAdmin(admin.ModelAdmin):
     list_display = ('ai_instance', 'bay')
+    

@@ -2,7 +2,24 @@
 <!-- MODAL IA – Detalhes / Gestão do Modelo                       -->
 <!-- Estilo unificado com o painel principal (dark / cyberpunk)   -->
 <!-- Bootstrap e HTMX já estão importados no projeto              -->
+<!--                                                              -->
+<!-- STATUS SUPORTADOS (model.status):                            -->
+<!--   (vazio)       -> não adquirido  -> botão Comprar           -->
+<!--   not_installed -> comprado       -> instalar em uma bay     -->
+<!--   installing    -> instalando     -> painel de progresso     -->
+<!--   stopped       -> instalado      -> rodar / evoluir / treinar -->
+<!--   running       -> em execução    -> parar execução          -->
+<!--   training      -> treinando      -> painel de progresso     -->
+<!--   moving        -> movendo        -> painel de progresso     -->
+<!--                                                              -->
+<!-- VARIÁVEIS OPCIONAIS DE CONTEXTO (todas têm default):         -->
+<!--   progress  -> % inicial da barra (0-100)                    -->
+<!--   time      -> % somado por segundo na barra                 -->
+<!--   remaining -> texto do tempo restante (ex: "02m 45s")       -->
+<!--   model.bay (.name / .rack.name) -> bay onde o modelo está   -->
+<!--   model.epoch / model.epochs_total -> época do treino        -->
 <!-- ============================================================ -->
+{% load l10n %}
 <style>
     /* ===== MODAL IA - BASE ===== */
     #IaModalOverlay {
@@ -47,9 +64,7 @@
         color: #c8d6e5;
         font-size: 1.1rem;
     }
-    .ia-modal-header .btn-close-ia:hover {
-        opacity: 1;
-    }
+    .ia-modal-header .btn-close-ia:hover { opacity: 1; }
 
     /* BODY */
     .ia-modal-body {
@@ -131,7 +146,7 @@
         gap: 4px;
     }
 
-    /* BORDAS DE ESTADO (segue paleta de rarity/slot) */
+    /* BORDAS DE ESTADO */
     .border-info-ia { border-left: 3px solid #00d4ff; }
     .border-success-ia { border-left: 3px solid #4ade80; }
     .border-warning-ia { border-left: 3px solid #f59e0b; }
@@ -156,8 +171,8 @@
         display: block;
     }
 
-    /* PROGRESS BAR (igual ao dashboard) */
-    .progress-bar {
+    /* PROGRESS BAR (renomeada: .progress-bar conflita com o Bootstrap) */
+    .ia-progress {
         width: 100%;
         height: 6px;
         background: #1e2633;
@@ -165,14 +180,17 @@
         overflow: hidden;
         margin-top: 2px;
     }
-    .progress-bar .fill {
+    .ia-progress .fill {
         height: 100%;
         background: #f59e0b;
         transition: width 0.5s;
         border-radius: 4px;
     }
+    .ia-progress .fill.is-info { background: #00d4ff; }
+    .ia-progress-pct { font-weight: 600; color: #f59e0b; }
+    .ia-progress-pct.is-info { color: #00d4ff; }
 
-    /* BOTÕES (mesma paleta do painel principal) */
+    /* BOTÕES */
     .btn-ia {
         background: #1e2633;
         border: 1px solid #2a3345;
@@ -199,7 +217,7 @@
     .btn-ia-warning { background: #b45309; border-color: #b45309; color: #fff; }
     .btn-ia-warning:hover { background: #d97706; border-color: #f59e0b; }
 
-    /* Estado de loading do HTMX (botão pisca enquanto envia) */
+    /* Estado de loading do HTMX */
     .btn-ia.htmx-request { opacity: 0.6; pointer-events: none; }
 
     /* ===== SELETOR DE BAYS COM MULTIPLICADOR ===== */
@@ -230,7 +248,6 @@
         pointer-events: none;
     }
 
-    /* checkbox estilizado com X */
     .bay-check { margin: 0; cursor: pointer; display: flex; }
     .bay-check input { display: none; }
     .bay-x {
@@ -262,7 +279,6 @@
     .bay-info small { color: #94a3b8; font-size: 0.65rem; }
     .bay-info small b { color: #4ade80; }
 
-    /* botão multiplicador 1x / 2x / 3x ... */
     .bay-mult {
         min-width: 48px;
         padding: 4px 10px;
@@ -316,7 +332,7 @@
     <!-- BODY -->
     <div class="ia-modal-body">
 
-      <!-- BADGES DE STATUS -->
+      <!-- BADGES DE STATUS (um badge por status, mesma lógica do corpo) -->
       <div class="d-flex gap-2 flex-wrap mb-3">
         <span class="rarity-badge-sm" style="color: #a78bfa; background: #2a1a3a;">
           <i class="fas fa-star"></i> Nível {{ model.level|default:1 }}
@@ -324,16 +340,23 @@
         <span class="rarity-badge-sm" style="color: #94a3b8; background: #1e2633;">
           <i class="fas fa-cube"></i> {{ model.mark_model|default:"GenAI" }}
         </span>
-        {% if model.status == "running" %}
+
+        {% if not model.status %}
+          <span class="status-badge idle"><i class="fas fa-lock"></i> Não adquirido</span>
+        {% elif model.status == "not_installed" %}
+          <span class="status-badge idle"><i class="fas fa-box-open"></i> Não instalado</span>
+        {% elif model.status == "installing" %}
+          <span class="status-badge moving"><i class="fas fa-download"></i> Instalando</span>
+        {% elif model.status == "stopped" %}
+          <span class="status-badge idle"><i class="fas fa-pause-circle"></i> Parado</span>
+        {% elif model.status == "running" %}
           <span class="status-badge completed"><i class="fas fa-bolt"></i> Em Execução</span>
         {% elif model.status == "training" %}
           <span class="status-badge training"><i class="fas fa-brain"></i> Treinando</span>
         {% elif model.status == "moving" %}
           <span class="status-badge moving"><i class="fas fa-arrows-alt"></i> Movendo</span>
-        {% elif model.status == "installing" %}
-          <span class="status-badge moving"><i class="fas fa-arrows-alt"></i> Instalando</span>
         {% else %}
-          <span class="status-badge idle"><i class="fas fa-pause-circle"></i> Disponível / Parado</span>
+          <span class="status-badge idle"><i class="fas fa-question-circle"></i> {{ model.status }}</span>
         {% endif %}
       </div>
 
@@ -375,22 +398,35 @@
       </div>
       {% endif %}
 
-      {% if model.status %}
+      <!-- ============================================================ -->
+      <!-- PAINEL DE AÇÃO – UM BLOCO POR STATUS                         -->
+      <!-- ============================================================ -->
 
-        <!-- ESTADO 1: INSTALAÇÃO / ALOCAÇÃO EM BAY -->
-        {% if model.status == "not_installed" %}
+      {% if not model.status %}
+        <!-- SEM STATUS: MODELO AINDA NÃO ADQUIRIDO -->
+        <div class="text-center">
+          <button type="button" class="btn-ia btn-ia-sm btn-ia-success"
+                  {% comment %} hx-post="{% url 'model:ia_model_buy' model.id %}" {% endcomment %}
+                  hx-target="#IaModalOverlay"
+                  hx-swap="outerHTML"
+                  hx-confirm="Comprar este modelo por $ {{ model.price }}?">
+            <i class="fas fa-shopping-cart"></i> Comprar
+          </button>
+        </div>
+
+      {% elif model.status == "not_installed" %}
+        <!-- NÃO INSTALADO: ALOCAÇÃO EM BAY -->
         <div class="panel no-max mb-3 border-info-ia">
-          <h4><i class="fas fa-download"></i> 1. Instalar em uma Bay (Servidor)</h4>
+          <h4><i class="fas fa-download"></i> Instalar em uma Bay (Servidor)</h4>
 
           <div class="item mb-2">
             <span class="label-ic"><i class="fas fa-info-circle"></i> Alocação</span>
             <span>Selecione a Bay com hardware compatível para hospedar a IA.</span>
           </div>
 
-          <!-- Selecionar Bay pra instalar o Modelo -->
           <form
             class="form-group mb-0"
-            hx-post="{% url 'model:ia_model_install' %}" 
+            hx-post="{% url 'model:ia_model_install' %}"
             hx-target="#IaModalOverlay"
             hx-swap="outerHTML"
             hx-disabled-elt="find button"
@@ -413,24 +449,24 @@
           </form>
         </div>
 
-        <!-- ESTADO 2: PARADO (RODAR EM BAYS, EVOLUIR, ETC) -->
-        {% elif model.status == "stopped" %}
+      {% elif model.status == "stopped" %}
+        <!-- PARADO: RODAR EM BAYS, EVOLUIR, TREINAR -->
         <div class="panel no-max mb-3 border-success-ia">
-          <h4><i class="fas fa-bolt"></i> 2. Gestão do Modelo Parado</h4>
+          <h4><i class="fas fa-bolt"></i> Gestão do Modelo</h4>
 
           <div class="item mb-2">
             <span class="label-ic"><i class="fas fa-server"></i> Localização Atual</span>
-            <span>Hospedado em <strong style="color: #4ade80;">Bay #01</strong> (Rack Alpha)</span>
+            <span>
+              Hospedado em
+              <strong style="color: #4ade80;">{{ model.bay.name|default:"—" }}</strong>
+              {% if model.bay.rack %}({{ model.bay.rack.name }}){% endif %}
+            </span>
           </div>
 
           <!-- Seletor de Bays + multiplicador de instâncias -->
           <div class="form-group mb-3">
             <label class="ia-label">Rodar o modelo nas Bays (marque a bay e escolha quantas instâncias):</label>
 
-            <!--
-              HTMX: envia bays marcadas (name="bays") + quantidades (name="qty_<id>")
-              A resposta (modal renderizado novamente) substitui o overlay inteiro.
-            -->
             <form
               id="iaRunForm"
               hx-post="{% url 'model:ia_model_run' model.id %}"
@@ -476,24 +512,17 @@
           <label class="ia-label">Ações Rápidas:</label>
           <div class="d-flex gap-2 flex-wrap">
             <button type="button" class="btn-ia btn-ia-sm btn-ia-success"
-                    {% comment %} hx-post="{% url 'ia_model_upgrade' model.id %}" {% endcomment %}
+                    {% comment %} hx-post="{% url 'model:ia_model_upgrade' model.id %}" {% endcomment %}
                     hx-target="#IaModalOverlay"
                     hx-swap="outerHTML"
                     hx-confirm="Evoluir o modelo por $ 500?">
               <i class="fas fa-arrow-up"></i> Evoluir Modelo ($ 500)
             </button>
             <button type="button" class="btn-ia btn-ia-sm btn-ia-warning"
-                    {% comment %} hx-post="{% url 'ia_model_train' model.id %}" {% endcomment %}
+                    {% comment %} hx-post="{% url 'model:ia_model_train' model.id %}" {% endcomment %}
                     hx-target="#IaModalOverlay"
                     hx-swap="outerHTML">
               <i class="fas fa-brain"></i> Iniciar Treinamento
-            </button>
-            <button type="button" class="btn-ia btn-ia-sm btn-ia-danger"
-                    {% comment %} hx-post="{% url 'ia_model_stop' model.id %}" {% endcomment %}
-                    hx-target="#IaModalOverlay"
-                    hx-swap="outerHTML"
-                    hx-confirm="Parar a execução do modelo?">
-              <i class="fas fa-power-off"></i> Parar Execução
             </button>
           </div>
         </div>
@@ -545,147 +574,135 @@
         })();
         </script>
 
-        <!-- ESTADO 3: TREINAMENTO ATIVO -->
-        {% elif model.status == "training" %}
-        <div class="panel no-max border-warning-ia">
-          <h4><i class="fas fa-brain"></i> 3. Treinamento & Fine-Tuning</h4>
+      {% elif model.status == "running" %}
+        <!-- EM EXECUÇÃO: PARAR -->
+        <div class="panel no-max mb-3 border-success-ia">
+          <h4><i class="fas fa-bolt"></i> Modelo em Execução</h4>
+
+          <div class="item mb-2">
+            <span class="label-ic"><i class="fas fa-server"></i> Localização Atual</span>
+            <span>
+              Rodando em
+              <strong style="color: #4ade80;">{{ model.bay.name|default:"—" }}</strong>
+              {% if model.bay.rack %}({{ model.bay.rack.name }}){% endif %}
+            </span>
+          </div>
+
+          <div class="d-flex justify-content-end">
+            <button type="button" class="btn-ia btn-ia-sm btn-ia-danger"
+                    {% comment %} hx-post="{% url 'model:ia_model_stop' model.id %}" {% endcomment %}
+                    hx-target="#IaModalOverlay"
+                    hx-swap="outerHTML"
+                    hx-confirm="Parar a execução do modelo?">
+              <i class="fas fa-power-off"></i> Parar Execução
+            </button>
+          </div>
+        </div>
+
+      {% elif model.status == "training" or model.status == "installing" or model.status == "moving" %}
+        <!-- PAINEL ÚNICO DE PROGRESSO (treinando / instalando / movendo) -->
+        <div class="panel no-max {% if model.status == 'training' %}border-warning-ia{% else %}border-info-ia{% endif %}">
+
+          <h4>
+            {% if model.status == "training" %}<i class="fas fa-brain"></i> Treinamento & Fine-Tuning
+            {% elif model.status == "installing" %}<i class="fas fa-download"></i> Instalando Modelo
+            {% else %}<i class="fas fa-arrows-alt"></i> Movendo Modelo
+            {% endif %}
+          </h4>
 
           <div class="item" style="border-bottom: none; flex-direction: column; align-items: flex-start; gap: 8px;">
+
             <div class="d-flex justify-content-between w-100" style="font-size: 0.7rem; color: #94a3b8;">
-              <span><i class="fas fa-microchip"></i> Hardware Alocado: <strong>Bay #01 (Rack Alpha)</strong></span>
-              <span>Época: <strong>14 / 20</strong></span>
+              <span>
+                <i class="fas fa-microchip"></i> Hardware Alocado:
+                <strong>{{ model.bay.name|default:"—" }}{% if model.bay.rack %} ({{ model.bay.rack.name }}){% endif %}</strong>
+              </span>
+              {% if model.status == "training" %}
+                <span>Época: <strong>{{ model.epoch|default:0 }} / {{ model.epochs_total|default:20 }}</strong></span>
+              {% endif %}
             </div>
 
             <div class="w-100 mt-1">
               <div class="d-flex justify-content-between" style="font-size: 0.68rem; color: #94a3b8; margin-bottom: 4px;">
-                <span>Progresso do Treinamento</span>
-                <span style="color: #f59e0b; font-weight: 600;">70%</span>
+                <span>
+                  {% if model.status == "training" %}Progresso do Treinamento
+                  {% elif model.status == "installing" %}Progresso da Instalação
+                  {% else %}Progresso do Movimento
+                  {% endif %}
+                </span>
+                <span id="iaProgressText"
+                      class="ia-progress-pct {% if model.status != 'training' %}is-info{% endif %}">{{ progress|default:0|unlocalize }}%</span>
               </div>
-              <div class="progress-bar">
-                <div class="fill"  style="width: 70%;"></div>
+              <div class="ia-progress">
+                <div class="fill {% if model.status != 'training' %}is-info{% endif %}"
+                     id="iaProgressFill"
+                     data-start="{{ progress|default:0|unlocalize }}"
+                     data-step="{{ time|default:0|unlocalize }}"
+                     style="width: {{ progress|default:0|unlocalize }}%;"></div>
               </div>
             </div>
 
             <div class="d-flex justify-content-between align-items-center w-100 mt-2">
               <small style="font-size: 0.65rem; color: #64748b;">
-                <i class="fas fa-clock"></i> Tempo restante estimado: ~ 02m 45s
+                <i class="fas fa-clock"></i>
+                {% if model.status == "installing" %}
+                  Instalando na Bay...
+                {% else %}
+                  Tempo restante estimado: ~ {{ remaining|default:"calculando..." }}
+                {% endif %}
               </small>
-              <button type="button" class="btn-ia btn-ia-sm btn-ia-danger"
-                      hx-post="{% url 'ia_model_cancel_train' model.id %}"
-                      hx-target="#IaModalOverlay"
-                      hx-swap="outerHTML"
-                      hx-confirm="Cancelar o treinamento? O progresso será perdido.">
-                <i class="fas fa-stop"></i> Cancelar Treino
-              </button>
+
+              {% if model.status == "training" %}
+                <button type="button" class="btn-ia btn-ia-sm btn-ia-danger"
+                        hx-post="{% url 'model:ia_model_cancel_train' model.id %}"
+                        hx-target="#IaModalOverlay"
+                        hx-swap="outerHTML"
+                        hx-confirm="Cancelar o treinamento? O progresso será perdido.">
+                  <i class="fas fa-stop"></i> Cancelar Treino
+                </button>
+              {% elif model.status == "moving" %}
+                <button type="button" class="btn-ia btn-ia-sm btn-ia-danger"
+                        hx-post="{% url 'model:ia_model_cancel_move' model.id %}"
+                        hx-target="#IaModalOverlay"
+                        hx-swap="outerHTML"
+                        hx-confirm="Cancelar o movimento do modelo?">
+                  <i class="fas fa-stop"></i> Cancelar Movimento
+                </button>
+              {% endif %}
             </div>
           </div>
         </div>
 
-        <!-- ESTADO 4: INSTALANDO -->
-        {% elif model.status == "installing" %}
-        <div class="panel no-max border-warning-ia">
-          <h4><i class="fas fa-brain"></i> 3. Instalando </h4>
-
-          <div class="item" style="border-bottom: none; flex-direction: column; align-items: flex-start; gap: 8px;">
-            <div class="d-flex justify-content-between w-100" style="font-size: 0.7rem; color: #94a3b8;">
-              <span><i class="fas fa-microchip"></i> Hardware Alocado: <strong>Bay #01 (Rack Alpha)</strong></span>
-              <span>Época: <strong>14 / 20</strong></span>
-            </div>
-
-            <div class="w-100 mt-1">
-              <div class="d-flex justify-content-between" style="font-size: 0.68rem; color: #94a3b8; margin-bottom: 4px;">
-                <span>Progresso do Treinamento</span>
-                <span style="color: #f59e0b; font-weight: 600;">70%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="fill" id="progress_bar_id" style="width: 0%;"></div>
-              </div>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center w-100 mt-2">
-              <small style="font-size: 0.65rem; color: #64748b;">
-                <i class="fas fa-clock"></i> Tempo restante estimado: ~ 02m 45s
-              </small>
-              <button type="button" class="btn-ia btn-ia-sm btn-ia-danger"
-                      {% comment %} hx-post="{% url 'ia_model_cancel_train' model.id %}" {% endcomment %}
-                      hx-target="#IaModalOverlay"
-                      hx-swap="outerHTML"
-                      hx-confirm="Cancelar o treinamento? O progresso será perdido.">
-                <i class="fas fa-stop"></i> Cancelar Treino
-              </button>
-            </div>
-          </div>
-        </div>
         <script>
-          const progress_bar = document.getElementById("progress_bar_id");
-          const time_progress = {{ time }};
-          let progress = 0;
+        /* Anima a barra: soma `data-step` (%) por segundo a partir de `data-start` */
+        (function () {
+            var fill = document.getElementById('iaProgressFill');
+            var text = document.getElementById('iaProgressText');
+            if (!fill) return;
 
-          const interval = setInterval(() => {
-            progress += time_progress;
-            progress_bar.style.width = `${progress}%`;
-            
-            if (progress >=100) {
-              progress = 100;
-              progress_bar.style.width = `${progress}%`;
-              clearInterval(interval);
-            }
-          }, 1000);
-          
+            var progress = parseFloat(fill.dataset.start) || 0;
+            var step = parseFloat(fill.dataset.step) || 0;
+            if (step <= 0) return;   // sem velocidade: mantém o valor estático
+
+            var interval = setInterval(function () {
+                // modal foi trocado/fechado pelo HTMX: para o timer
+                if (!document.body.contains(fill)) { clearInterval(interval); return; }
+
+                progress += step;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                }
+                fill.style.width = progress.toFixed(1) + '%';
+                if (text) text.textContent = Math.floor(progress) + '%';
+            }, 1000);
+        })();
         </script>
 
-        <!-- ESTADO 5: MOVENDO ATIVO -->
-        {% elif model.status == "moving" %}
-        <div class="panel no-max border-warning-ia">
-          <h4><i class="fas fa-arrows-alt"></i> 4. Movendo Modelo</h4>
-
-          <div class="item" style="border-bottom: none; flex-direction: column; align-items: flex-start; gap: 8px;">
-            <div class="d-flex justify-content-between w-100" style="font-size: 0.7rem; color: #94a3b8;">
-              <span><i class="fas fa-microchip"></i> Hardware Alocado: <strong>Bay #01 (Rack Alpha)</strong></span>
-              <span>Época: <strong>14 / 20</strong></span>
-            </div>
-
-            <div class="w-100 mt-1">
-              <div class="d-flex justify-content-between" style="font-size: 0.68rem; color: #94a3b8; margin-bottom: 4px;">
-                <span>Progresso do Movimento</span>
-                <span style="color: #f59e0b; font-weight: 600;">70%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="fill" style="width: 70%;"></div>
-              </div>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center w-100 mt-2">
-              <small style="font-size: 0.65rem; color: #64748b;">
-                <i class="fas fa-clock"></i> Tempo restante estimado: ~ 02m 45s
-              </small>
-              <button type="button" class="btn-ia btn-ia-sm btn-ia-danger"
-                      hx-post="{% url 'ia_model_cancel_move' model.id %}"
-                      hx-target="#IaModalOverlay"
-                      hx-swap="outerHTML"
-                      hx-confirm="Cancelar o movimento do modelo?">
-                <i class="fas fa-stop"></i> Cancelar Movimento
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {% else %}
-        <div class="panel no-max text-center" style="color: #94a3b8; font-size: 0.8rem;">
-          Modelo em Execução. Nenhuma ação disponível no momento.
-        </div>
-        {% endif %}
-
       {% else %}
-        <!-- SEM STATUS: MODELO AINDA NÃO ADQUIRIDO -->
-        <div class="text-center">
-          <button type="button" class="btn-ia btn-ia-sm btn-ia-success"
-                  {% comment %} hx-post="{% url 'ia_model_buy' model.id %}" {% endcomment %}
-                  hx-target="#IaModalOverlay"
-                  hx-swap="outerHTML"
-                  hx-confirm="Comprar este modelo por $ {{ model.price }}?">
-            <i class="fas fa-shopping-cart"></i> Comprar
-          </button>
+        <!-- STATUS DESCONHECIDO -->
+        <div class="panel no-max text-center" style="color: #94a3b8; font-size: 0.8rem;">
+          Nenhuma ação disponível no momento.
         </div>
       {% endif %}
 
