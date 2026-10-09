@@ -20,6 +20,7 @@ class InstallationService:
     
     def get_status(instance):
         task = IaInstallationTask.objects.filter(ai_instance=instance).first()
+        actual_time = task.finished_at - task.started_at
         if timezone.now() >= task.finished_at:
             return None
         return task.time
