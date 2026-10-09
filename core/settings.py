@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'server',
     'shop',
     'hardware',
-    'user',
+    'user.apps.UserConfig',
     'model',
     'operation',
 ]

@@ -16,19 +16,11 @@ def finish_model_installation(operation_id):
             .get(pk=operation_id)
         )
 
-        # Evita finalizar uma operação cancelada ou já concluída.
-        if operation.status != "installing":
-            return
+        instance = operation.ai_instance
 
-        instance = AIInstance.objects.get(
-            pk=operation.instance_id
-        )
-
-        instance.status = AIInstance.Status.installed
+        # Atualiza o status da instância, não da operação.
+        instance.status = AIInstance.Status.stopped
         instance.save(update_fields=["status"])
 
-        operation.status = "finished"
-        operation.finished_at = timezone.now()
-        operation.save(
-            update_fields=["status", "finished_at"]
-        )
+        # Exclui o registro da operação concluída.
+        operation.delete()
