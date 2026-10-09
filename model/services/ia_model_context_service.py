@@ -39,8 +39,10 @@ class IaModelContextService:
         context = {"model": model_view}
         
         if str(instance.status) in dispatcher_status: # verificar o status da instance, se esta instalando, movendo etc
-            time = InstallationService.get_status(instance=instance)
-            context["time"] = time if time else None
+            progress, interval = InstallationService.get_status(instance=instance)
+            print("tempo necessário",progress, interval)
+            context["progress"] = progress if progress else None
+            context["interval"] = interval if interval else None
 
         if model_view.status == "not_installed":
             context["bays_avaliable"] = cls._get_bays_for_install(user_id, model)

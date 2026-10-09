@@ -13,9 +13,9 @@
 <!--   moving        -> movendo        -> painel de progresso     -->
 <!--                                                              -->
 <!-- VARIÁVEIS OPCIONAIS DE CONTEXTO (todas têm default):         -->
-<!--   progress  -> % inicial da barra (0-100)                    -->
-<!--   time      -> % somado por segundo na barra                 -->
-<!--   remaining -> texto do tempo restante (ex: "02m 45s")       -->
+<!--   progress  -> % inicial da barra (0-100), pode ser None     -->
+<!--   interval  -> % somado por segundo na barra, pode ser None  -->
+<!--               (vem pronto da view: 100 / total_time)         -->
 <!--   model.bay (.name / .rack.name) -> bay onde o modelo está   -->
 <!--   model.epoch / model.epochs_total -> época do treino        -->
 <!-- ============================================================ -->
@@ -315,6 +315,7 @@
   id="IaModalOverlay"
   class="position-fixed top-0 start-0 w-100 h-100"
   hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+  data-refresh-url="{% url 'model:get_ia_detail' model.id %}"
   onclick="if (event.target.id === 'IaModalOverlay') closeIaModal();"
 >
   <div class="position-relative d-flex flex-column ia-modal">
@@ -601,6 +602,12 @@
 
       {% elif model.status == "training" or model.status == "installing" or model.status == "moving" %}
         <!-- PAINEL ÚNICO DE PROGRESSO (treinando / instalando / movendo) -->
+        <!--
+             Compatível com InstallationService.get_status(instance), que retorna:
+               (progress, interval)
+             onde progress é 0-100 (float) e interval é "% por segundo" (100/total_time),
+             ou (None, None) quando não há task, ou task sem started_at/finished_at.
+        -->
         <div class="panel no-max {% if model.status == 'training' %}border-warning-ia{% else %}border-info-ia{% endif %}">
 
           <h4>
@@ -631,24 +638,26 @@
                   {% endif %}
                 </span>
                 <span id="iaProgressText"
-                      class="ia-progress-pct {% if model.status != 'training' %}is-info{% endif %}">{{ progress|default:0|unlocalize }}%</span>
+                      class="ia-progress-pct {% if model.status != 'training' %}is-info{% endif %}">{{ progress|default_if_none:0|floatformat:0 }}%</span>
               </div>
               <div class="ia-progress">
                 <div class="fill {% if model.status != 'training' %}is-info{% endif %}"
                      id="iaProgressFill"
-                     data-start="{{ progress|default:0|unlocalize }}"
-                     data-step="{{ time|default:0|unlocalize }}"
-                     style="width: {{ progress|default:0|unlocalize }}%;"></div>
+                     data-start="{{ progress|default_if_none:0|unlocalize }}"
+                     data-step="{{ interval|default_if_none:0|unlocalize }}"
+                     style="width: {{ progress|default_if_none:0|unlocalize }}%;"></div>
               </div>
             </div>
 
             <div class="d-flex justify-content-between align-items-center w-100 mt-2">
               <small style="font-size: 0.65rem; color: #64748b;">
                 <i class="fas fa-clock"></i>
-                {% if model.status == "installing" %}
+                {% if progress is None or interval is None %}
+                  Calculando tempo restante...
+                {% elif model.status == "installing" %}
                   Instalando na Bay...
                 {% else %}
-                  Tempo restante estimado: ~ {{ remaining|default:"calculando..." }}
+                  <span id="iaRemainingText">Tempo restante estimado: ~ calculando...</span>
                 {% endif %}
               </small>
 
@@ -674,15 +683,52 @@
         </div>
 
         <script>
-        /* Anima a barra: soma `data-step` (%) por segundo a partir de `data-start` */
+        /* Anima a barra: soma `data-step` (% por segundo, já calculado na view
+           como 100 / total_time) a partir de `data-start` (progresso atual).
+           Também atualiza o texto de tempo restante em tempo real.
+           Ao chegar em 100%, dispara automaticamente um hx-post para o HTMX
+           recarregar o modal/tela (sem polling, sem websocket: só o timer local). */
         (function () {
             var fill = document.getElementById('iaProgressFill');
             var text = document.getElementById('iaProgressText');
+            var remainingEl = document.getElementById('iaRemainingText');
             if (!fill) return;
 
             var progress = parseFloat(fill.dataset.start) || 0;
             var step = parseFloat(fill.dataset.step) || 0;
-            if (step <= 0) return;   // sem velocidade: mantém o valor estático
+
+            function formatRemaining(pct, stepPerSec) {
+                if (stepPerSec <= 0) return null;
+                var secondsLeft = Math.max((100 - pct) / stepPerSec, 0);
+                var m = Math.floor(secondsLeft / 60);
+                var s = Math.floor(secondsLeft % 60);
+                return (m > 0 ? m + 'm ' : '') + s + 's';
+            }
+
+            function updateRemaining() {
+                if (!remainingEl) return;
+                var txt = formatRemaining(progress, step);
+                remainingEl.textContent = txt
+                    ? 'Tempo restante estimado: ~ ' + txt
+                    : 'Tempo restante estimado: ~ calculando...';
+            }
+
+            /* Dispara quando a barra bate 100%: pede pro HTMX buscar a tela
+               atualizada (a view decide o que renderizar com base no status
+               real do model naquele momento) e substitui o modal inteiro. */
+            function onComplete() {
+                var overlay = document.getElementById('IaModalOverlay');
+                if (!overlay || typeof htmx === 'undefined') return;
+
+                htmx.ajax('GET', overlay.dataset.refreshUrl || window.location.href, {
+                    target: '#IaModalOverlay',
+                    swap: 'outerHTML'
+                });
+            }
+
+            updateRemaining();
+
+            if (step <= 0) return;   // sem velocidade conhecida: mantém valor estático
 
             var interval = setInterval(function () {
                 // modal foi trocado/fechado pelo HTMX: para o timer
@@ -691,10 +737,16 @@
                 progress += step;
                 if (progress >= 100) {
                     progress = 100;
+                    fill.style.width = '100%';
+                    if (text) text.textContent = '100%';
+                    updateRemaining();
                     clearInterval(interval);
+                    onComplete();
+                    return;
                 }
                 fill.style.width = progress.toFixed(1) + '%';
                 if (text) text.textContent = Math.floor(progress) + '%';
+                updateRemaining();
             }, 1000);
         })();
         </script>
