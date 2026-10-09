@@ -3,7 +3,7 @@ from model.viewmodels.bay_option_view_model import BayOption
 from model.viewmodels.ia_model_view_model import IaModelViewModel
 from server.models import Bay
 from server.services.bay_service import BayService
-
+from operation.services.model_operation_service import InstallationService
 
 class IaModelContextService:
     @staticmethod
@@ -25,23 +25,29 @@ class IaModelContextService:
 
     @classmethod
     def get_model_context(cls, user_id, model_id):
+        dispatcher_status = {"running", "training", "moving", "installing"}
         models_service = ModelsService(user_id)
         instance = models_service.get_user_model(model_id)
 
         if not instance:
             model = models_service.get_model_or_404(model_id)
             return {"model": IaModelViewModel.from_model(model, status=None)}
-
+        
+        
         model = instance.model
         model_view = IaModelViewModel.from_model(model, status=instance.status)
         context = {"model": model_view}
+        
+        if str(instance.status) in dispatcher_status: # verificar o status da instance, se esta instalando, movendo etc
+            time = InstallationService.get_status(instance=instance)
+            context["time"] = time if time else None
 
         if model_view.status == "not_installed":
             context["bays_avaliable"] = cls._get_bays_for_install(user_id, model)
             
         elif model_view.status == "stopped":
             context["bays_avaliable"] = cls._get_bays_for_run(user_id, model)
-
+            
         return context
     
     

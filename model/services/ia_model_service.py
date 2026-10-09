@@ -34,6 +34,7 @@ class IaModelService:
             * Decimal("12")
         )
         
+        #criar a instância da instalação
         InstallationService.start(instance, time)
 
         progress_per_second = Decimal("100") / time

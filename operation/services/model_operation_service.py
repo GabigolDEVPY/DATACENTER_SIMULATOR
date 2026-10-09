@@ -6,7 +6,8 @@ class InstallationService:
 
     @staticmethod
     def start(instance, time):
-        finished_at = timezone.now() + timedelta(seconds=time) # hora de termino
+        print("entrou aqui")
+        finished_at = timezone.now() + timedelta(seconds=float(time)) # hora de termino
 
 
         task = IaInstallationTask.objects.create(
@@ -16,3 +17,9 @@ class InstallationService:
         )
 
         return task
+    
+    def get_status(instance):
+        task = IaInstallationTask.objects.filter(ai_instance=instance).first()
+        if timezone.now() >= task.finished_at:
+            return None
+        return task.time
