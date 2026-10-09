@@ -3,7 +3,7 @@ from celery import shared_task
 from django.db import transaction
 from django.utils import timezone
 
-from operation.models import ModelOperation
+from operation.models import IaInstallationTask
 from model.models import AIInstance
 
 
@@ -11,7 +11,7 @@ from model.models import AIInstance
 def finish_model_installation(operation_id):
     with transaction.atomic():
         operation = (
-            ModelOperation.objects
+            IaInstallationTask.objects
             .select_for_update()
             .get(pk=operation_id)
         )

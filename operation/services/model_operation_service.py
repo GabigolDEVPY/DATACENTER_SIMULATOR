@@ -1,15 +1,32 @@
 from operation.models import IaInstallationTask
 from django.utils import timezone
 from datetime import timedelta
+from operation.tasks import finish_model_installation
+from django.db import transaction
+
 
 class InstallationService:
 
     @staticmethod
     def start(instance, time):
         print("entrou aqui")
-        finished_at = timezone.now() + timedelta(seconds=float(time)) # hora de termino
 
+        duration_seconds = float(time)
 
+        finished_at = timezone.now() + timedelta(
+            seconds=duration_seconds
+        )
+
+        instance.finished_at = finished_at
+        instance.save(update_fields=["finished_at"])
+
+        transaction.on_commit(
+            lambda: finish_model_installation.apply_async(
+                args=[instance.pk],
+                countdown=duration_seconds,
+            )
+        )
+        
         task = IaInstallationTask.objects.create(
             ai_instance=instance,
             finished_at=finished_at,
