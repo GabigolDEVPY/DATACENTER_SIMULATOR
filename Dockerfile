@@ -1,3 +1,4 @@
+
 FROM python:3.13-slim
 
 WORKDIR /app
@@ -17,6 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 RUN python manage.py collectstatic --noinput
 
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "core.asgi:application"]
+ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
