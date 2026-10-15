@@ -1,0 +1,2594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mundozinho — Data Center Cidade</title>
+  <style>
+    :root { 
+      --ink: #f4f1e6; 
+      --accent: #ffd77a; 
+      --accent-dim: #c9a960;
+      --bg-panel: rgba(14, 22, 18, 0.92); 
+      --bg-panel-soft: rgba(18, 28, 22, 0.75);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; font-family: "Segoe UI", system-ui, sans-serif; background: #0a1410; }
+    canvas { display: block; }
+
+    #mira {
+      position: fixed; left: 50%; top: 50%;
+      width: 4px; height: 4px; margin: -2px 0 0 -2px;
+      border-radius: 50%; background: var(--accent);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 0 6px rgba(255,215,122,.4);
+      pointer-events: none; opacity: 0; transition: opacity .3s; z-index: 5;
+    }
+    body.jogando #mira { opacity: 1; }
+
+    #hud {
+      position: fixed; left: 50%; bottom: 24px;
+      transform: translateX(-50%);
+      display: flex; gap: 10px; flex-wrap: nowrap;
+      opacity: 0; transition: .4s; pointer-events: none; z-index: 5;
+    }
+    body.jogando #hud { opacity: 1; }
+    #hud span {
+      font-size: 11px; letter-spacing: .05em; color: var(--ink);
+      background: var(--bg-panel); border: 1px solid rgba(255,255,255,.08);
+      padding: 7px 12px; border-radius: 4px; backdrop-filter: blur(8px);
+      white-space: nowrap; height: 32px; display: flex; align-items: center;
+    }
+    #hud b { color: var(--accent); margin-right: 4px; font-weight: 600; }
+
+    #overlay {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 24px; text-align: center;
+      background: radial-gradient(120% 120% at 50% 30%, rgba(14,26,20,.7), rgba(8,14,12,.95));
+      color: var(--ink); cursor: pointer; transition: opacity .45s; z-index: 10;
+    }
+    #overlay.oculto { opacity: 0; pointer-events: none; }
+    #overlay h1 {
+      font-size: clamp(38px,7vw,72px); font-weight: 800;
+      letter-spacing: .12em; text-transform: uppercase; line-height: 1;
+      text-shadow: 0 4px 24px rgba(0,0,0,.6);
+    }
+    #overlay h1 em { font-style: normal; color: var(--accent); }
+    #overlay p { font-size: 14px; opacity: .8; max-width: 44ch; line-height: 1.5; }
+    #entrar {
+      font-size: 12px; letter-spacing: .2em; text-transform: uppercase;
+      padding: 11px 28px; border-radius: 4px; border: 1px solid var(--accent);
+      color: var(--accent); background: rgba(255, 215, 122, 0.05);
+      animation: respira 2.2s ease-in-out infinite;
+    }
+    @keyframes respira {
+      0%,100% { box-shadow: 0 0 0 0 rgba(255,215,122,.3); }
+      50% { box-shadow: 0 0 0 10px rgba(255,215,122,0); }
+    }
+
+    /* ============ INVENTÁRIO ============ */
+    #inventario {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5, 10, 8, 0.75); backdrop-filter: blur(6px);
+      transition: opacity .25s; z-index: 20;
+    }
+    #inventario.oculto { opacity: 0; pointer-events: none; }
+    .painel-inv {
+      width: min(720px, 92vw);
+      color: var(--ink);
+      background: var(--bg-panel); 
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 6px; box-shadow: 0 24px 60px rgba(0,0,0,.7);
+    }
+    .painel-inv-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .painel-inv-header h2 {
+      font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--accent); font-weight: 600;
+    }
+    .painel-inv-header .btn-fechar {
+      background: transparent; border: 1px solid rgba(255,255,255,.1);
+      color: var(--ink); font-size: 11px; padding: 4px 10px; border-radius: 3px;
+      cursor: pointer; transition: all .15s;
+    }
+    .painel-inv-header .btn-fechar:hover { border-color: var(--accent); color: var(--accent); }
+    .grade {
+      display: flex; flex-direction: row; gap: 10px; 
+      padding: 18px 20px;
+      overflow-x: auto;
+    }
+    .slot {
+      width: 64px; height: 64px; flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.03); 
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 4px; cursor: pointer; transition: all .15s;
+      position: relative;
+    }
+    .slot svg { width: 28px; height: 28px; stroke: var(--ink); stroke-width: 1.4; fill: none; }
+    .slot:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); transform: translateY(-1px); }
+    .slot.ativo {
+      border-color: var(--accent); background: rgba(255, 215, 122, 0.08);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    .slot.ativo svg { stroke: var(--accent); }
+    .slot .count {
+      position: absolute; top: 4px; right: 6px;
+      font-size: 10px; color: var(--accent); font-weight: 700;
+    }
+    .info-bar { 
+      padding: 12px 20px; font-size: 12px; min-height: 1.4em; 
+      opacity: .85; color: var(--ink);
+      border-top: 1px solid rgba(255,255,255,.05);
+      background: rgba(0,0,0,.15);
+    }
+    .info-bar b { color: var(--accent); margin-right: 6px; }
+    .painel-inv small {
+      display: block; padding: 8px 20px; font-size: 10px;
+      opacity: .4; letter-spacing: .05em;
+      border-top: 1px solid rgba(255,255,255,.03);
+    }
+    .painel-inv small b { color: var(--accent-dim); }
+
+    /* ============ PROMPT ============ */
+    #prompt {
+      position: fixed; left: 50%; bottom: 70px;
+      transform: translateX(-50%) translateY(4px);
+      font-size: 12px; letter-spacing: .03em; color: var(--ink);
+      background: var(--bg-panel); border: 1px solid var(--accent);
+      padding: 7px 14px; border-radius: 3px;
+      pointer-events: none; opacity: 0; transition: opacity .18s, transform .18s; z-index: 6;
+      white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,.4);
+    }
+    #prompt.visivel { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #prompt b { color: var(--accent); }
+
+    /* ============ TOAST ============ */
+    #toast {
+      position: fixed; top: 24px; left: 50%;
+      transform: translate(-50%,-10px);
+      font-size: 12px; font-weight: 600; color: #10231a;
+      background: var(--accent); padding: 9px 18px; border-radius: 3px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.5);
+      opacity: 0; transition: .25s; pointer-events: none; z-index: 30;
+      letter-spacing: .03em;
+    }
+    #toast.visivel { opacity: 1; transform: translate(-50%,0); }
+
+    /* ============ MODAL (raiz única) ============ */
+    #modal-root {
+      position: fixed; inset: 0;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(3, 6, 5, 0.7); backdrop-filter: blur(8px);
+      z-index: 50;
+      animation: modalFade .25s ease-out;
+    }
+    #modal-root.visivel { display: flex; }
+    @keyframes modalFade {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    .modal {
+      width: min(520px, 92vw);
+      background: var(--bg-panel);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 6px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.7);
+      overflow: hidden;
+      animation: modalIn .3s cubic-bezier(.2,.8,.3,1);
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(8px) scale(.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      background: rgba(0,0,0,.2);
+    }
+    .modal-header h3 {
+      font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--accent); font-weight: 600;
+    }
+    .modal-header .modal-fecha {
+      background: transparent; border: none; color: var(--ink);
+      font-size: 18px; cursor: pointer; opacity: .6;
+      width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    .modal-header .modal-fecha:hover { opacity: 1; color: var(--accent); }
+    .modal-body {
+      padding: 20px;
+      color: var(--ink); font-size: 13px; line-height: 1.6;
+    }
+    .modal-body h4 {
+      color: var(--accent); font-size: 11px; letter-spacing: .15em;
+      text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
+    }
+    .modal-body p { margin-bottom: 10px; opacity: .9; }
+    .modal-body .metricas {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      margin: 14px 0;
+    }
+    .modal-body .metrica {
+      background: rgba(0,0,0,.25); border: 1px solid rgba(255,255,255,.05);
+      padding: 10px 12px; border-radius: 4px;
+    }
+    .modal-body .metrica .label {
+      font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+      opacity: .6; margin-bottom: 3px;
+    }
+    .modal-body .metrica .valor {
+      font-size: 16px; color: var(--accent); font-weight: 600;
+    }
+    .modal-footer {
+      display: flex; gap: 8px; padding: 14px 20px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      background: rgba(0,0,0,.15);
+    }
+    .btn {
+      background: transparent; border: 1px solid rgba(255,255,255,.15);
+      color: var(--ink); padding: 8px 14px; border-radius: 3px;
+      font-size: 12px; letter-spacing: .04em; cursor: pointer;
+      transition: all .15s; font-family: inherit;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primario {
+      background: var(--accent); color: #10231a; border-color: var(--accent);
+      font-weight: 600;
+    }
+    .btn-primario:hover { background: #ffe594; color: #10231a; border-color: #ffe594; }
+    .status-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #3dff7c; margin-right: 6px;
+      box-shadow: 0 0 8px rgba(61, 255, 124, .6);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: .4; }
+    }
+
+    /* ============ HOTBAR (seletor estilo Minecraft) ============ */
+    #hotbar {
+      position: fixed; left: 50%; bottom: 64px;
+      transform: translateX(-50%);
+      display: flex; gap: 4px;
+      opacity: 0; transition: opacity .35s; pointer-events: none; z-index: 6;
+    }
+    body.jogando #hotbar { opacity: 1; pointer-events: auto; }
+    .hot-slot {
+      width: 48px; height: 48px;
+      background: rgba(14, 22, 18, 0.88);
+      border: 2px solid rgba(255,255,255,.12);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; cursor: pointer;
+      transition: border-color .12s, box-shadow .12s;
+    }
+    .hot-slot.ativo {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 0 12px rgba(255,215,122,.25);
+    }
+    .hot-slot svg { width: 26px; height: 26px; stroke: var(--ink); stroke-width: 1.4; fill: none; }
+    .hot-slot.ativo svg { stroke: var(--accent); }
+    .hot-slot .count {
+      position: absolute; bottom: 2px; right: 4px;
+      font-size: 10px; font-weight: 700; color: var(--accent);
+    }
+    .hot-slot .num {
+      position: absolute; top: 1px; left: 3px;
+      font-size: 9px; opacity: .45; color: var(--ink);
+    }
+  .grade{flex-wrap:wrap}
+  </style>
+</head>
+<body>
+  <div id="mira"></div>
+  <div id="prompt"></div>
+  <div id="toast"></div>
+  
+  <!-- Raiz ÚNICA para todos os modais (substitui conteúdo) -->
+  <div id="modal-root"></div>
+  
+  <div id="hotbar"></div>
+
+  <div id="hud">
+    <span><b>WASD</b> Mover</span>
+    <span><b>Mouse</b> Olhar</span>
+    <span><b>Shift</b> Correr</span>
+    <span><b>Espaço</b> Pular</span>
+    <span><b>E</b> Inventário</span>
+    <span><b>F</b> Interagir</span>
+  </div>
+
+  <div id="overlay">
+    <h1>Mundo<em>zinho</em></h1>
+    <p>Uma cidade em miniatura com data center, lotes de energia solar, eólica e gerador. Compre lotes, instale equipamentos, evolua-os e conecte à rede aérea.</p>
+    <div id="entrar">Clique para Entrar</div>
+  </div>
+
+  <div id="inventario" class="oculto">
+    <div class="painel-inv">
+      <div class="painel-inv-header">
+        <h2>Inventário</h2>
+        <button class="btn-fechar" id="btn-fechar-inv">FECHAR [E]</button>
+      </div>
+      <div class="grade"></div>
+      <div class="info-bar">Selecione um item.</div>
+      <small>Clique num item para equipar na hotbar · <b>1-9</b> seleciona slot · <b>E</b> fecha</small>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+/* PATCH-MUNDOZINHO-V3 */
+/* =========================================================
+   CONFIG — MUNDO 2x MAIOR (raio 140)
+========================================================= */
+const CONFIG = {
+  raioMundo: 140,
+  alturaOlhos: 1.68,
+  raioJogador: 0.42,
+  velocidade: 5.2,
+  velocidadeCorrida: 9,
+  sensibilidade: 0.0022,
+  gravidade: -24,
+  forcaPulo: 7.8,
+};
+
+/* =========================================================
+   ÍCONES SVG
+========================================================= */
+const ICONS = {
+  server: `<svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="1"/><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="8" cy="5" r="1" fill="currentColor"/><circle cx="8" cy="13" r="1" fill="currentColor"/></svg>`,
+  solar: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>`,
+  money: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 11h5a1.5 1.5 0 0 1 0 3h-5a1.5 1.5 0 0 0 0 3h5"/></svg>`,
+  key: `<svg viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4"/><path d="M10 13l9-9 2 2-9 9"/></svg>`,
+  building: `<svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20"/><rect x="8" y="6" width="2" height="2"/><rect x="14" y="6" width="2" height="2"/><rect x="8" y="12" width="2" height="2"/><rect x="14" y="12" width="2" height="2"/><rect x="10" y="18" width="4" height="4"/></svg>`,
+  cooler: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="1.6"/><path d="M12 10.4C11 7 12.5 4.6 15.2 4.8M13.5 12.9C16.8 14 18.4 16.4 17.2 18.8M10.5 12.9C7.2 14 5.6 16.4 6.8 18.8"/></svg>`
+};
+
+/* =========================================================
+   COLISÕES
+========================================================= */
+const ATUALIZAVEIS = [];
+const colisores = [];
+const SUPERFICIES = [];   // pisos caminháveis acima do chão (laje, escada, terraço)
+
+// y1..y2 = faixa de altura dos PÉS do jogador em que o colisor vale.
+// Padrão: vale no térreo (em cima do telhado as paredes de baixo não bloqueiam).
+function addColisor(x1, z1, x2, z2, id = null, y1 = -1, y2 = 5.0) {
+  const col = { x1: Math.min(x1,x2), z1: Math.min(z1,z2), x2: Math.max(x1,x2), z2: Math.max(z1,z2), id, y1, y2 };
+  colisores.push(col);
+  return col;
+}
+function removerColisorPorId(id) {
+  for (let i = colisores.length - 1; i >= 0; i--) {
+    if (colisores[i].id === id) colisores.splice(i, 1);
+  }
+}
+function resolverColisoes(pos, raio) {
+  let { x: px, z: pz } = pos;
+  const py = pos.y || 0;
+  for (const b of colisores) {
+    if (py < b.y1 || py >= b.y2) continue;
+    if (px > b.x1 - raio && px < b.x2 + raio && pz > b.z1 - raio && pz < b.z2 + raio) {
+      const esq = px - (b.x1 - raio), dir = (b.x2 + raio) - px;
+      const sup = pz - (b.z1 - raio), inf = (b.z2 + raio) - pz;
+      const m = Math.min(esq, dir, sup, inf);
+      if (m === esq) px = b.x1 - raio;
+      else if (m === dir) px = b.x2 + raio;
+      else if (m === sup) pz = b.z1 - raio;
+      else pz = b.z2 + raio;
+    }
+  }
+  pos.x = px; pos.z = pz;
+}
+
+// Superfícies: { id, x1, z1, x2, z2, h }  (plana)
+//              { id, x1, z1, x2, z2, rampa: {za, ha, zb, hb} }  (escada)
+//              opcional: buracos: [[x1, z1, x2, z2], ...]
+function addSuperficie(s) { SUPERFICIES.push(s); return s; }
+function alturaChao(x, z, y) {
+  let h = 0;
+  for (const s of SUPERFICIES) {
+    if (x < s.x1 || x > s.x2 || z < s.z1 || z > s.z2) continue;
+    if (s.buracos && s.buracos.some(b => x > b[0] && x < b[2] && z > b[1] && z < b[3])) continue;
+    let alt = s.h;
+    if (s.rampa) {
+      const r = s.rampa;
+      const k = Math.max(0, Math.min(1, (z - r.za) / (r.zb - r.za)));
+      alt = r.ha + (r.hb - r.ha) * k;
+    }
+    if (alt <= y + 0.6 && alt > h) h = alt;   // só sobe degrau de até 0,6 m
+  }
+  return h;
+}
+
+class Gravidade {
+  constructor() { this.velY = 0; this.noChao = true; }
+  pular() { if (this.noChao) { this.velY = CONFIG.forcaPulo; this.noChao = false; } }
+  atualizar(dt, player) {
+    let piso = alturaChao(player.x, player.z, player.y);
+    if (this.noChao && this.velY <= 0 && player.y > piso && player.y - piso <= 0.7) {
+      player.y = piso;                       // desce degrau/rampa colado ao chão
+    } else {
+      this.velY += CONFIG.gravidade * dt;
+      player.y += this.velY * dt;
+    }
+    piso = alturaChao(player.x, player.z, player.y);
+    if (player.y <= piso) { player.y = piso; this.velY = 0; this.noChao = true; }
+    else this.noChao = false;
+  }
+}
+
+/* =========================================================
+   REFRIGERADORES DE TETO — começam SEM nenhum instalado.
+   Item "Refrigerador de Teto" (inventário / Loja do terminal),
+   instalado nas vagas marcadas no terraço do data center.
+   1 nível inicial + 5 evoluções (nível 6 = máximo).
+========================================================= */
+const COOLER = {
+  evolucoes: 5,
+  cap:   [0, 4, 6, 8.5, 11.5, 15, 20],   // kW de refrigeração por nível (índice = nível)
+  custo: [0, 0, 1, 1, 2, 2, 3]            // custo 💰 para CHEGAR naquele nível
+};
+COOLER.max = COOLER.evolucoes + 1;
+const COOLERS = [];                        // { nivel, grp, ... }
+function coolingTotal() { return COOLERS.reduce((s, c) => s + COOLER.cap[c.nivel], 0); }
+function totalBaias() { return racks.reduce((s, r) => s + r.contarBaias(), 0); }
+function cargaTermica() { return totalBaias() * 0.5; }          // 0,5 kW de calor por baia
+function tempBaia() {
+  const cap = coolingTotal(), carga = cargaTermica();
+  const r = cap > 0 ? carga / cap : 3;
+  return Math.round(36 + Math.min(r, 2.5) * 18);
+}
+
+/* =========================================================
+   MODAL SYSTEM (raiz única, nunca mais de um aberto)
+   Pronto para htmx: atributos hx-* preservados no HTML
+========================================================= */
+const Modal = (() => {
+  const root = document.getElementById('modal-root');
+  
+  function abrir(html) {
+    root.innerHTML = html;
+    root.classList.add('visivel');
+    // Libera ponteiro para permitir clique no modal
+    if (document.pointerLockElement) document.exitPointerLock();
+    // Anexa listeners genéricos (substitui htmx no futuro)
+    root.querySelectorAll('[data-fecha-modal]').forEach(el => {
+      el.addEventListener('click', fechar);
+    });
+    // Se htmx estiver carregado no futuro, ele vai auto-processar hx-*
+    if (window.htmx) {
+      try { window.htmx.process(root); } catch(e) {}
+    }
+  }
+  function fechar() {
+    root.innerHTML = '';
+    root.classList.remove('visivel');
+    if (rendererDom) rendererDom.requestPointerLock();
+  }
+  // Fecha ao clicar no fundo
+  root.addEventListener('click', e => { if (e.target === root) fechar(); });
+  addEventListener('keydown', e => { if (e.code === 'Escape' && root.classList.contains('visivel')) fechar(); });
+  return { abrir, fechar };
+})();
+
+// Templates de modal
+const ModalTemplates = {
+  baia: (nomeBaia, rackNome) => `
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Baia ${nomeBaia} · ${rackNome}</h3>
+        <button class="modal-fecha" data-fecha-modal>×</button>
+      </div>
+      <div class="modal-body">
+        <h4><span class="status-dot"></span>Status do Nó</h4>
+        <p>Servidor operacional. Carga de trabalho nominal.</p>
+        <div class="metricas">
+          <div class="metrica"><div class="label">CPU</div><div class="valor">42%</div></div>
+          <div class="metrica"><div class="label">RAM</div><div class="valor">12.4 GB</div></div>
+          <div class="metrica"><div class="label">Temp</div><div class="valor">${tempBaia()}°C</div></div>
+          <div class="metrica"><div class="label">Uptime</div><div class="valor">127d</div></div>
+        </div>
+        <h4>Ações</h4>
+        <p>Execute comandos administrativos neste nó.</p>
+      </div>
+      <div class="modal-footer">
+        <!-- Atributos hx-* prontos para futuro htmx -->
+        <button class="btn" hx-post="/api/baia/${nomeBaia}/reiniciar" hx-target="#modal-root">Reiniciar</button>
+        <button class="btn" hx-get="/api/baia/${nomeBaia}/logs" hx-target="#modal-root">Ver Logs</button>
+        <button class="btn btn-primario" data-fecha-modal>Fechar</button>
+      </div>
+    </div>
+  `,
+  
+  pc: () => `
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Terminal · Data Center</h3>
+        <button class="modal-fecha" data-fecha-modal>×</button>
+      </div>
+      <div class="modal-body">
+        <h4><span class="status-dot"></span>Visão Geral</h4>
+        <p>Bem-vindo ao terminal de administração. Todos os sistemas operacionais.</p>
+        <div class="metricas">
+          <div class="metrica"><div class="label">Racks Online</div><div class="valor">${racks.length} / ${racks.length}</div></div>
+          <div class="metrica"><div class="label">Consumo</div><div class="valor">18.4 kW</div></div>
+          <div class="metrica"><div class="label">Geração</div><div class="valor">${energiaTotal()} kW</div></div>
+          <div class="metrica"><div class="label">Rede</div><div class="valor">1 Gbps</div></div>
+          <div class="metrica"><div class="label">Refrigeração (${COOLERS.length} un.)</div><div class="valor">${coolingTotal().toFixed(1)} kW</div></div>
+          <div class="metrica"><div class="label">Carga térmica</div><div class="valor">${cargaTermica().toFixed(1)} kW</div></div>
+        </div>
+        <h4>Comandos Rápidos</h4>
+        <p>Selecione uma operação:</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" hx-get="/api/status/geral" hx-target="#modal-root">Status Geral</button>
+        <button class="btn" hx-post="/api/backup/agendar" hx-target="#modal-root">Agendar Backup</button>
+        <button class="btn btn-primario" data-fecha-modal>Fechar</button>
+      </div>
+    </div>
+  `,
+  
+  lote: (nome, area = '99 m²', custo = 1) => `
+    <div class="modal">
+      <div class="modal-header">
+        <h3>${nome}</h3>
+        <button class="modal-fecha" data-fecha-modal>×</button>
+      </div>
+      <div class="modal-body">
+        <h4>Informações do Lote</h4>
+        <p>Adquira este terreno para expandir suas operações.</p>
+        <div class="metricas">
+          <div class="metrica"><div class="label">Área</div><div class="valor">${area}</div></div>
+          <div class="metrica"><div class="label">Custo</div><div class="valor">${custo} 💰</div></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-fecha-modal>Cancelar</button>
+        <button class="btn btn-primario" id="btn-confirmar-lote" hx-post="/api/lote/comprar" hx-target="#modal-root">Comprar</button>
+      </div>
+    </div>
+  `,
+
+  // opts (opcional): { max, un, rotAtual, desc }
+  evoluir: (tipo, nivel, kwAtual, kwProx, custo, opts = {}) => {
+    const nomes = { painel: 'Painel Solar', gerador: 'Gerador', turbina: 'Turbina Eólica', cooler: 'Refrigerador de Teto' };
+    const maxNivel = opts.max || 3;
+    const un = opts.un || 'kW';
+    const rotAtual = opts.rotAtual || 'Geração atual';
+    const texto = opts.desc || 'Melhore o equipamento para gerar mais energia e ficar com aparência mais avançada.';
+    const pode = nivel < maxNivel;
+    return `
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Evoluir · ${nomes[tipo] || tipo}</h3>
+        <button class="modal-fecha" data-fecha-modal>×</button>
+      </div>
+      <div class="modal-body">
+        <h4><span class="status-dot"></span>Nível atual: ${nivel} / ${maxNivel}</h4>
+        <p>${pode ? texto : 'Este equipamento já está no nível máximo.'}</p>
+        <div class="metricas">
+          <div class="metrica"><div class="label">${rotAtual}</div><div class="valor">${kwAtual} ${un}</div></div>
+          <div class="metrica"><div class="label">${pode ? 'Próximo nível' : 'Máximo'}</div><div class="valor">${pode ? kwProx + ' ' + un : '—'}</div></div>
+          <div class="metrica"><div class="label">Custo evolução</div><div class="valor">${pode ? custo + ' 💰' : '—'}</div></div>
+          <div class="metrica"><div class="label">Nível máximo</div><div class="valor">${maxNivel}</div></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-fecha-modal>Fechar</button>
+        ${pode ? `<button class="btn btn-primario" id="btn-confirmar-evoluir">Evoluir (${custo} 💰)</button>` : ''}
+      </div>
+    </div>`;
+  }
+};
+
+/* =========================================================
+   TERRENO + MUNDO 2x MAIOR
+========================================================= */
+// Zonas onde NÃO nascem árvores/pedras (rua, casa, data center + expansões, distrito de energia)
+function zonaProibida(x, z, m = 0) {
+  const R = (x1, z1, x2, z2) => x > x1 - m && x < x2 + m && z > z1 - m && z < z2 + m;
+  return R(-110, -8, 115, 10)        // rua + calçadas
+      || R(-35, -19, -21, -3)        // casa + caminho
+      || R(2, -36, 80, -3)           // data center + 4 expansões + lotes de expansão
+      || R(-26, 6, 32, 60)           // distrito de energia (20 lotes reservados)
+      || R(-4, -2, 10, 10);          // ponto de entrada do jogador
+}
+
+function criarTerreno(scene) {
+  scene.fog = new THREE.Fog(0xeaf3ec, 70, 230);
+  const c = document.createElement('canvas'); c.width = 2; c.height = 512;
+  const g = c.getContext('2d');
+  const grad = g.createLinearGradient(0, 0, 0, 512);
+  grad.addColorStop(0, '#5a9fd1'); grad.addColorStop(.4, '#8cc4e4'); grad.addColorStop(1, '#eaf3ec');
+  g.fillStyle = grad; g.fillRect(0, 0, 2, 512);
+  scene.background = new THREE.CanvasTexture(c);
+
+  const amb = new THREE.AmbientLight(0xcde6d4, 0.65); scene.add(amb);
+
+  // Sol com sombra que ACOMPANHA o jogador (mundo grande, mantém sombra nítida)
+  const sol = new THREE.DirectionalLight(0xfff2d6, 1.2);
+  const OFF = { x: 40, y: 55, z: 25 };
+  sol.position.set(OFF.x, OFF.y, OFF.z); sol.castShadow = true;
+  sol.shadow.mapSize.set(2048, 2048);
+  const S = 75;
+  sol.shadow.camera.left = -S; sol.shadow.camera.right = S;
+  sol.shadow.camera.top = S; sol.shadow.camera.bottom = -S;
+  sol.shadow.camera.far = 160;
+  scene.add(sol); scene.add(sol.target);
+
+  scene.add(new THREE.HemisphereLight(0xb8dfff, 0x6f9a55, 0.45));
+
+  const chao = new THREE.Mesh(
+    new THREE.CircleGeometry(CONFIG.raioMundo, 96), 
+    new THREE.MeshStandardMaterial({ color: 0x72b04e, roughness: 1 })
+  );
+  chao.rotation.x = -Math.PI / 2; chao.receiveShadow = true; scene.add(chao);
+
+  // ---------- Árvores (instanciadas = leve mesmo com muitas) ----------
+  let seed = 20260607;
+  const rnd = () => {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+  const lista = [];
+  const longe = (x, z, d) => lista.every(([a, b]) => Math.hypot(a - x, b - z) > d);
+
+  // árvores originais (as que não caem em zona proibida)
+  [
+    [-35, -20, 1.4], [40, -38, 1.3], [-32, 32, 1.5], [45, 30, 1.2],
+    [-45, -8, 1.3], [50, 5, 1.1], [-28, 40, 1.4], [30, -35, 1.2],
+    [-50, 18, 1.3], [60, -34, 1.2], [-40, -40, 1.4], [40, 45, 1.3],
+    [0, 45, 1.2], [-48, -25, 1.1], [48, -40, 1.3]
+  ].forEach(([x, z, s]) => { if (!zonaProibida(x, z, 2)) lista.push([x, z, s]); });
+
+  // bosques: alguns centros com árvores agrupadas
+  const bosques = [];
+  for (let k = 0; bosques.length < 9 && k < 500; k++) {
+    const ang = rnd() * Math.PI * 2, r = 35 + rnd() * 85;
+    const x = Math.cos(ang) * r, z = Math.sin(ang) * r;
+    if (!zonaProibida(x, z, 10)) bosques.push([x, z]);
+  }
+  let tent = 0;
+  while (lista.length < 75 && tent++ < 4000 && bosques.length) {
+    const [bx, bz] = bosques[Math.floor(rnd() * bosques.length)];
+    const a = rnd() * Math.PI * 2, d = 2 + rnd() * 14;
+    const x = bx + Math.cos(a) * d, z = bz + Math.sin(a) * d;
+    if (Math.hypot(x, z) > CONFIG.raioMundo - 8) continue;
+    if (zonaProibida(x, z, 3) || !longe(x, z, 3.6)) continue;
+    lista.push([x, z, 1.0 + rnd() * .8]);
+  }
+  // espalhadas pelo resto do mundo
+  tent = 0;
+  while (lista.length < 135 && tent++ < 6000) {
+    const ang = rnd() * Math.PI * 2, r = 12 + Math.sqrt(rnd()) * (CONFIG.raioMundo - 22);
+    const x = Math.cos(ang) * r, z = Math.sin(ang) * r;
+    if (zonaProibida(x, z, 3) || !longe(x, z, 4.5)) continue;
+    lista.push([x, z, 1.0 + rnd() * .8]);
+  }
+
+  const N = lista.length;
+  const iTronco = new THREE.InstancedMesh(new THREE.CylinderGeometry(.18, .26, 1.6, 8), new THREE.MeshStandardMaterial({ color: 0x6b4226, roughness: .9 }), N);
+  const iCopa1 = new THREE.InstancedMesh(new THREE.ConeGeometry(1.1, 2.0, 8), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .95 }), N);
+  const iCopa2 = new THREE.InstancedMesh(new THREE.ConeGeometry(.8, 1.5, 8), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .95 }), N);
+  const verdes = [0x3f7f3c, 0x4c9445, 0x377a46, 0x56994a, 0x2f6e3a];
+  const dm = new THREE.Object3D(), cor = new THREE.Color();
+  lista.forEach(([x, z, s], i) => {
+    const giro = rnd() * Math.PI * 2;
+    dm.rotation.set(0, giro, 0); dm.scale.set(s, s, s);
+    dm.position.set(x, .8 * s, z); dm.updateMatrix(); iTronco.setMatrixAt(i, dm.matrix);
+    dm.position.set(x, 2.2 * s, z); dm.updateMatrix(); iCopa1.setMatrixAt(i, dm.matrix);
+    dm.position.set(x, 3.0 * s, z); dm.updateMatrix(); iCopa2.setMatrixAt(i, dm.matrix);
+    cor.setHex(verdes[Math.floor(rnd() * verdes.length)]);
+    if (iCopa1.setColorAt) { iCopa1.setColorAt(i, cor); iCopa2.setColorAt(i, cor); }
+    addColisor(x - .5 * s, z - .5 * s, x + .5 * s, z + .5 * s);
+  });
+  [iTronco, iCopa1, iCopa2].forEach(m => {
+    m.instanceMatrix.needsUpdate = true;
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
+    m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false;
+    m.raycast = () => {};            // árvores não interferem na mira de interação
+    scene.add(m);
+  });
+
+  // ---------- Pedras decorativas ----------
+  const rochaGeo = new THREE.DodecahedronGeometry(1);
+  const rochaMat = new THREE.MeshStandardMaterial({ color: 0x8a9198, roughness: 1 });
+  const pedras = [[-20, -12, .6], [36, -36, .5], [-25, 28, .7], [32, 18, .5], [-38, 8, .4]].filter(([x, z]) => !zonaProibida(x, z, 1));
+  for (let k = 0, t2 = 0; k < 45 && t2 < 2000; t2++) {
+    const ang = rnd() * Math.PI * 2, r = 10 + Math.sqrt(rnd()) * (CONFIG.raioMundo - 18);
+    const x = Math.cos(ang) * r, z = Math.sin(ang) * r;
+    if (zonaProibida(x, z, 2)) continue;
+    pedras.push([x, z, .3 + rnd() * .6]); k++;
+  }
+  pedras.forEach(([x, z, s]) => {
+    const p = new THREE.Mesh(rochaGeo, rochaMat);
+    p.scale.setScalar(s); p.rotation.set(rnd() * 3, rnd() * 3, rnd() * 3);
+    p.position.set(x, s * .6, z); p.castShadow = true; p.receiveShadow = true; scene.add(p);
+  });
+
+  return {
+    atualizar() {
+      // a luz/sombra segue o jogador (em passos de 2 m para não "tremer")
+      const px = Math.round(player.pos.x / 2) * 2, pz = Math.round(player.pos.z / 2) * 2;
+      sol.target.position.set(px, 0, pz);
+      sol.position.set(px + OFF.x, OFF.y, pz + OFF.z);
+    }
+  };
+}
+
+/* =========================================================
+   RUA (2x mais longa — acompanha o data center no tamanho final)
+========================================================= */
+function criarRua(scene) {
+  const rua = new THREE.Group();
+  scene.add(rua);
+  
+  const matAsfalto = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: .95 });
+  const matCalcada = new THREE.MeshStandardMaterial({ color: 0xb5b0a5, roughness: .9 });
+  const matFaixa = new THREE.MeshStandardMaterial({ color: 0xf0e9a8, roughness: .8 });
+  
+  // Rua de X=-95 até X=+105 (200 m), largura 6 m, centro em Z=1
+  const ruaComprimento = 200;
+  const ruaLargura = 6;
+  const ruaX = 5; // centro X
+  
+  // Asfalto
+  const asfalto = new THREE.Mesh(new THREE.BoxGeometry(ruaComprimento, .05, ruaLargura), matAsfalto);
+  asfalto.position.set(ruaX, .025, 1);
+  asfalto.receiveShadow = true;
+  rua.add(asfalto);
+  
+  // Calçadas (norte e sul)
+  const calcadaN = new THREE.Mesh(new THREE.BoxGeometry(ruaComprimento, .08, 2), matCalcada);
+  calcadaN.position.set(ruaX, .04, 1 + ruaLargura/2 + 1);
+  calcadaN.receiveShadow = true; rua.add(calcadaN);
+  
+  const calcadaS = new THREE.Mesh(new THREE.BoxGeometry(ruaComprimento, .08, 2), matCalcada);
+  calcadaS.position.set(ruaX, .04, 1 - ruaLargura/2 - 1);
+  calcadaS.receiveShadow = true; rua.add(calcadaS);
+  
+  // Faixas centrais
+  for (let i = -19; i <= 19; i++) {
+    const faixa = new THREE.Mesh(new THREE.BoxGeometry(3, .02, .15), matFaixa);
+    faixa.position.set(ruaX + i * 5, .06, 1);
+    rua.add(faixa);
+  }
+  
+  // Meio-fio
+  const matMeioFio = new THREE.MeshStandardMaterial({ color: 0x7a756a, roughness: .9 });
+  const mfN = new THREE.Mesh(new THREE.BoxGeometry(ruaComprimento, .12, .15), matMeioFio);
+  mfN.position.set(ruaX, .06, 1 + ruaLargura/2);
+  rua.add(mfN);
+  const mfS = new THREE.Mesh(new THREE.BoxGeometry(ruaComprimento, .12, .15), matMeioFio);
+  mfS.position.set(ruaX, .06, 1 - ruaLargura/2);
+  rua.add(mfS);
+  
+  return { atualizar: () => {} };
+}
+
+/* =========================================================
+   CASA APRIMORADA
+========================================================= */
+function criarCasa(scene) {
+  const casa = new THREE.Group();
+  casa.position.set(-28, 0, -12);
+  scene.add(casa);
+
+  const matParede = new THREE.MeshStandardMaterial({ color: 0xf4e7cd, roughness: .85 });
+  const matTelhado = new THREE.MeshStandardMaterial({ color: 0x7d3525, roughness: .8 });
+  const matMadeira = new THREE.MeshStandardMaterial({ color: 0x5c3620, roughness: .9 });
+  const matFundacao = new THREE.MeshStandardMaterial({ color: 0x8a8679, roughness: 1 });
+
+  function caixa(w, h, d, mat, x, y, z) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; casa.add(m); return m;
+  }
+
+  // Fundação
+  caixa(8.5, .35, 7, matFundacao, 0, .175, 0);
+  
+  // Alpendre
+  caixa(8.5, .12, 2.5, matMadeira, 0, .35, 4.75);
+  [-3.8, 3.8].forEach(x => {
+    const pilar = new THREE.Mesh(new THREE.CylinderGeometry(.14, .14, 3.0, 8), matMadeira);
+    pilar.position.set(x, 1.5, 3.8); pilar.castShadow = true; casa.add(pilar);
+  });
+
+  // Paredes
+  caixa(7.5, 3.2, .25, matParede, 0, 1.6 + .35, -3.25);
+  caixa(.25, 3.2, 7, matParede, -3.75, 1.6 + .35, 0);
+  caixa(.25, 3.2, 7, matParede, 3.75, 1.6 + .35, 0);
+  caixa(3, 3.2, .25, matParede, -2.25, 1.6 + .35, 3.5);
+  caixa(3, 3.2, .25, matParede, 2.25, 1.6 + .35, 3.5);
+  caixa(1.5, .9, .25, matParede, 0, 2.75 + .35, 3.5);
+
+  // Telhado
+  const telhado = new THREE.Mesh(new THREE.ConeGeometry(5.5, 2.8, 4), matTelhado);
+  telhado.rotation.y = Math.PI / 4; telhado.scale.z = .88;
+  telhado.position.y = 4.8; telhado.castShadow = true; casa.add(telhado);
+
+  // Chaminé
+  caixa(.55, 1.6, .55, new THREE.MeshStandardMaterial({ color: 0x8a8679 }), 1.8, 5.2, -1.2);
+
+  // Porta
+  const porta = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.1, .1), matMadeira);
+  porta.position.set(0, 1.05 + .35, 3.5); porta.castShadow = true; casa.add(porta);
+  const macaneta = new THREE.Mesh(new THREE.SphereGeometry(.05, 8, 8), new THREE.MeshStandardMaterial({ color: 0xd9b23c, metalness: .8, roughness: .3 }));
+  macaneta.position.set(.5, 1.05 + .35, 3.58); casa.add(macaneta);
+
+  // Janelas
+  function janela(x, y, z, ry) {
+    const grp = new THREE.Group();
+    grp.add(new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.15, .35), matMadeira));
+    const vidro = new THREE.Mesh(new THREE.BoxGeometry(.85, .85, .38), new THREE.MeshStandardMaterial({ color: 0xaedcf2, roughness: .1, emissive: 0x22445a, emissiveIntensity: .4 }));
+    grp.add(vidro); 
+    grp.position.set(x, y, z); grp.rotation.y = ry || 0; casa.add(grp);
+  }
+  janela(2.4, 1.9 + .35, 3.5, 0); 
+  janela(-3.75, 1.9 + .35, 0, Math.PI / 2);
+
+  // Cerca frontal
+  const matCerca = new THREE.MeshStandardMaterial({ color: 0xf0ead8, roughness: .8 });
+  for(let i=0; i<8; i++) {
+    const estaca = new THREE.Mesh(new THREE.BoxGeometry(.08, .7, .08), matCerca);
+    estaca.position.set(-3.5 + i*0.95, 0.35, 6.5); casa.add(estaca);
+  }
+  const trilho = new THREE.Mesh(new THREE.BoxGeometry(7.5, .06, .06), matCerca);
+  trilho.position.set(-0.25, 0.5, 6.5); casa.add(trilho);
+  const trilho2 = new THREE.Mesh(new THREE.BoxGeometry(7.5, .06, .06), matCerca);
+  trilho2.position.set(-0.25, 0.2, 6.5); casa.add(trilho2);
+
+  // ===== INTERIOR COMPLETO + ALPENDRE =====
+  const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: .8 });
+  const col = (x, z, w, d, id) => addColisor(-28 + x - w / 2, -12 + z - d / 2, -28 + x + w / 2, -12 + z + d / 2, id);
+  caixa(7.4, .06, 6.8, mat(0x9c6b3f), 0, .38, 0);                       // piso de madeira
+  caixa(7.4, .12, 6.8, matMadeira, 0, 3.6, 0);                          // forro
+  caixa(.2, 3.2, 3.6, matParede, .8, 1.95, -1.3); col(.8, -1.3, .2, 3.6); // divisória do quarto
+  caixa(2.6, .02, 1.8, mat(0x8c2f39), -1.6, .42, .2);                   // tapete
+  caixa(2.2, .45, .9, mat(0x3d5a80), -1.8, .62, -2.5); caixa(2.2, .6, .2, mat(0x3d5a80), -1.8, 1.05, -2.85); col(-1.8, -2.65, 2.2, 1.2); // sofá
+  caixa(1.0, .4, .6, matMadeira, -1.8, .6, -.9);                        // mesa de centro
+  caixa(.08, .8, 1.4, mat(0x0a0a0a), -3.6, 1.7, -1.2);                  // TV
+  caixa(1.8, .4, 2.2, matMadeira, 2.4, .6, -2); caixa(1.7, .25, 2.1, mat(0xdfe6ee), 2.4, .9, -2); caixa(.8, .12, .4, mat(0xffffff), 2.4, 1.1, -2.9); col(2.4, -2, 1.8, 2.2); // cama
+  caixa(2.6, .95, .6, mat(0xe8e8e8), 2.6, .83, .9); col(2.6, .9, 2.6, .6);   // bancada
+  caixa(.8, 1.8, .7, mat(0xf2f2f2), 3.2, 1.3, 2.95); col(3.2, 2.95, .8, .7); // geladeira
+  caixa(1.4, .08, .9, matMadeira, -2, .85, 2.2); caixa(.3, .5, .3, matMadeira, -2, .6, 2.2); col(-2, 2.2, 1.4, .9); // mesa de jantar
+  janela(-1.8, 2.25, -3.25, 0); janela(3.75, 2.25, 0, Math.PI / 2);
+  const luzCasa = new THREE.PointLight(0xffe2b0, .8, 10); luzCasa.position.set(0, 3, 0); casa.add(luzCasa);
+  caixa(8.8, .18, 2.9, matTelhado, 0, 3.15, 4.9);                       // telhado do alpendre
+  [-3.8, 3.8].forEach(x => { const p = new THREE.Mesh(new THREE.CylinderGeometry(.14, .14, 3.0, 8), matMadeira); p.position.set(x, 1.5, 5.9); p.castShadow = true; casa.add(p); });
+  caixa(2, .2, .6, matFundacao, 0, .1, 6.3);                            // degrau
+  caixa(1.6, .05, 2.6, mat(0xb5b0a5), 0, .03, 7.8);                     // caminho até a rua
+  // porta que abre e fecha (F)
+  porta.geometry.translate(.6, 0, 0); porta.position.x = -.6;
+  macaneta.position.set(1.1, 0, .08); casa.remove(macaneta); porta.add(macaneta);
+  let pAberta = false, pAng = 0;
+  addColisor(-28.75, -8.62, -27.25, -8.38, 'casa-porta');
+  porta.userData.rotulo = 'Abrir / Fechar Porta';
+  porta.userData.interagir = () => {
+    pAberta = !pAberta;
+    if (pAberta) removerColisorPorId('casa-porta'); else addColisor(-28.75, -8.62, -27.25, -8.38, 'casa-porta');
+  };
+  ATUALIZAVEIS.push(dt => { pAng += ((pAberta ? 1.75 : 0) - pAng) * Math.min(1, dt * 6); porta.rotation.y = pAng; });
+
+  // Colisores da casa
+  addColisor(-31.75, -15.375, -24.25, -15.125);
+  addColisor(-31.875, -15.25, -31.625, -8.75);
+  addColisor(-24.375, -15.25, -24.125, -8.75);
+  addColisor(-31.75, -8.625, -28.75, -8.375);
+  addColisor(-27.25, -8.625, -24.25, -8.375);
+
+  // Fumaça
+  const fumacas = [];
+  for (let i = 0; i < 3; i++) {
+    const f = new THREE.Mesh(new THREE.SphereGeometry(.18, 8, 8), new THREE.MeshLambertMaterial({ color: 0xf2f2f2, transparent: true, opacity: .4, depthWrite: false }));
+    scene.add(f);
+    fumacas.push({ m: f, t: i * 1.2 });
+  }
+  return {
+    atualizar(dt) {
+      for (const f of fumacas) {
+        f.t += dt;
+        const vida = 4;
+        if (f.t > vida) f.t -= vida;
+        const k = f.t / vida;
+        f.m.position.set(-28 + 1.8 + Math.sin(f.t * 2) * .1 + k * 1.2, 6.5 + k * 2.5, -13.2);
+        f.m.scale.setScalar(.6 + k * 1.8);
+        f.m.material.opacity = .4 * (1 - k);
+      }
+    }
+  };
+}
+
+/* =========================================================
+   GALPÃO DATA CENTER (expansível) + PORTÃO ANIMADO
+========================================================= */
+function criarGalpao(scene, px = 18, pz = -18) {
+  const g = {
+    group: new THREE.Group(),
+    px, pz,
+    W: 20,        // largura base
+    D: 22,        // profundidade
+    expansoes: 0, xDir: 10, portaoS: 1,
+    portaoAberto: false,
+    portaoY: 0.5,
+    colisorPortao: null,
+    racks: [],
+    t: 0
+  };
+  
+  g.group.position.set(px, 0, pz);
+  scene.add(g.group);
+
+  const matParede = new THREE.MeshStandardMaterial({ color: 0xc8ccd0, roughness: .75 });
+  const matParedeEscura = new THREE.MeshStandardMaterial({ color: 0x8a8f96, roughness: .7 });
+  const matMetal = new THREE.MeshStandardMaterial({ color: 0x5c626a, roughness: .4, metalness: .7 });
+  const matMetalClaro = new THREE.MeshStandardMaterial({ color: 0x9aa0a8, roughness: .45, metalness: .5 });
+  const matConcreto = new THREE.MeshStandardMaterial({ color: 0x8a8c8f, roughness: 1 });
+  const matVidro = new THREE.MeshStandardMaterial({ color: 0x9bc8e0, roughness: .05, transparent: true, opacity: 0.6, emissive: 0x1a3a55, emissiveIntensity: .2 });
+  const matLuz = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xeaf4ff, emissiveIntensity: 1.2 });
+  const gMatBeacon = new THREE.MeshStandardMaterial({ color: 0x3a0d0d, emissive: 0xff3b30, emissiveIntensity: 1 });
+  g.matBeacon = gMatBeacon;
+  
+  function caixa(w, h, d, mat, x, y, z, parent) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; 
+    (parent || g.group).add(m); return m;
+  }
+
+  // ====== PISO / BASE ======
+  caixa(g.W + .6, .3, g.D + .6, matConcreto, 0, .15, 0);
+  
+  // Plataforma de entrada (rampa)
+  caixa(7, .2, 2.5, matConcreto, 0, .1, g.D/2 + 1.25);
+  
+  // ====== PAREDES ======
+  caixa(g.W, 5.2, .3, matParede, 0, 2.6, -g.D/2);                 // fundo
+  caixa(.3, 5.2, g.D, matParede, -g.W/2, 2.6, 0);                  // esq
+  g.paredeDir = caixa(.3, 5.2, g.D, matParede, g.W/2, 2.6, 0);                   // dir
+  
+  // Frente com abertura para portão (abertura de 7m de largura)
+  caixa((g.W - 7) / 2, 5.2, .3, matParede, -g.W/2 + (g.W-7)/4, 2.6, g.D/2);
+  caixa((g.W - 7) / 2, 5.2, .3, matParede, g.W/2 - (g.W-7)/4, 2.6, g.D/2);
+  caixa(7, 1.2, .3, matParede, 0, 4.6, g.D/2);  // viga acima do portão
+  
+  // ====== TETO ======
+  // --- parâmetros da escada / abertura do terraço (usados mais abaixo) ---
+  const ESC = { x: -8.75, zBase: 9.4, larg: 2.0, n: 16, run: .32, base: .3, topo: 5.475 };
+  ESC.rise = (ESC.topo - ESC.base) / ESC.n;
+  ESC.zTopo = ESC.zBase - ESC.n * ESC.run;                              // fim da escada (lado do terraço)
+  ESC.zBuraco = ESC.zBase - 0.56 * (ESC.zBase - ESC.zTopo);             // onde começa a abertura no teto
+  ESC.xa = ESC.x - ESC.larg / 2; ESC.xb = ESC.x + ESC.larg / 2;
+  // teto com abertura para a escada
+  const tetoPeca = (xa, xb, za, zb) => caixa(xb - xa, .25, zb - za, matMetal, (xa + xb) / 2, 5.35, (za + zb) / 2);
+  tetoPeca(-g.W / 2 - .25, g.W / 2 + .25, -g.D / 2 - .25, ESC.zTopo);
+  tetoPeca(-g.W / 2 - .25, g.W / 2 + .25, ESC.zBuraco, g.D / 2 + .25);
+  tetoPeca(-g.W / 2 - .25, ESC.xa, ESC.zTopo, ESC.zBuraco);
+  tetoPeca(ESC.xb, g.W / 2 + .25, ESC.zTopo, ESC.zBuraco);
+  // pisos caminháveis: laje do galpão, plataforma de entrada, terraço (com buraco) e escada
+  addSuperficie({ id: 'piso-0', x1: px - g.W / 2 - .3, x2: px + g.W / 2 + .3, z1: pz - g.D / 2 - .3, z2: pz + g.D / 2 + .3, h: .3 });
+  addSuperficie({ id: 'entrada-0', x1: px - 3.5, x2: px + 3.5, z1: pz + g.D / 2, z2: pz + g.D / 2 + 2.5, h: .2 });
+  addSuperficie({ id: 'teto-0', x1: px - g.W / 2 - .25, x2: px + g.W / 2 + .25, z1: pz - g.D / 2 - .25, z2: pz + g.D / 2 + .25, h: ESC.topo,
+    buracos: [[px + ESC.xa, pz + ESC.zTopo, px + ESC.xb, pz + ESC.zBuraco]] });
+  addSuperficie({ id: 'escada-0', x1: px + ESC.xa, x2: px + ESC.xb, z1: pz + ESC.zTopo, z2: pz + ESC.zBase,
+    rampa: { za: pz + ESC.zBase, ha: ESC.base + ESC.rise * .5, zb: pz + ESC.zTopo, hb: ESC.topo } });
+  
+  // ====== PORTÃO ANIMADO (tipo rolo de metal) ======
+  g.portaoGroup = new THREE.Group();
+  g.portaoGroup.position.set(0, 0, g.D/2 + 0.05);
+  g.group.add(g.portaoGroup);
+  
+  // Rolo superior (mecanismo)
+  const rolo = new THREE.Mesh(new THREE.CylinderGeometry(.28, .28, 7.2, 12), matMetalClaro);
+  rolo.rotation.z = Math.PI / 2;
+  rolo.position.set(0, 4.0, 0);
+  rolo.castShadow = true;
+  rolo.position.set(0, 4.0, g.D / 2 + 0.05); g.group.add(rolo);   // rolo fixo; só a lâmina sobe/desce
+  
+  // Painel do portão (múltiplas lâminas)
+  const lamina = new THREE.Mesh(new THREE.BoxGeometry(6.8, 3.8, .1), matMetalClaro);
+  lamina.position.set(0, 2.0, 0);
+  lamina.castShadow = true;
+  g.portaoGroup.add(lamina);
+  
+  // Listras horizontais no portão
+  for(let i = 0; i < 8; i++) {
+    const listra = new THREE.Mesh(new THREE.BoxGeometry(6.7, .04, .12), matMetal);
+    listra.position.set(0, 0.4 + i * 0.45, 0);
+    g.portaoGroup.add(listra);
+  }
+  
+  // Alça/puxador
+  const alça = new THREE.Mesh(new THREE.BoxGeometry(.2, .3, .15), matMetal);
+  alça.position.set(0, 0.3, 0.15);
+  g.portaoGroup.add(alça);
+  
+  // Inicialmente fechado
+  g.portaoGroup.position.y = 0;
+  
+  // Colisor do portão (quando fechado)
+  g.colisorPortao = addColisor(px - 3.4, pz + g.D/2 - .2, px + 3.4, pz + g.D/2 + .2, 'portao');
+
+  // Interação com portão (no alça/rolô)
+  lamina.userData.interagir = () => {
+    g.portaoAberto = !g.portaoAberto;
+    if (g.portaoAberto) {
+      removerColisorPorId('portao');
+      hud.toast('Portão do data center aberto');
+    } else {
+      g.colisorPortao = addColisor(px - 3.4, pz + g.D/2 - .2, px + 3.4, pz + g.D/2 + .2, 'portao');
+      hud.toast('Portão do data center fechado');
+    }
+  };
+  const alternarPortao = lamina.userData.interagir;
+  const rotuloPortao = () => g.portaoAberto ? 'Fechar Portão' : 'Abrir Portão';
+  lamina.userData.rotulo = rotuloPortao;
+  // Botões de comando do portão (um fora, um dentro) — funcionam mesmo com o portão aberto
+  g.botoesPortao = [];
+  [[4.5, g.D / 2 + .22, 0], [4.5, g.D / 2 - .22, Math.PI]].forEach(([bx, bz, ry]) => {
+    const bg = new THREE.Group(); bg.position.set(bx, 1.4, bz); bg.rotation.y = ry; g.group.add(bg);
+    const placaBtn = new THREE.Mesh(new THREE.BoxGeometry(.42, .7, .12), new THREE.MeshStandardMaterial({ color: 0x1b1f26, roughness: .5, metalness: .6 }));
+    placaBtn.castShadow = true; bg.add(placaBtn);
+    const matBtn = new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0x3dff7c, emissiveIntensity: 1.6 });
+    const btn = new THREE.Mesh(new THREE.CylinderGeometry(.11, .11, .08, 20), matBtn);
+    btn.rotation.x = Math.PI / 2; btn.position.z = .09; bg.add(btn);
+    const faixa = new THREE.Mesh(new THREE.BoxGeometry(.3, .04, .02), new THREE.MeshStandardMaterial({ color: 0xffd77a, emissive: 0xffd77a, emissiveIntensity: .6 }));
+    faixa.position.set(0, .27, .07); bg.add(faixa);
+    bg.userData.rotulo = rotuloPortao;
+    bg.userData.interagir = alternarPortao;
+    g.botoesPortao.push(matBtn);
+  });
+
+  // ====== LETREIRO ======
+  const matLetreiro = new THREE.MeshStandardMaterial({ color: 0x0a1a2e, emissive: 0x2a7ab5, emissiveIntensity: .8 });
+  caixa(5, 1.1, .15, matLetreiro, 0, 4.8, g.D/2 + .2);
+  
+  // Texto do letreiro (aproximação com caixas brilhantes)
+  for(let i=0; i<6; i++) {
+    const letra = new THREE.Mesh(new THREE.BoxGeometry(.45, .5, .04), new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffd77a, emissiveIntensity: 1.2 }));
+    letra.position.set(-1.5 + i * 0.6, 4.8, g.D/2 + .3);
+    g.group.add(letra);
+  }
+  
+  // ====== BEACON (luz no teto) ======
+  const beacon = new THREE.Mesh(new THREE.SphereGeometry(.18, 10, 8), gMatBeacon);
+  beacon.position.set(g.W/2 - 1.5, 5.55, -g.D/2 + 1.5);
+  g.group.add(beacon);
+  
+  // ====== ESCRITÓRIO (canto fundo-esquerdo, com porta) + MARCAÇÕES DOS RACKS ======
+  const vidro = (w, d, x, z) => caixa(w, 3.4, d, matVidro, x, 2.0, z);
+  vidro(.1, 6, -3, -8);                                  // parede leste
+  vidro(4.6, .1, -7.7, -5); vidro(.6, .1, -3.3, -5);     // parede sul, porta de 1,8 m entre x=-5.4 e x=-3.6
+  [[-3, -11], [-3, -5], [-10, -5], [-5.4, -5], [-3.6, -5]].forEach(([x, z]) => caixa(.14, 3.4, .14, matMetal, x, 2.0, z));
+  caixa(1.8, .4, .14, matMetal, -4.5, 3.5, -5);          // verga da porta
+  caixa(7, .04, 6, new THREE.MeshStandardMaterial({ color: 0x2a2f38, roughness: .8 }), -6.5, .32, -8);   // carpete
+  const mesaMat = new THREE.MeshStandardMaterial({ color: 0x3a2818, roughness: .75 });
+  const escuro = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
+  caixa(2.8, .08, 1, mesaMat, -6.5, 1.0, -10.2);         // mesa (tampo a ~1,04)
+  [[-1.3, -.4], [1.3, -.4], [-1.3, .4], [1.3, .4]].forEach(([dx, dz]) => caixa(.08, .7, .08, matMetal, -6.5 + dx, .65, -10.2 + dz));
+  caixa(.6, .08, .6, escuro, -6.5, .7, -9.0); caixa(.08, .4, .08, matMetal, -6.5, .5, -9.0); caixa(.6, .6, .08, escuro, -6.5, 1.05, -8.7);  // cadeira
+  caixa(1.6, 1.6, .5, mesaMat, -9.3, 1.1, -10.5);        // armário
+  caixa(.7, .04, .25, escuro, -6.5, 1.06, -9.9); caixa(.12, .03, .18, escuro, -6, 1.06, -9.9);   // teclado e mouse
+  const pcGroup = new THREE.Group(); pcGroup.position.set(-6.5, 1.04, -10.4); g.group.add(pcGroup);
+  const pm = (geo, mat, x, y, z) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); o.castShadow = true; pcGroup.add(o); return o; };
+  pm(new THREE.CylinderGeometry(.08, .12, .2, 8), matMetal, 0, .1, 0);
+  pm(new THREE.BoxGeometry(.06, .2, .06), matMetal, 0, .28, 0);
+  pm(new THREE.BoxGeometry(1.2, .8, .08), new THREE.MeshStandardMaterial({ color: 0x0a0a0a }), 0, .75, 0);
+  pm(new THREE.BoxGeometry(1.1, .7, .02), new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0x00ff88, emissiveIntensity: .95 }), 0, .75, .05);
+  pcGroup.userData.rotulo = 'Acessar Terminal';           // no grupo: assim tela e moldura funcionam
+  pcGroup.userData.interagir = () => abrirTerminal();
+  const luzE = new THREE.PointLight(0xfff1d6, .6, 9); luzE.position.set(-6.5, 3, -8); g.group.add(luzE);
+  addColisor(px - 3.1, pz - 11, px - 2.9, pz - 5, 'esc-leste');
+  addColisor(px - 10, pz - 5.1, px - 5.4, pz - 4.9, 'esc-sul-e');
+  addColisor(px - 3.6, pz - 5.1, px - 3, pz - 4.9, 'esc-sul-d');
+  addColisor(px - 7.9, pz - 10.7, px - 5.1, pz - 9.7);    // mesa
+  addColisor(px - 10.1, pz - 10.75, px - 8.5, pz - 10.25); // armário
+
+  // ====== SALA DE RACKS (fechada, com porta; cresce junto com o galpão) ======
+  const SALA = { x0: -2.0, zFundo: -3.6, zFrente: 8.0, portaX0: -1.8, portaX1: -0.1, esp: .25 };
+  g.sala = SALA;
+  // constrói as paredes de fundo e frente da sala entre x=xa e x=xb (n = nº da expansão; 0 = trecho original)
+  g.salaTrecho = function (xa, xb, n) {
+    const e = SALA.esp;
+    caixa(xb - xa, 5.2, e, matParede, (xa + xb) / 2, 2.6, SALA.zFundo);
+    addColisor(px + xa, pz + SALA.zFundo - .2, px + xb, pz + SALA.zFundo + .2, `sala-fundo-${n}`);
+    if (n === 0) {
+      const xl = SALA.portaX0, xr = SALA.portaX1;
+      caixa(xl - xa, 5.2, e, matParede, (xa + xl) / 2, 2.6, SALA.zFrente);
+      caixa(xb - xr, 5.2, e, matParede, (xr + xb) / 2, 2.6, SALA.zFrente);
+      caixa(xr - xl, 1.6, e, matParede, (xl + xr) / 2, 4.4, SALA.zFrente);          // verga da porta
+      addColisor(px + xa, pz + SALA.zFrente - .2, px + xl, pz + SALA.zFrente + .2, 'sala-frente-e');
+      addColisor(px + xr, pz + SALA.zFrente - .2, px + xb, pz + SALA.zFrente + .2, 'sala-frente-d');
+    } else {
+      caixa(xb - xa, 5.2, e, matParede, (xa + xb) / 2, 2.6, SALA.zFrente);
+      addColisor(px + xa, pz + SALA.zFrente - .2, px + xb, pz + SALA.zFrente + .2, `sala-frente-${n}`);
+    }
+  };
+  // parede oeste da sala (lado do corredor/escritório)
+  caixa(SALA.esp, 5.2, SALA.zFrente - SALA.zFundo + SALA.esp, matParede, SALA.x0, 2.6, (SALA.zFundo + SALA.zFrente) / 2);
+  addColisor(px + SALA.x0 - .2, pz + SALA.zFundo - .2, px + SALA.x0 + .2, pz + SALA.zFrente + .2, 'sala-oeste');
+  g.salaTrecho(SALA.x0 - SALA.esp / 2, g.xDir, 0);
+  // batentes + letreiro
+  caixa(.12, 3.5, .32, matMetal, SALA.portaX0, 2.05, SALA.zFrente);
+  caixa(.12, 3.5, .32, matMetal, SALA.portaX1, 2.05, SALA.zFrente);
+  caixa(1.5, .34, .05, matLetreiro, (SALA.portaX0 + SALA.portaX1) / 2, 4.3, SALA.zFrente + .16);
+  // porta da sala (F para abrir/fechar)
+  const portaSala = new THREE.Group();
+  portaSala.position.set(SALA.portaX0 + .05, 0, SALA.zFrente);
+  g.group.add(portaSala);
+  const larguraPorta = SALA.portaX1 - SALA.portaX0 - .1;
+  const folhaSala = caixa(larguraPorta, 3.3, .08, matMetalClaro, larguraPorta / 2, 1.95, 0, portaSala);
+  const macSala = new THREE.Mesh(new THREE.SphereGeometry(.05, 8, 8), new THREE.MeshStandardMaterial({ color: 0xd9b23c, metalness: .8, roughness: .3 }));
+  macSala.position.set(larguraPorta - .12, 1.9, .08); portaSala.add(macSala);
+  let salaAberta = false, salaAng = 0;
+  const colPortaSala = () => addColisor(px + SALA.portaX0, pz + SALA.zFrente - .2, px + SALA.portaX1, pz + SALA.zFrente + .2, 'porta-sala');
+  colPortaSala();
+  folhaSala.userData.rotulo = () => salaAberta ? 'Fechar Porta da Sala de Racks' : 'Abrir Porta da Sala de Racks';
+  folhaSala.userData.interagir = () => {
+    salaAberta = !salaAberta;
+    if (salaAberta) removerColisorPorId('porta-sala'); else colPortaSala();
+    if (typeof hud !== 'undefined') hud.toast(salaAberta ? 'Porta da sala de racks aberta' : 'Porta da sala de racks fechada');
+  };
+  ATUALIZAVEIS.push(dt => {
+    salaAng += ((salaAberta ? -1.65 : 0) - salaAng) * Math.min(1, dt * 5);
+    portaSala.rotation.y = salaAng;
+  });
+
+  // ====== ESCADA → TERRAÇO TÉCNICO (andar superior) ======
+  const matDegrau = new THREE.MeshStandardMaterial({ color: 0x5c626a, roughness: .55, metalness: .4 });
+  const matGuarda = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: .5, metalness: .4 });
+  const escada = new THREE.Group(); escada.position.set(ESC.x, 0, ESC.zBase); g.group.add(escada);
+  for (let i = 0; i < ESC.n; i++) {
+    const h = (i + 1) * ESC.rise;
+    const deg = new THREE.Mesh(new THREE.BoxGeometry(ESC.larg, h, ESC.run), matDegrau);
+    deg.position.set(0, ESC.base + h / 2, -(i + .5) * ESC.run);
+    deg.castShadow = true; deg.receiveShadow = true; escada.add(deg);
+  }
+  [-1, 1].forEach(s => {                      // corrimãos inclinados + montantes
+    const x = s * ESC.larg / 2;
+    for (let i = 0; i < ESC.n; i += 3) {
+      const p = new THREE.Mesh(new THREE.BoxGeometry(.06, 1.0, .06), matGuarda);
+      p.position.set(x, ESC.base + (i + 1) * ESC.rise + .5, -(i + .5) * ESC.run); escada.add(p);
+    }
+    const y0 = ESC.base + ESC.rise + 1.0, y1 = ESC.topo + 1.0;
+    const z0 = -.5 * ESC.run, z1 = -(ESC.n - .5) * ESC.run;
+    const corr = new THREE.Mesh(new THREE.BoxGeometry(.07, .07, Math.hypot(z1 - z0, y1 - y0)), matGuarda);
+    corr.position.set(x, (y0 + y1) / 2, (z0 + z1) / 2);
+    corr.rotation.x = Math.atan2(y1 - y0, Math.abs(z1 - z0));
+    escada.add(corr);
+  });
+  // colisão da escada: entra pela frente, sai por cima; nada de passar por baixo ou pelos lados
+  [px + ESC.xa, px + ESC.xb].forEach((x, k) => {
+    addColisor(x - .08, pz + ESC.zBuraco, x + .08, pz + ESC.zBase, `escada-lado-b${k}`, -1, 5.0);   // trecho sob o teto
+    addColisor(x - .08, pz + ESC.zTopo, x + .08, pz + ESC.zBuraco, `escada-lado-a${k}`, -1, 99);    // trecho da abertura (vale no terraço também)
+  });
+  addColisor(px + ESC.xa - .08, pz + ESC.zTopo - .15, px + ESC.xb + .08, pz + ESC.zTopo, 'escada-fundo', -1, 1.5);
+  criarGuardaCorpo(g, ESC.xa, ESC.zBuraco, ESC.xb, ESC.zBuraco, ESC.topo, 'rail-buraco');          // guarda-corpo da abertura (no terraço)
+
+  // ====== TERRAÇO TÉCNICO: guarda-corpo em volta + VAGAS de refrigerador (começa SEM nenhum) ======
+  const rx = g.W / 2 + .15, rz = g.D / 2 + .15;
+  criarGuardaCorpo(g, -rx, -rz, rx, -rz, ESC.topo, 'rail-fundo-0');
+  criarGuardaCorpo(g, -rx, rz, rx, rz, ESC.topo, 'rail-frente-0');
+  criarGuardaCorpo(g, -rx, -rz, -rx, rz, ESC.topo, 'rail-oeste');
+  g.guardaLeste = criarGuardaCorpo(g, rx, -rz, rx, rz, ESC.topo, 'rail-leste');
+  vagasCooler(g, [[1, 0], [4.5, 0], [8, 0], [1, 4], [4.5, 4], [8, 4]]);
+  const luzTec = new THREE.PointLight(0xaaccff, 0.45, 16);
+  luzTec.position.set(0, 6.8, 2); g.group.add(luzTec);
+
+  vagasRack(g, [0, 2.6, 5.2, 7.8], [-1.5, 1.0, 3.5, 6.0], (x, z) => z !== -1.5);   // 4 fileiras; fileira de trás já tem racks
+
+  // ====== ILUMINAÇÃO INTERNA ======
+  caixa(2.5, .12, .5, matLuz, -3, 5.0, -2);
+  caixa(2.5, .12, .5, matLuz, 3, 5.0, -2);
+  caixa(2.5, .12, .5, matLuz, 0, 5.0, -7);
+  caixa(2.5, .12, .5, matLuz, -3, 5.0, 5);
+  caixa(2.5, .12, .5, matLuz, 3, 5.0, 5);
+  
+  // Luzes pontuais internas
+  const luzI1 = new THREE.PointLight(0xeaf4ff, .8, 18);
+  luzI1.position.set(0, 4.5, 0); g.group.add(luzI1);
+  const luzI2 = new THREE.PointLight(0xeaf4ff, .5, 14);
+  luzI2.position.set(-5, 4.5, -5); g.group.add(luzI2);
+  
+  // ====== COLISORES EXTERNOS DO GALPÃO ======
+  addColisor(px - g.W/2, pz - g.D/2 - .3, px + g.W/2, pz - g.D/2 + .3, 'galpao-fundo');
+  addColisor(px - g.W/2 - .3, pz - g.D/2, px - g.W/2 + .3, pz + g.D/2, 'galpao-esq');
+  addColisor(px + g.W/2 - .3, pz - g.D/2, px + g.W/2 + .3, pz + g.D/2, 'galpao-dir');
+  // Frente: duas metades com abertura do portão no meio
+  addColisor(px - g.W/2, pz + g.D/2 - .3, px - 3.5, pz + g.D/2 + .3, 'galpao-frente-esq');
+  addColisor(px + 3.5, pz + g.D/2 - .3, px + g.W/2, pz + g.D/2 + .3, 'galpao-frente-dir');
+  
+  g.atualizar = function(dt) {
+    this.t += dt;
+    // portão de enrolar: a lâmina recolhe para dentro do rolo (y = 4.0)
+    const alvoS = this.portaoAberto ? 0.04 : 1;
+    this.portaoS += (alvoS - this.portaoS) * Math.min(1, dt * 2.5);
+    this.portaoGroup.scale.y = this.portaoS;
+    this.portaoGroup.position.y = 4.0 * (1 - this.portaoS);
+    this.matBeacon.emissiveIntensity = 1 + Math.sin(this.t * 3) * .9;
+    // botões do portão: verde = fechado (clique abre) · vermelho = aberto (clique fecha)
+    const cor = this.portaoAberto ? 0xff3b30 : 0x3dff7c;
+    for (const m of this.botoesPortao || []) m.emissive.setHex(cor);
+  };
+  
+  return g;
+}
+
+/* =========================================================
+   EXPANSÃO DO GALPÃO (nova ala aberta por dentro; continua as linhas de rack)
+========================================================= */
+// Marcações verdes no chão. livre(x,z) = true → vaga vazia onde se instala um Rack do inventário
+function vagasRack(g, xs, zs, livre) {
+  const mat = new THREE.MeshStandardMaterial({ color: 0x0c2b18, emissive: 0x3dff7c, emissiveIntensity: .7 });
+  zs.forEach(z => xs.forEach(x => {
+    [[1.4, .06, 0, -.7], [1.4, .06, 0, .7], [.06, 1.4, -.7, 0], [.06, 1.4, .7, 0]].forEach(([w, d, dx, dz]) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, .02, d), mat); m.position.set(x + dx, .31, z + dz); g.group.add(m);
+    });
+    if (!livre(x, z)) return;
+    const v = new THREE.Mesh(new THREE.BoxGeometry(1.34, .03, 1.34), new THREE.MeshBasicMaterial({ color: 0x3dff7c, transparent: true, opacity: .18, depthWrite: false }));
+    v.position.set(x, .33, z); g.group.add(v);
+    v.userData.rotulo = 'Instalar Rack';
+    v.userData.interagir = () => {
+      const it = inventario.procurarItem(i => i.tipo === 'rack');
+      if (!it) { hud.toast('Sem Rack no inventário — compre na Loja do terminal.'); return; }
+      inventario.removerItem(i => i === it); g.group.remove(v);
+      racks.push(criarRack({ scene, posicao: new THREE.Vector3(g.px + x, .3, g.pz + z), inventario, hud, nomeBase: `Rack ${String.fromCharCode(65 + racks.length)}` }));
+      hud.toast('Rack instalado');
+    };
+  }));
+}
+
+/** Guarda-corpo reto (eixo X ou Z). Coordenadas locais do galpão. id=null → só visual. */
+function criarGuardaCorpo(g, x1, z1, x2, z2, yBase, id, y1 = 5.0) {
+  const grp = new THREE.Group(); g.group.add(grp);
+  const mat = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: .5, metalness: .4 });
+  const ao = Math.abs(x2 - x1) >= Math.abs(z2 - z1) ? 'x' : 'z';
+  const len = Math.max(Math.abs(x2 - x1), Math.abs(z2 - z1));
+  const n = Math.max(1, Math.round(len / 2));
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const p = new THREE.Mesh(new THREE.BoxGeometry(.07, 1.05, .07), mat);
+    p.position.set(x1 + (x2 - x1) * t, yBase + .525, z1 + (z2 - z1) * t); p.castShadow = true; grp.add(p);
+  }
+  [.55, 1.05].forEach(h => {
+    const r = new THREE.Mesh(ao === 'x' ? new THREE.BoxGeometry(len, .05, .05) : new THREE.BoxGeometry(.05, .05, len), mat);
+    r.position.set((x1 + x2) / 2, yBase + h, (z1 + z2) / 2); grp.add(r);
+  });
+  if (id) addColisor(g.px + Math.min(x1, x2) - .08, g.pz + Math.min(z1, z2) - .08,
+                     g.px + Math.max(x1, x2) + .08, g.pz + Math.max(z1, z2) + .08, id, y1, 99);
+  return grp;
+}
+
+/* ---------- Refrigeradores de teto: vagas + equipamento com 5 evoluções ---------- */
+const COOLER_RAIO = .85;
+
+/** Vagas marcadas no terraço (coordenadas locais do galpão). Começam VAZIAS. */
+function vagasCooler(g, posicoes) {
+  posicoes.forEach(([x, z]) => {
+    const vaga = new THREE.Group(); vaga.position.set(x, 5.475, z); g.group.add(vaga);
+    const anel = new THREE.Mesh(new THREE.TorusGeometry(COOLER_RAIO * .95, .04, 6, 28), new THREE.MeshBasicMaterial({ color: 0x67e0ff, transparent: true, opacity: .6, depthWrite: false }));
+    anel.rotation.x = Math.PI / 2; anel.position.y = .05; vaga.add(anel);
+    const vol = new THREE.Mesh(new THREE.CylinderGeometry(COOLER_RAIO, COOLER_RAIO, .5, 18), new THREE.MeshBasicMaterial({ color: 0x67e0ff, transparent: true, opacity: .16, depthWrite: false }));
+    vol.position.y = .25; vaga.add(vol);
+    vaga.userData.rotulo = 'Instalar Refrigerador de Teto';
+    vaga.userData.interagir = () => {
+      const it = inventario.procurarItem(i => i.tipo === 'cooler');
+      if (!it) { hud.toast('Sem Refrigerador no inventário — compre na Loja do terminal.'); return; }
+      inventario.removerItem(i => i === it); g.group.remove(vaga);
+      criarCoolerTeto(g, x, z);
+      hud.toast('Refrigerador instalado — aperte F nele para evoluir');
+    };
+  });
+}
+
+function criarCoolerTeto(g, x, z) {
+  const raio = COOLER_RAIO;
+  const grp = new THREE.Group(); grp.position.set(x, 5.475, z); g.group.add(grp);
+  const matC = new THREE.MeshStandardMaterial({ color: 0x4a5058, metalness: .6, roughness: .4 });
+  const matP = new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: .5, roughness: .35 });
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(raio, raio * 1.05, .5, 18), matC);
+  base.position.y = .25; base.castShadow = true; grp.add(base);
+  const mkRotor = (y, r) => {
+    const rotor = new THREE.Group(); rotor.position.y = y; grp.add(rotor);
+    rotor.add(new THREE.Mesh(new THREE.CylinderGeometry(.12, .12, .1, 10), matC));
+    for (let i = 0; i < 5; i++) {
+      const arm = new THREE.Group(); arm.rotation.y = i / 5 * Math.PI * 2;
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(r * .8, .04, .2), matP);
+      blade.position.x = r * .45; arm.add(blade); rotor.add(arm);
+    }
+    return rotor;
+  };
+  const rotor = mkRotor(.56, raio);
+  const grade = new THREE.Mesh(new THREE.TorusGeometry(raio * .95, .03, 8, 24), matC);
+  grade.rotation.x = Math.PI / 2; grade.position.y = .66; grp.add(grade);
+
+  const obj = { nivel: 1, grp, rotor, rotor2: null, grade, vel: 1, flags: {}, matC, matP, mkRotor };
+  COOLERS.push(obj);
+  grp.userData.rotulo = () => `Refrigerador · Nível ${obj.nivel}/${COOLER.max} — evoluir`;
+  grp.userData.interagir = () => abrirModalCooler(obj);
+  addColisor(g.px + x - raio, g.pz + z - raio, g.px + x + raio, g.pz + z + raio, null, 5.0, 99);
+  ATUALIZAVEIS.push(dt => {
+    obj.rotor.rotation.y -= dt * 4.5 * obj.vel;
+    if (obj.rotor2) obj.rotor2.rotation.y += dt * 6 * obj.vel;
+  });
+  aplicarNivelCooler(obj);
+  return obj;
+}
+
+// Cada evolução acrescenta uma peça visual nova e acelera o ventilador
+function aplicarNivelCooler(o) {
+  const nv = o.nivel, f = o.flags, grp = o.grp, raio = COOLER_RAIO;
+  o.vel = 1 + (nv - 1) * .45;
+  const emi = (c, i) => new THREE.MeshStandardMaterial({ color: 0x111111, emissive: c, emissiveIntensity: i });
+  if (nv >= 2 && !f.n2) {            // anel de LED verde na base
+    f.n2 = 1;
+    const a = new THREE.Mesh(new THREE.TorusGeometry(raio * 1.02, .03, 8, 28), emi(0x3dff7c, 1.3));
+    a.rotation.x = Math.PI / 2; a.position.y = .18; grp.add(a);
+  }
+  if (nv >= 3 && !f.n3) {            // colar de aço azul
+    f.n3 = 1;
+    const a = new THREE.Mesh(new THREE.TorusGeometry(raio * 1.0, .07, 8, 28), new THREE.MeshStandardMaterial({ color: 0x5aa9e6, metalness: .8, roughness: .25, emissive: 0x1a4a8a, emissiveIntensity: .5 }));
+    a.rotation.x = Math.PI / 2; a.position.y = .5; grp.add(a);
+  }
+  if (nv >= 4 && !f.n4) {            // aletas de radiador em cobre
+    f.n4 = 1;
+    const matCu = new THREE.MeshStandardMaterial({ color: 0xb87333, metalness: .75, roughness: .35 });
+    for (let i = 0; i < 12; i++) {
+      const ang = i / 12 * Math.PI * 2;
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(.05, .38, .3), matCu);
+      fin.position.set(Math.cos(ang) * (raio + .1), .27, Math.sin(ang) * (raio + .1));
+      fin.rotation.y = -ang; fin.castShadow = true; grp.add(fin);
+    }
+  }
+  if (nv >= 5 && !f.n5) {            // tubulações de refrigerante + grade brilhante
+    f.n5 = 1;
+    const matCu = new THREE.MeshStandardMaterial({ color: 0xb87333, metalness: .8, roughness: .3 });
+    [-1, 1].forEach(s => {
+      const t = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, 1.0, 8), matCu);
+      t.position.set(s * (raio + .3), .5, 0); t.castShadow = true; grp.add(t);
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(.08, 10, 8), emi(0x3adfff, 1.6));
+      cap.position.set(s * (raio + .3), 1.04, 0); grp.add(cap);
+    });
+    o.grade.material = emi(0x3adfff, .9);
+  }
+  if (nv >= 6 && !f.n6) {            // segundo rotor contra-rotativo + antena sensor
+    f.n6 = 1;
+    const mastro = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, .5, 8), o.matC);
+    mastro.position.y = .85; grp.add(mastro);
+    o.rotor2 = o.mkRotor(1.1, raio * .8);
+    const ant = new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, .7, 6), o.matC);
+    ant.position.set(raio * .9, 1.0, 0); grp.add(ant);
+    const farol = new THREE.Mesh(new THREE.SphereGeometry(.08, 10, 8), emi(0x2a7aff, 1.8));
+    farol.position.set(raio * .9, 1.4, 0); grp.add(farol);
+  }
+}
+
+function abrirModalCooler(obj) {
+  const nv = obj.nivel, max = COOLER.max, pode = nv < max;
+  const custo = pode ? COOLER.custo[nv + 1] : 0;
+  Modal.abrir(ModalTemplates.evoluir('cooler', nv,
+    COOLER.cap[nv].toFixed(1), pode ? COOLER.cap[nv + 1].toFixed(1) : '—', custo,
+    { max, un: 'kW', rotAtual: 'Refrigeração atual',
+      desc: `Refrigerador de teto: retira calor dos racks e baixa a temperatura das baias. ${COOLER.evolucoes} evoluções disponíveis — cada uma aumenta a capacidade, a velocidade do ventilador e muda o visual.` }));
+  const btn = document.getElementById('btn-confirmar-evoluir');
+  if (btn) btn.addEventListener('click', () => {
+    if (!pagar(inventario, custo)) return;
+    obj.nivel++;
+    aplicarNivelCooler(obj);
+    hud.toast(`Refrigerador evoluído para nível ${obj.nivel}! Agora refrigera ${COOLER.cap[obj.nivel]} kW`);
+    Modal.fechar();
+  });
+}
+
+function expandirGalpao(galpao, scene, racks, inventario, hud) {
+  const novoW = 10, n = galpao.expansoes + 1;
+  const xA = galpao.xDir, xB = xA + novoW, cx = (xA + xB) / 2;      // trecho novo: xA → xB (coords locais)
+  const px = galpao.px, pz = galpao.pz, hD = galpao.D / 2;
+  const matParede = new THREE.MeshStandardMaterial({ color: 0xc8ccd0, roughness: .75 });
+  const matMetal = new THREE.MeshStandardMaterial({ color: 0x5c626a, roughness: .4, metalness: .7 });
+  const matConcreto = new THREE.MeshStandardMaterial({ color: 0x8a8c8f, roughness: 1 });
+  const matLuz = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xeaf4ff, emissiveIntensity: 1.2 });
+  const caixa = (w, h, d, mat, x, y, z) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; galpao.group.add(m); return m;
+  };
+
+  // laje, paredes externas (fundo/frente) e teto do trecho novo
+  caixa(novoW, .3, galpao.D + .6, matConcreto, cx + .3, .15, 0);
+  caixa(novoW, 5.2, .3, matParede, cx, 2.6, -hD);
+  caixa(novoW, 5.2, .3, matParede, cx, 2.6, hD);
+  caixa(novoW, .25, galpao.D + .5, matMetal, cx + .25, 5.35, 0);
+  addSuperficie({ id: `piso-${n}`, x1: px + xA, x2: px + xB + .3, z1: pz - hD - .3, z2: pz + hD + .3, h: .3 });
+  addSuperficie({ id: `teto-${n}`, x1: px + xA, x2: px + xB + .25, z1: pz - hD - .25, z2: pz + hD + .25, h: 5.475 });
+
+  // parede externa leste anda para o novo limite
+  galpao.group.remove(galpao.paredeDir); removerColisorPorId('galpao-dir');
+  galpao.paredeDir = caixa(.3, 5.2, galpao.D, matParede, xB, 2.6, 0);
+  addColisor(px + xB - .3, pz - hD, px + xB + .3, pz + hD, 'galpao-dir');
+  addColisor(px + xA, pz - hD - .3, px + xB, pz - hD + .3, `galpao-fundo-${n}`);
+  addColisor(px + xA, pz + hD - .3, px + xB, pz + hD + .3, `galpao-frente-${n}`);
+
+  // a SALA DE RACKS cresce junto: paredes de fundo e frente da sala no trecho novo
+  galpao.salaTrecho(xA, xB, n);
+
+  // guarda-corpo do terraço acompanha
+  const yR = 5.475, rz = hD + .15;
+  if (galpao.guardaLeste) galpao.group.remove(galpao.guardaLeste);
+  removerColisorPorId('rail-leste');
+  criarGuardaCorpo(galpao, xA + .15, -rz, xB + .15, -rz, yR, `rail-fundo-${n}`);
+  criarGuardaCorpo(galpao, xA + .15, rz, xB + .15, rz, yR, `rail-frente-${n}`);
+  galpao.guardaLeste = criarGuardaCorpo(galpao, xB + .15, -rz, xB + .15, rz, yR, 'rail-leste');
+
+  // iluminação
+  [-1.5, 1.0, 3.5, 6.0].forEach(z => caixa(2.5, .12, .5, matLuz, cx, 5.0, z));
+  const luz = new THREE.PointLight(0xeaf4ff, .6, 14); luz.position.set(cx, 4.5, 2); galpao.group.add(luz);
+
+  // 4 fileiras de vagas de rack na nova ala
+  const FILEIRAS = [-1.5, 1.0, 3.5, 6.0];
+  const xs = [1, 2, 3, 4].map(i => (galpao.ultimaCol ?? 7.8) + i * 2.6);
+  galpao.ultimaCol = xs[3];
+  // primeira coluna da fileira mais ao fundo já vem com rack instalado
+  vagasRack(galpao, xs, FILEIRAS, (x, z) => !(z === -1.5 && x === xs[0]));
+  racks.push(criarRack({
+    scene,
+    posicao: new THREE.Vector3(px + xs[0], .3, pz - 1.5),
+    inventario,
+    hud,
+    nomeBase: `Rack ${String.fromCharCode(65 + racks.length)}`
+  }));
+
+  // novas VAGAS de refrigerador no terraço da expansão (vazias)
+  vagasCooler(galpao, [[xA + 2.5, 0], [xA + 7.5, 0], [xA + 2.5, 4], [xA + 7.5, 4]]);
+
+  galpao.W += novoW; galpao.xDir = xB; galpao.expansoes = n;
+  hud.toast(`Galpão ampliado (${n}/4)! A sala de racks cresceu junto — 4 fileiras de vagas marcadas.`);
+}
+
+/* =========================================================
+   RACK (10 baias, espaçado corretamente)
+========================================================= */
+function criarRack({ scene, posicao, inventario, hud, nomeBase }) {
+  const NUM = 10;
+  const ALT = 0.26;
+  const yDoSlot = i => 0.18 + ALT/2 + i * (ALT + 0.025);
+
+  const rack = new THREE.Group();
+  rack.position.copy(posicao);
+  scene.add(rack);
+
+  const matEstrutura = new THREE.MeshStandardMaterial({ color: 0x1a1d24, roughness: .5, metalness: .55 });
+  const matBaia = new THREE.MeshStandardMaterial({ color: 0x0f1218, roughness: .6, metalness: .45 });
+  const matBaiaFrente = new THREE.MeshStandardMaterial({ color: 0x2a2f38, roughness: .5, metalness: .5 });
+  const matLedVerde = new THREE.MeshStandardMaterial({ color: 0x0c2b18, emissive: 0x3dff7c, emissiveIntensity: 1.4 });
+  const matLedAzul = new THREE.MeshStandardMaterial({ color: 0x0a1a3a, emissive: 0x2a7aff, emissiveIntensity: 1.2 });
+
+  function caixa(w, h, d, mat, x, y, z) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; rack.add(m); return m;
+  }
+
+  // Estrutura do rack (com pés)
+  caixa(.07, 3.3, .95, matEstrutura, -.42, 1.65, 0);
+  caixa(.07, 3.3, .95, matEstrutura, .42, 1.65, 0);
+  caixa(.91, .08, .95, matEstrutura, 0, 3.26, 0);
+  caixa(.91, .18, .95, matEstrutura, 0, .09, 0);
+  caixa(.91, 3.3, .06, matEstrutura, 0, 1.65, -.445);
+  
+  // Pés
+  [[-0.42, -0.42], [0.42, -0.42], [-0.42, 0.42], [0.42, 0.42]].forEach(([dx, dz]) => {
+    caixa(.15, .05, .15, new THREE.MeshStandardMaterial({color: 0x0a0a0a}), dx, 0.025, dz);
+  });
+
+  const baias = new Array(NUM).fill(null);
+  const ghosts = new Array(NUM).fill(null);
+  const anims = [];
+
+  function criarBaiaMesh(i) {
+    const b = new THREE.Group();
+    const corpo = new THREE.Mesh(new THREE.BoxGeometry(.78, ALT - .05, .82), matBaia);
+    corpo.castShadow = true; b.add(corpo);
+    const frente = new THREE.Mesh(new THREE.BoxGeometry(.78, ALT - .05, .04), matBaiaFrente);
+    frente.position.z = .42; b.add(frente);
+    
+    // LEDs de status
+    const led1 = new THREE.Mesh(new THREE.BoxGeometry(.05, .05, .02), matLedVerde);
+    led1.position.set(-.28, .04, .455); b.add(led1);
+    const led2 = new THREE.Mesh(new THREE.BoxGeometry(.05, .05, .02), matLedAzul);
+    led2.position.set(-.2, .04, .455); b.add(led2);
+    
+    // Alça
+    const alca = new THREE.Mesh(new THREE.BoxGeometry(.2, .04, .03), matEstrutura);
+    alca.position.set(.22, .02, .45); b.add(alca);
+    
+    // Etiqueta (pequeno retângulo)
+    const etiqueta = new THREE.Mesh(new THREE.BoxGeometry(.12, .04, .01), new THREE.MeshStandardMaterial({ color: 0xf4f1e6, emissive: 0xf4f1e6, emissiveIntensity: .3 }));
+    etiqueta.position.set(.0, .02, .455); b.add(etiqueta);
+
+    b.position.set(0, yDoSlot(i), 0);
+    const nomeSlot = String(i+1).padStart(2,'0');
+    b.userData.interagir = () => {
+      Modal.abrir(ModalTemplates.baia(nomeSlot, nomeBase));
+    };
+    b.userData.rotulo = `Acessar ${nomeBase}-${nomeSlot}`;
+    return b;
+  }
+
+  function criarGhost(i) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(.78, ALT - .05, .82), new THREE.MeshBasicMaterial({ color: 0x67ffb0, transparent: true, opacity: .08, depthWrite: false }));
+    m.position.set(0, yDoSlot(i), 0);
+    const nomeSlot = String(i+1).padStart(2,'0');
+    m.userData.interagir = () => instalarBaia(i);
+    m.userData.rotulo = `Instalar baia em ${nomeBase}-${nomeSlot}`;
+    rack.add(m); return m;
+  }
+
+  function instalarBaia(i) {
+    if (baias[i]) return;
+    const item = inventario.procurarItem(it => it.tipo === 'baia');
+    if (!item) { hud.toast('Sem baias no inventário.'); return; }
+    inventario.removerItem(it => it === item);
+    rack.remove(ghosts[i]);
+    const b = criarBaiaMesh(i); b.scale.setScalar(.001); rack.add(b); baias[i] = b;
+    animarEscala(b, 1, .25);
+    hud.toast(`Baia instalada no ${nomeBase}`);
+  }
+
+  function animarEscala(mesh, para, dur, aoFim) {
+    anims.push({ mesh, de: mesh.scale.x, para, t: 0, dur, aoFim });
+  }
+
+  for (let i = 0; i < NUM; i++) ghosts[i] = criarGhost(i);
+  // Preenche 8 baias inicialmente (2 vazias para demonstração)
+  [0, 1, 2, 3, 4, 6, 7, 8].forEach(i => { baias[i] = criarBaiaMesh(i); rack.add(baias[i]); rack.remove(ghosts[i]); });
+
+  // Colisor do rack
+  addColisor(posicao.x - .5, posicao.z - .5, posicao.x + .5, posicao.z + .5);
+
+  let t = 0;
+  return {
+    contarBaias() { return baias.filter(Boolean).length; },
+    atualizar(dt) {
+      t += dt;
+      for (let i = anims.length - 1; i >= 0; i--) {
+        const a = anims[i]; a.t += dt;
+        const k = Math.min(1, a.t / a.dur);
+        a.mesh.scale.setScalar(a.de + (a.para - a.de) * k);
+        if (k >= 1) { if (a.aoFim) a.aoFim(); anims.splice(i, 1); }
+      }
+      matLedVerde.emissiveIntensity = 1.2 + Math.sin(t * 5) * .4;
+    }
+  };
+}
+
+/* =========================================================
+   ITENS, LOJA E ENERGIA — DISTRITO DE 20 LOTES (solar / eólica / gerador)
+========================================================= */
+ICONS.turbina = `<svg viewBox="0 0 24 24"><line x1="12" y1="12" x2="12" y2="22"/><circle cx="12" cy="12" r="1.5"/><path d="M12 10.5V2M13.3 12.8l7 4M10.7 12.8l-7 4"/></svg>`;
+ICONS.gerador = `<svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="11" rx="1"/><path d="M13 9l-3 4h4l-3 4"/><line x1="6" y1="18" x2="6" y2="20"/><line x1="18" y1="18" x2="18" y2="20"/></svg>`;
+const ITENS = {
+  dinheiro: { nome: 'Dinheiro', icone: ICONS.money, desc: 'Compra lotes e, na Loja do terminal, equipamentos.' },
+  baia: { nome: 'Baia Servidor', icone: ICONS.server, desc: 'Instale em vagas vazias dos racks.' },
+  painel: { nome: 'Painel Solar', icone: ICONS.solar, desc: '1,2 kW (nv1) → 1,8 → 2,5 kW. Evolua com F após instalar.' },
+  turbina: { nome: 'Turbina Eólica', icone: ICONS.turbina, desc: '6 kW (nv1) → 8,5 → 12 kW × vento. Evolua com F.' },
+  gerador: { nome: 'Gerador', icone: ICONS.gerador, desc: '10 kW (nv1) → 15 → 22 kW. Ligue e evolua com F.' },
+  rack: { nome: 'Rack', icone: ICONS.building, desc: 'Instale nas marcações verdes do chão do data center.' },
+  cooler: { nome: 'Refrigerador de Teto', icone: ICONS.cooler, desc: 'Instale nas vagas azuis do terraço do data center. 5 evoluções (4 → 20 kW de refrigeração). Evolua com F.' },
+  chave: { nome: 'Chave Admin', icone: ICONS.key, desc: 'Acessos privilegiados ao sistema.' }
+};
+const LOJA = { painel: 1, turbina: 2, gerador: 2, rack: 2, baia: 1, cooler: 2 };   // preços em 💰
+const PRECOS = { lote: 1 };
+const ENERGIA = { fontes: [] };
+const energiaTotal = () => Math.round(ENERGIA.fontes.reduce((s, f) => s + f.kw(), 0) * 10) / 10;
+const vento = () => 1 + .35 * Math.sin(performance.now() / 6000);
+
+function pagar(inv, n, mudo) {
+  if (inv.contar(i => i.tipo === 'dinheiro') < n) { if (!mudo) hud.toast(`Dinheiro insuficiente! Custa ${n} 💰`); return false; }
+  for (let k = 0; k < n; k++) inv.removerItem(i => i.tipo === 'dinheiro');
+  return true;
+}
+
+// Terminal do escritório: o botão "Loja" é acrescentado ao modal existente
+function abrirTerminal() {
+  Modal.abrir(ModalTemplates.pc());
+  const rodape = document.querySelector('#modal-root .modal-footer');
+  const b = document.createElement('button'); b.className = 'btn'; b.textContent = 'Loja de Equipamentos';
+  b.addEventListener('click', abrirLoja); rodape.insertBefore(b, rodape.firstChild);
+}
+function abrirLoja() {
+  const saldo = () => inventario.contar(i => i.tipo === 'dinheiro');
+  const botoes = Object.entries(LOJA).map(([k, p]) => `<button class="btn" data-compra="${k}">${ITENS[k].nome} · ${p} 💰</button>`).join('');
+  Modal.abrir(`<div class="modal"><div class="modal-header"><h3>Loja de Equipamentos</h3><button class="modal-fecha" data-fecha-modal>×</button></div>
+    <div class="modal-body"><h4>Comprar</h4><p id="loja-msg">Saldo: ${saldo()} 💰</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">${botoes}</div></div>
+    <div class="modal-footer"><button class="btn btn-primario" data-fecha-modal>Fechar</button></div></div>`);
+  document.querySelectorAll('#modal-root [data-compra]').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.compra, msg = document.getElementById('loja-msg');
+    if (saldo() < LOJA[k]) { msg.textContent = `Dinheiro insuficiente para ${ITENS[k].nome}.`; return; }
+    if (!inventario.adicionarItem({ ...ITENS[k], tipo: k, qtd: 1 })) { msg.textContent = 'Inventário cheio.'; return; }
+    pagar(inventario, LOJA[k], true);
+    msg.textContent = `${ITENS[k].nome} comprado! Saldo: ${saldo()} 💰`;
+  }));
+}
+
+/* =========================================================
+   REDE AÉREA DE ENERGIA (postes + fios no ar)
+   - Cada lote liga num poste no vão ao lado dele; a cadeia de postes
+     desce pelo vão entre colunas de lotes até a calçada (sem atravessar equipamentos)
+   - Na calçada, um barramento único segue até o quadro do data center
+========================================================= */
+const POSTES_ENERGIA = [];          // {x, z, mesh}
+const FIOS_AEREOS = [];             // evita duplicar o mesmo segmento
+const BARRA_XS = [];                // colunas já ligadas no barramento
+const BARRA_FIOS = [];              // fios do barramento (refeitos a cada coluna nova)
+let BARRAMENTO_Z = -3;              // linha horizontal comum (z fixo, na calçada)
+let QUADRO_POS = null;              // {x, z} do quadro de entrada do galpão
+const MAT_FIO = new THREE.MeshStandardMaterial({ color: 0x1a1c20, roughness: .4, metalness: .6 });
+
+function criarPoste(scene, x, z, altura = 7.5) {
+  const key = `${x.toFixed(2)},${z.toFixed(2)}`;
+  const ja = POSTES_ENERGIA.find(p => p.key === key);
+  if (ja) return ja;
+  const g = new THREE.Group();
+  const matPoste = new THREE.MeshStandardMaterial({ color: 0x4a4035, roughness: .85 });
+  const matCruz = new THREE.MeshStandardMaterial({ color: 0x3a3530, roughness: .8 });
+  const matIsol = new THREE.MeshStandardMaterial({ color: 0xc8c4b8, roughness: .6 });
+  // tronco
+  const tronco = new THREE.Mesh(new THREE.CylinderGeometry(.12, .18, altura, 8), matPoste);
+  tronco.position.y = altura / 2; tronco.castShadow = true; g.add(tronco);
+  // cruzeta
+  const cruz = new THREE.Mesh(new THREE.BoxGeometry(1.6, .08, .08), matCruz);
+  cruz.position.y = altura - .4; g.add(cruz);
+  // isoladores
+  [-.55, .55].forEach(dx => {
+    const isol = new THREE.Mesh(new THREE.CylinderGeometry(.06, .08, .18, 6), matIsol);
+    isol.position.set(dx, altura - .55, 0); g.add(isol);
+  });
+  g.position.set(x, 0, z);
+  scene.add(g);
+  const poste = { key, x, z, mesh: g, altura };
+  POSTES_ENERGIA.push(poste);
+  return poste;
+}
+
+function fioAereo(scene, x1, z1, x2, z2, y = 7.1, dedup = true) {
+  const dx = x2 - x1, dz = z2 - z1;
+  const len = Math.hypot(dx, dz);
+  if (len < 0.3) return null;
+  if (dedup) {
+    const key = [x1,z1,x2,z2].map(v => v.toFixed(2)).join('|');
+    const keyRev = [x2,z2,x1,z1].map(v => v.toFixed(2)).join('|');
+    if (FIOS_AEREOS.includes(key) || FIOS_AEREOS.includes(keyRev)) return null;
+    FIOS_AEREOS.push(key);
+  }
+  // fio principal (ligeira flecha para baixo)
+  const midY = y - Math.min(0.6, len * 0.04);
+  const curve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(x1, y, z1),
+    new THREE.Vector3((x1+x2)/2, midY, (z1+z2)/2),
+    new THREE.Vector3(x2, y, z2)
+  ]);
+  const geo = new THREE.TubeGeometry(curve, 12, 0.035, 5, false);
+  const mesh = new THREE.Mesh(geo, MAT_FIO);
+  mesh.castShadow = true;
+  mesh.raycast = () => {};
+  scene.add(mesh);
+  return mesh;
+}
+
+// refaz o barramento ligando as colunas em sequência (sem fios sobrepostos)
+function refazerBarramento(scene) {
+  BARRA_FIOS.splice(0).forEach(m => { scene.remove(m); m.geometry.dispose(); });
+  const xs = [...BARRA_XS, QUADRO_POS.x].sort((a, b) => a - b);
+  for (let i = 0; i < xs.length - 1; i++) {
+    if (xs[i + 1] - xs[i] < .3) continue;
+    criarPoste(scene, xs[i], BARRAMENTO_Z);
+    const m = fioAereo(scene, xs[i], BARRAMENTO_Z, xs[i + 1], BARRAMENTO_Z, 7.1, false);
+    if (m) BARRA_FIOS.push(m);
+  }
+}
+
+/** Conecta um lote à rede: poste no vão do lote → cadeia de postes até a calçada → barramento → quadro */
+function conectarLoteRede(scene, l) {
+  if (!QUADRO_POS) return;
+  const x0 = l.x - 4.75;                 // vão entre colunas de lotes (livre de equipamentos)
+  const zs = [];
+  for (let z = l.z - 5.75; z > BARRAMENTO_Z + .5; z -= 11.5) zs.push(z);   // um poste por fileira, do lote até a rua
+  zs.forEach(z => criarPoste(scene, x0, z));
+  criarPoste(scene, x0, BARRAMENTO_Z);
+  const cadeia = [...zs, BARRAMENTO_Z];
+  for (let i = 0; i < cadeia.length - 1; i++) fioAereo(scene, x0, cadeia[i], x0, cadeia[i + 1]);
+  if (!BARRA_XS.includes(x0)) { BARRA_XS.push(x0); refazerBarramento(scene); }
+  // ramal final do barramento até o quadro do data center
+  criarPoste(scene, QUADRO_POS.x, BARRAMENTO_Z);
+  criarPoste(scene, QUADRO_POS.x, QUADRO_POS.z);
+  fioAereo(scene, QUADRO_POS.x, BARRAMENTO_Z, QUADRO_POS.x, QUADRO_POS.z);
+}
+
+// Mantém compatibilidade com chamadas antigas (agora só conecta a rede aérea)
+function criarCabo(scene, pts, ativo) {
+  if (!pts || !pts.length) return;
+  const [lx, lz] = pts[0];
+  conectarLoteRede(scene, { x: lx, z: lz });
+}
+
+function criarDistritoEnergia(scene, inv, hud) {
+  const LW = 9, LD = 11, COLS = 5, ROWS = 4;           // 5 x 4 = 20 lotes (limite)
+  const LIMITE_LOTES = COLS * ROWS;
+  const cx = c => -16 + c * 9.5, cz = r => 14 + r * 11.5;
+  const B = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+  const mk = (geo, color, x, y, z, p, extra = {}) => {
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness: .6, ...extra }));
+    m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; (p || scene).add(m); return m;
+  };
+
+  // Quadro de entrada de energia no galpão (onde a rede aérea chega)
+  const qx = galpao.px + 8.5, qz = galpao.pz + galpao.D / 2 + .7;
+  QUADRO_POS = { x: qx, z: qz };
+  BARRAMENTO_Z = -3;
+  mk(B(1, 1.6, .4), 0x30343b, qx, .8, qz);
+  mk(B(.25, .25, .05), 0x0c2b18, qx, 1.2, qz + .22, null, { emissive: 0x3dff7c, emissiveIntensity: 1.4 });
+  // poste logo ao lado do quadro
+  criarPoste(scene, qx, qz);
+  const rota = l => [[l.x, l.z]];   // só precisa da posição do lote (rede aérea)
+
+  // ===== ÁREA RESERVADA DO DISTRITO (20 lotes) =====
+  const DX0 = cx(0) - LW / 2 - 1.5, DX1 = cx(COLS - 1) + LW / 2 + 1.5;
+  const DZ0 = cz(0) - LD / 2 - 1.5, DZ1 = cz(ROWS - 1) + LD / 2 + 1.5;
+  const reserva = mk(B(DX1 - DX0, .03, DZ1 - DZ0), 0x86bd62, (DX0 + DX1) / 2, .015, (DZ0 + DZ1) / 2);
+  reserva.castShadow = false;
+  [[DX1 - DX0, .25, (DX0 + DX1) / 2, DZ0], [DX1 - DX0, .25, (DX0 + DX1) / 2, DZ1],
+   [.25, DZ1 - DZ0, DX0, (DZ0 + DZ1) / 2], [.25, DZ1 - DZ0, DX1, (DZ0 + DZ1) / 2]]
+    .forEach(([w, d, x, z]) => { const b = mk(B(w, .05, d), 0xd9b23c, x, .05, z); b.castShadow = false; });
+  // letreiro do distrito
+  (() => {
+    const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 256;
+    const c2 = cv.getContext('2d');
+    c2.fillStyle = '#10231a'; c2.fillRect(0, 0, 1024, 256);
+    c2.strokeStyle = '#ffd77a'; c2.lineWidth = 10; c2.strokeRect(10, 10, 1004, 236);
+    c2.fillStyle = '#ffd77a'; c2.textAlign = 'center'; c2.textBaseline = 'middle';
+    c2.font = 'bold 92px "Segoe UI", Arial, sans-serif'; c2.fillText('DISTRITO DE ENERGIA', 512, 105);
+    c2.fillStyle = '#f4f1e6'; c2.font = '600 52px "Segoe UI", Arial, sans-serif';
+    c2.fillText(`${LIMITE_LOTES} LOTES · SOLAR · EÓLICA · GERADOR`, 512, 190);
+    const tex = new THREE.CanvasTexture(cv);
+    const letreiro = new THREE.Group(); letreiro.position.set(DX0 + 6, 0, DZ0 + .4); letreiro.rotation.y = Math.PI; scene.add(letreiro);
+    [-3.3, 3.3].forEach(dx => mk(new THREE.CylinderGeometry(.08, .08, 3.8, 8), 0x5c4033, dx, 1.9, 0, letreiro));
+    const quadro = new THREE.Mesh(new THREE.PlaneGeometry(7, 1.75), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+    quadro.position.set(0, 3.0, .06); quadro.raycast = () => {}; letreiro.add(quadro);
+  })();
+
+  function placa(l, cor, rotulo, acao) {
+    const g = new THREE.Group(); g.position.set(l.x, 0, l.z - LD / 2 + 1.2); g.rotation.y = Math.PI;
+    mk(new THREE.CylinderGeometry(.06, .06, 2.2, 8), 0x5c4033, 0, 1.1, 0, g);
+    const tab = mk(B(1.5, .8, .08), 0xfef3c7, 0, 1.9, 0, g);
+    for (let i = 0; i < 4; i++) mk(B(.18, .3, .02), cor, -.45 + i * .3, 1.95, .05, g);
+    tab.userData.interagir = acao; tab.userData.rotulo = rotulo;
+    l.group.add(g); return g;
+  }
+  const cercar = l => {   // cerquinha que marca o lote
+    const C = 0xf0ead8, poste = (x, z) => mk(new THREE.CylinderGeometry(.04, .05, .6, 6), C, x, .3, z, l.group);
+    for (let i = 0; i <= 6; i++) { const x = l.x - LW / 2 + i * LW / 6; poste(x, l.z - LD / 2); poste(x, l.z + LD / 2); }
+    for (let j = 1; j < 6; j++) { const z = l.z - LD / 2 + j * LD / 6; poste(l.x - LW / 2, z); poste(l.x + LW / 2, z); }
+    [.5, .25].forEach(y => {
+      mk(B(LW, .04, .04), C, l.x, y, l.z - LD / 2, l.group); mk(B(LW, .04, .04), C, l.x, y, l.z + LD / 2, l.group);
+      mk(B(.04, .04, LD), C, l.x - LW / 2, y, l.z, l.group); mk(B(.04, .04, LD), C, l.x + LW / 2, y, l.z, l.group);
+    });
+  };
+
+  const lotes = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const l = { c, r, n: r * COLS + c + 1, x: cx(c), z: cz(r), estado: 'oculto', uso: null, paineis: 0, turbinas: [], kw: () => 0, group: new THREE.Group() };
+    l.group.visible = false; scene.add(l.group);
+    l.piso = mk(B(LW, .08, LD), 0xa8a29a, l.x, .04, l.z, l.group); l.piso.visible = false;   // piso cinza só depois de comprar
+    cercar(l);
+    // marcação no chão: lote reservado (some quando o lote é revelado)
+    const marca = new THREE.Group(); scene.add(marca);
+    [[LW, .14, 0, -LD / 2], [LW, .14, 0, LD / 2], [.14, LD, -LW / 2, 0], [.14, LD, LW / 2, 0]]
+      .forEach(([w, d, dx, dz]) => { const m = mk(B(w, .05, d), 0xe8e2cf, l.x + dx, .05, l.z + dz, marca); m.castShadow = false; });
+    l.marca = marca;
+    ENERGIA.fontes.push({ kw: () => l.kw() });
+    lotes.push(l);
+  }
+  const achar = (c, r) => lotes.find(l => l.c === c && l.r === r);
+  const lotesComprados = () => lotes.filter(l => l.estado === 'comprado').length;
+
+  function revelar(c, r) {
+    const l = achar(c, r); if (!l || l.estado !== 'oculto') return;
+    l.estado = 'venda'; l.group.visible = true; l.marca.visible = false;
+    l.placa = placa(l, 0x7d3525, `Comprar Lote ${l.n} (${PRECOS.lote} 💰)`, () => {
+      Modal.abrir(ModalTemplates.lote(`Lote ${l.n}`, `${LW * LD} m²`, PRECOS.lote));
+      document.getElementById('btn-confirmar-lote').addEventListener('click', () => comprar(l));
+    });
+  }
+
+  function comprar(l) {
+    if (!pagar(inv, PRECOS.lote)) { Modal.fechar(); return; }
+    l.estado = 'comprado'; l.piso.visible = true; l.group.remove(l.placa);
+    l.placa = placa(l, 0x1f6b3a, `Definir uso do Lote ${l.n}`, () => escolher(l));
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dc, dr]) => revelar(l.c + dc, l.r + dr));
+    const n = lotesComprados();
+    hud.toast(n >= LIMITE_LOTES ? `Lote ${l.n} comprado! Limite de ${LIMITE_LOTES} lotes atingido.` : `Lote ${l.n} comprado (${n}/${LIMITE_LOTES})! Defina o uso na placa verde.`);
+    Modal.fechar();
+  }
+
+  function escolher(l) {
+    Modal.abrir(`<div class="modal"><div class="modal-header"><h3>Lote ${l.n} · Definir uso</h3><button class="modal-fecha" data-fecha-modal>×</button></div>
+      <div class="modal-body"><h4>O que este lote vai ser?</h4>
+      <p><b>Solar:</b> 9 vagas para Painéis Solares do inventário.</p>
+      <p><b>Eólica:</b> 3 vagas para Turbinas Eólicas do inventário.</p>
+      <p><b>Gerador:</b> 1 vaga para um Gerador do inventário.</p>
+      <p style="opacity:.6">Os equipamentos vêm do inventário (E). Compre mais na Loja do terminal do escritório.</p></div>
+      <div class="modal-footer"><button class="btn" id="u-solar">Solar</button><button class="btn" id="u-eolica">Eólica</button><button class="btn" id="u-ger">Gerador</button></div></div>`);
+    const on = (id, fn) => document.getElementById(id).addEventListener('click', () => { fn(); l.group.remove(l.placa); Modal.fechar(); });
+    on('u-solar', () => usarSolar(l)); on('u-eolica', () => usarEolica(l)); on('u-ger', () => usarGerador(l));
+  }
+
+  // Vaga translúcida: consome um item do inventário e chama construir()
+  function vaga(l, geo, x, y, z, tipo, cor, construir, rotX = 0) {
+    const g = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: .25, depthWrite: false }));
+    g.position.set(x, y, z); g.rotation.x = rotX; l.group.add(g);
+    g.userData.rotulo = `Instalar ${ITENS[tipo].nome}`;
+    g.userData.interagir = () => {
+      const it = inv.procurarItem(i => i.tipo === tipo);
+      if (!it) { hud.toast(`Sem ${ITENS[tipo].nome} no inventário — compre na Loja do terminal.`); return; }
+      inv.removerItem(i => i === it); l.group.remove(g); construir(x, z);
+    };
+  }
+
+  // ---- constantes de geração (claras e constantes) ----
+  // Solar: 1.2 kW (nv1) → 1.8 (nv2) → 2.5 (nv3) por painel
+  // Eólica: 6 kW × fator de vento (varia suavemente, mas sempre gera)
+  // Gerador: 10 kW (nv1) → 15 (nv2) → 22 (nv3) quando ligado
+  const SOLAR_KW = [0, 1.2, 1.8, 2.5];
+  const GER_KW   = [0, 10, 15, 22];
+  const CUSTO_EVOLUIR = { painel: 1, gerador: 2, turbina: 2 };
+
+  function aplicarVisualEvolucao(mesh, nivel, tipo) {
+    // deixa o equipamento visualmente mais avançado sem aumentar tamanho
+    if (!mesh) return;
+    if (tipo === 'painel') {
+      // aumenta emissivo e adiciona detalhes
+      mesh.traverse(c => {
+        if (c.isMesh && c.material) {
+          if (c.material.emissive) {
+            c.material.emissiveIntensity = 0.15 + nivel * 0.25;
+            if (nivel >= 2) c.material.emissive.setHex(0x1a4a8a);
+            if (nivel >= 3) c.material.emissive.setHex(0x2a6aff);
+          }
+          if (nivel >= 2 && c.material.metalness !== undefined) c.material.metalness = 0.7;
+          if (nivel >= 3 && c.material.roughness !== undefined) c.material.roughness = 0.15;
+        }
+      });
+    } else if (tipo === 'gerador') {
+      mesh.traverse(c => {
+        if (c.isMesh && c.material) {
+          if (c.material.emissive) {
+            c.material.emissiveIntensity = 0.8 + nivel * 0.4;
+          }
+        }
+      });
+      // adiciona "painéis" de status extras no nível 2+
+      if (nivel >= 2 && !mesh.userData._evo2) {
+        mesh.userData._evo2 = true;
+        const matLed = new THREE.MeshStandardMaterial({ color: 0x0c2b18, emissive: 0x3dff7c, emissiveIntensity: 1.5 });
+        const led = new THREE.Mesh(new THREE.BoxGeometry(.15, .15, .04), matLed);
+        led.position.set(-1.0, 1.35, .83); mesh.add(led);
+      }
+      if (nivel >= 3 && !mesh.userData._evo3) {
+        mesh.userData._evo3 = true;
+        const matLed2 = new THREE.MeshStandardMaterial({ color: 0x0a1a3a, emissive: 0x2a7aff, emissiveIntensity: 1.6 });
+        const led2 = new THREE.Mesh(new THREE.BoxGeometry(.15, .15, .04), matLed2);
+        led2.position.set(-0.7, 1.35, .83); mesh.add(led2);
+        // antena / sensor extra
+        const ant = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .5, 6), new THREE.MeshStandardMaterial({ color: 0x30343b, metalness: .7 }));
+        ant.position.set(-1.2, 2.0, 0); mesh.add(ant);
+      }
+    } else if (tipo === 'turbina') {
+      // torre mais metálica / nacelle brilhante / LEDs de status
+      mesh.traverse(c => {
+        if (c.isMesh && c.material && c.material.color) {
+          if (nivel >= 2) {
+            c.material.metalness = Math.min(0.85, (c.material.metalness || 0) + 0.25);
+            c.material.roughness = Math.max(0.2, (c.material.roughness || 0.6) - 0.15);
+          }
+          if (nivel >= 3 && c.material.emissive) {
+            c.material.emissive.setHex(0x1a4a6a);
+            c.material.emissiveIntensity = 0.35;
+          }
+        }
+      });
+      if (nivel >= 2 && !mesh.userData._evo2) {
+        mesh.userData._evo2 = true;
+        const matLed = new THREE.MeshStandardMaterial({ color: 0x0c2b18, emissive: 0x3dff7c, emissiveIntensity: 1.6 });
+        const led = new THREE.Mesh(new THREE.BoxGeometry(.2, .2, .08), matLed);
+        led.position.set(0, 11.5, 0.6); mesh.add(led);
+      }
+      if (nivel >= 3 && !mesh.userData._evo3) {
+        mesh.userData._evo3 = true;
+        const matLed2 = new THREE.MeshStandardMaterial({ color: 0x0a1a3a, emissive: 0x2a7aff, emissiveIntensity: 1.7 });
+        const led2 = new THREE.Mesh(new THREE.BoxGeometry(.2, .2, .08), matLed2);
+        led2.position.set(0.35, 11.5, 0.6); mesh.add(led2);
+        // anel sensor no topo
+        const anel = new THREE.Mesh(new THREE.TorusGeometry(.45, .04, 8, 16), new THREE.MeshStandardMaterial({ color: 0x3a9fff, metalness: .8, emissive: 0x1a5aaa, emissiveIntensity: .6 }));
+        anel.rotation.x = Math.PI / 2; anel.position.set(0, 12.0, 0); mesh.add(anel);
+      }
+    }
+  }
+
+  function abrirModalEvoluir(obj, tipo, getKw, aplicarEvo) {
+    const nivel = obj.nivel || 1;
+    const kwAtual = getKw(nivel).toFixed(1);
+    const kwProx = nivel < 3 ? getKw(nivel + 1).toFixed(1) : '—';
+    const custo = CUSTO_EVOLUIR[tipo] || 1;
+    Modal.abrir(ModalTemplates.evoluir(tipo, nivel, kwAtual, kwProx, custo));
+    const btn = document.getElementById('btn-confirmar-evoluir');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        if (!pagar(inv, custo)) return;
+        obj.nivel = (obj.nivel || 1) + 1;
+        aplicarEvo(obj.nivel);
+        hud.toast(`${tipo === 'painel' ? 'Painel' : 'Gerador'} evoluído para nível ${obj.nivel}!`);
+        Modal.fechar();
+      });
+    }
+  }
+
+  function usarSolar(l) {
+    l.uso = 'solar';
+    l.paineisObjs = [];   // { mesh, nivel }
+    l.kw = () => l.paineisObjs.reduce((s, p) => s + SOLAR_KW[p.nivel || 1], 0);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++)
+      vaga(l, B(2.2, .08, 1.5), l.x - 2.8 + i * 2.8, .7, l.z - 3.4 + j * 3.4, 'painel', 0x67b0ff, (x, z) => {
+        const g = new THREE.Group(); g.position.set(x, 0, z); l.group.add(g);
+        const placa = mk(B(2.2, .08, 1.5), 0x1a2744, 0, .7, 0, g, { metalness: .5, roughness: .25, emissive: 0x0a1525, emissiveIntensity: .2 });
+        placa.rotation.x = -.35;
+        mk(B(.12, .6, .12), 0x3a3d44, 0, .3, 0, g);
+        // moldura
+        mk(B(2.25, .02, .04), 0x2a3040, 0, .74, -.72, g);
+        mk(B(2.25, .02, .04), 0x2a3040, 0, .74, .72, g);
+        const obj = { mesh: g, nivel: 1 };
+        l.paineisObjs.push(obj);
+        l.paineis = l.paineisObjs.length;
+        // interação: evoluir
+        placa.userData.rotulo = 'Evoluir Painel Solar';
+        placa.userData.interagir = () => abrirModalEvoluir(obj, 'painel',
+          nv => SOLAR_KW[nv],
+          nv => aplicarVisualEvolucao(g, nv, 'painel')
+        );
+        aplicarVisualEvolucao(g, 1, 'painel');
+        if (l.paineisObjs.length === 1) {
+          criarCabo(scene, rota(l), () => l.kw() > 0);
+          hud.toast('Painel instalado e conectado à rede aérea');
+        } else {
+          hud.toast(`Painel instalado (${l.paineisObjs.length}/9) · ${l.kw().toFixed(1)} kW`);
+        }
+      }, -.35);
+  }
+
+  function usarEolica(l) {
+    l.uso = 'eolica';
+    l.turbinasObjs = [];   // { mesh, nivel, rotor }
+    // Eólica: 6 kW (nv1) → 8.5 (nv2) → 12 (nv3) × fator de vento
+    const EOLICA_KW = [0, 6, 8.5, 12];
+    l.kw = () => l.turbinasObjs.reduce((s, t) => s + EOLICA_KW[t.nivel || 1] * vento(), 0);
+    [-3.6, 0, 3.6].forEach(dz => vaga(l, new THREE.CylinderGeometry(.9, .9, .06, 20), l.x, .1, l.z + dz, 'turbina', 0x67e0ff, (x, z) => {
+      const g = new THREE.Group(); g.position.set(x, 0, z); g.scale.setScalar(.01); l.group.add(g);
+      const torre = mk(new THREE.CylinderGeometry(.16, .34, 11, 12), 0xf2f4f5, 0, 5.5, 0, g);
+      mk(B(.7, .7, 1.8), 0xe4e7e9, 0, 11.1, 0, g);
+      const rotor = new THREE.Group(); rotor.position.set(0, 11.1, 1.1); g.add(rotor);
+      rotor.add(new THREE.Mesh(new THREE.SphereGeometry(.32, 12, 10), new THREE.MeshStandardMaterial({ color: 0xd0d4d8 })));
+      for (let i = 0; i < 3; i++) { const p = new THREE.Group(); p.rotation.z = i * 2 * Math.PI / 3; mk(B(.38, 4.6, .09), 0xffffff, 0, 2.5, 0, p); rotor.add(p); }
+      const obj = { mesh: g, nivel: 1, rotor };
+      l.turbinasObjs.push(obj);
+      // compatível com código antigo que conta l.turbinas
+      l.turbinas = l.turbinasObjs.map(o => o.mesh);
+
+      torre.userData.rotulo = 'Evoluir / Ver Turbina';
+      torre.userData.interagir = () => {
+        const nv = obj.nivel || 1;
+        const kwA = (EOLICA_KW[nv] * vento()).toFixed(1);
+        const kwP = nv < 3 ? (EOLICA_KW[nv + 1] * vento()).toFixed(1) : '—';
+        const custo = CUSTO_EVOLUIR.turbina || 2;
+        Modal.abrir(ModalTemplates.evoluir('turbina', nv, kwA, kwP, custo));
+        const btn = document.getElementById('btn-confirmar-evoluir');
+        if (btn) {
+          btn.addEventListener('click', () => {
+            if (!pagar(inv, custo)) return;
+            obj.nivel = (obj.nivel || 1) + 1;
+            aplicarVisualEvolucao(g, obj.nivel, 'turbina');
+            // velocidade do rotor aumenta com o nível
+            obj._spinMult = 1 + (obj.nivel - 1) * 0.35;
+            hud.toast(`Turbina evoluída para nível ${obj.nivel}! Base ${EOLICA_KW[obj.nivel]} kW`);
+            Modal.fechar();
+          });
+        }
+      };
+
+      let k = 0;
+      obj._spinMult = 1;
+      ATUALIZAVEIS.push(dt => {
+        if (k < 1) { k = Math.min(1, k + dt * 1.5); g.scale.setScalar(.01 + .99 * k); }
+        rotor.rotation.z -= dt * 1.4 * vento() * k * (obj._spinMult || 1);
+      });
+      addColisor(x - .5, z - .5, x + .5, z + .5);
+      if (l.turbinasObjs.length === 1) criarCabo(scene, rota(l), () => true);
+      aplicarVisualEvolucao(g, 1, 'turbina');
+      hud.toast(`Turbina instalada (${l.turbinasObjs.length}/3) · ${l.kw().toFixed(1)} kW`);
+    }));
+  }
+
+  function usarGerador(l) {
+    l.uso = 'gerador';
+    vaga(l, B(3.2, .2, 1.8), l.x, .1, l.z, 'gerador', 0xffb060, () => {
+      const g = new THREE.Group(); g.position.set(l.x, 0, l.z); l.group.add(g);
+      const corpo = mk(B(3, 1.6, 1.6), 0xd98e04, 0, 1, 0, g);
+      mk(B(3.2, .2, 1.8), 0x2a2d33, 0, .1, 0, g);
+      mk(new THREE.CylinderGeometry(.14, .14, 1.2, 8), 0x30343b, 1, 2.2, 0, g);
+      const led = mk(B(.3, .3, .05), 0x300000, 1.2, 1.2, .83, g, { emissive: 0xff2a1a, emissiveIntensity: 1 });
+      const luz = new THREE.PointLight(0xffb060, 0, 10); luz.position.set(0, 2.5, 1.5); g.add(luz);
+      const fum = [0, 1, 2].map(i => {
+        const f = new THREE.Mesh(new THREE.SphereGeometry(.2, 8, 8), new THREE.MeshLambertMaterial({ color: 0x777777, transparent: true, opacity: .5, depthWrite: false }));
+        f.visible = false; f.raycast = () => {}; g.add(f); return { f, t: i * 1.1 };
+      });
+      let on = false, t = 0;
+      const obj = { mesh: g, nivel: 1, on: false };
+      corpo.userData.rotulo = 'Ligar / Evoluir Gerador';
+      corpo.userData.interagir = () => {
+        // toggle de liga/desliga + opção de evoluir
+        Modal.abrir(`<div class="modal"><div class="modal-header"><h3>Gerador · Nível ${obj.nivel}</h3><button class="modal-fecha" data-fecha-modal>×</button></div>
+          <div class="modal-body">
+            <h4><span class="status-dot"></span>Status: ${on ? 'Ligado' : 'Desligado'}</h4>
+            <p>Geração atual: <b>${on ? GER_KW[obj.nivel] : 0} kW</b> (nível ${obj.nivel})</p>
+            <div class="metricas">
+              <div class="metrica"><div class="label">Nível</div><div class="valor">${obj.nivel} / 3</div></div>
+              <div class="metrica"><div class="label">Potência</div><div class="valor">${GER_KW[obj.nivel]} kW</div></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn" id="btn-toggle-ger">${on ? 'Desligar' : 'Ligar'}</button>
+            ${obj.nivel < 3 ? `<button class="btn btn-primario" id="btn-evo-ger">Evoluir (${CUSTO_EVOLUIR.gerador} 💰)</button>` : ''}
+            <button class="btn" data-fecha-modal>Fechar</button>
+          </div></div>`);
+        document.getElementById('btn-toggle-ger')?.addEventListener('click', () => {
+          on = !on; obj.on = on;
+          led.material.emissive.set(on ? 0x3dff7c : 0xff2a1a);
+          luz.intensity = on ? 1.2 : 0;
+          hud.toast(on ? `Gerador ligado — ${GER_KW[obj.nivel]} kW` : 'Gerador desligado');
+          Modal.fechar();
+        });
+        document.getElementById('btn-evo-ger')?.addEventListener('click', () => {
+          if (!pagar(inv, CUSTO_EVOLUIR.gerador)) return;
+          obj.nivel++;
+          aplicarVisualEvolucao(g, obj.nivel, 'gerador');
+          hud.toast(`Gerador evoluído para nível ${obj.nivel}! Agora gera ${GER_KW[obj.nivel]} kW`);
+          Modal.fechar();
+        });
+      };
+      l.kw = () => (on ? GER_KW[obj.nivel] : 0);
+      addColisor(l.x - 1.6, l.z - .9, l.x + 1.6, l.z + .9);
+      criarCabo(scene, rota(l), () => on);
+      ATUALIZAVEIS.push(dt => {
+        t += dt; corpo.position.y = 1 + (on ? Math.sin(t * 60) * .01 : 0);
+        fum.forEach(s => {
+          s.f.visible = on; if (!on) return;
+          s.t = (s.t + dt) % 3; const k = s.t / 3;
+          s.f.position.set(1 + k * .8, 2.9 + k * 3, 0); s.f.scale.setScalar(.6 + k * 2); s.f.material.opacity = .5 * (1 - k);
+        });
+      });
+      aplicarVisualEvolucao(g, 1, 'gerador');
+      hud.toast('Gerador instalado — aperte F para ligar / evoluir');
+    });
+  }
+
+  // Contador de geração + lotes no canto da tela
+  const kwEl = document.createElement('div');
+  kwEl.style.cssText = 'position:fixed;top:20px;left:20px;z-index:6;font:600 12px "Segoe UI",sans-serif;letter-spacing:.08em;color:#ffd77a;background:rgba(14,22,18,.92);border:1px solid rgba(255,255,255,.08);padding:7px 12px;border-radius:4px;pointer-events:none';
+  document.body.appendChild(kwEl);
+  let ultKw = '';
+  ATUALIZAVEIS.push(() => {
+    const t = `⚡ ${energiaTotal()} kW · 🏗 Lotes ${lotesComprados()}/${LIMITE_LOTES}`;
+    if (t !== ultKw) kwEl.textContent = ultKw = t;
+  });
+
+  revelar(2, 0);   // primeiro lote à venda (meio); os vizinhos aparecem conforme você compra
+  return { lotes };
+}
+
+/* =========================================================
+   LOTE DE EXPANSÃO (ao lado do data center)
+========================================================= */
+function criarLoteExpansao(scene, galpao, racks, inventario, hud, offsetX, nome) {
+  const lote = {
+    group: new THREE.Group(),
+    lx: galpao.px + offsetX,
+    lz: galpao.pz,
+    comprado: false
+  };
+  scene.add(lote.group);
+  
+  const loteW = 10, loteD = 22;
+  
+  // Piso do lote
+  const piso = new THREE.Mesh(new THREE.BoxGeometry(loteW, .08, loteD), new THREE.MeshStandardMaterial({ color: 0xb0aaa0, roughness: 1 }));
+  piso.position.set(lote.lx, .04, lote.lz); piso.receiveShadow = true;
+  lote.group.add(piso);
+  
+  // Marco de lote (placa à venda)
+  const placaVenda = new THREE.Group();
+  placaVenda.position.set(lote.lx, 0, lote.lz + loteD/2 + 1.5);
+  lote.group.add(placaVenda);
+  
+  const postePlaca = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 2.2, 8), new THREE.MeshStandardMaterial({color: 0x5c4033}));
+  postePlaca.position.y = 1.1; placaVenda.add(postePlaca);
+  const tabuleta = new THREE.Mesh(new THREE.BoxGeometry(1.5, .8, .08), new THREE.MeshStandardMaterial({color: 0xfef3c7}));
+  tabuleta.position.y = 1.9; placaVenda.add(tabuleta);
+  const matTexto = new THREE.MeshStandardMaterial({ color: 0x7d3525 });
+  for (let i = 0; i < 4; i++) {
+    const letra = new THREE.Mesh(new THREE.BoxGeometry(.18, .3, .02), matTexto);
+    letra.position.set(-0.45 + i * 0.3, 1.95, 0.05);
+    placaVenda.add(letra);
+  }
+  
+  tabuleta.userData.interagir = () => {
+    if (lote.comprado) { hud.toast('Lote já comprado.'); return; }
+    const dinheiro = inventario.procurarItem(it => it.tipo === 'dinheiro');
+    if (!dinheiro) {
+      Modal.abrir(ModalTemplates.lote(nome, '220 m²', PRECOS.lote));
+      const btn = document.getElementById('btn-confirmar-lote');
+      if (btn) btn.addEventListener('click', () => comprarLote());
+      return;
+    }
+    comprarLote();
+  };
+  tabuleta.userData.rotulo = `Comprar ${nome} (1 💰)`;
+  
+  function comprarLote() {
+    const dinheiro = inventario.procurarItem(it => it.tipo === 'dinheiro');
+    if (!dinheiro) { hud.toast('Dinheiro insuficiente!'); Modal.fechar(); return; }
+    inventario.removerItem(it => it === dinheiro);
+    lote.comprado = true;
+    hud.toast(`${nome} comprado! Expandindo...`);
+    Modal.fechar();
+    
+    expandirGalpao(galpao, scene, racks, inventario, hud);
+    lote.group.remove(placaVenda);
+    if (galpao.expansoes < 4) criarLoteExpansao(scene, galpao, racks, inventario, hud, galpao.xDir + 5, `Expansão Leste ${galpao.expansoes + 1}`);
+  }
+  
+  return lote;
+}
+
+/* =========================================================
+   PLAYER
+========================================================= */
+class Player {
+  constructor(camera, dom) {
+    this.camera = camera; this.dom = dom;
+    this.pos = { x: 3, y: 0, z: 5 };  // Posição inicial - na rua, entre casa e galpão
+    this.vel = new THREE.Vector3(); this.yaw = Math.PI; this.pitch = 0;
+    this.bob = 0; this.bobAmp = 0; this.teclas = {};
+    this.gravidade = new Gravidade();
+    addEventListener('keydown', e => { this.teclas[e.code] = true; if(e.code==='Space') e.preventDefault(); });
+    addEventListener('keyup', e => { this.teclas[e.code] = false; });
+    addEventListener('mousemove', e => {
+      if (document.pointerLockElement !== this.dom) return;
+      this.yaw -= e.movementX * CONFIG.sensibilidade;
+      this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch - e.movementY * CONFIG.sensibilidade));
+    });
+  }
+  atualizar(dt) {
+    const travado = document.pointerLockElement === this.dom;
+    let afrente = 0, lado = 0;
+    if (travado) {
+      if (this.teclas.KeyW) afrente += 1; if (this.teclas.KeyS) afrente -= 1;
+      if (this.teclas.KeyD) lado += 1; if (this.teclas.KeyA) lado -= 1;
+      if (this.teclas.Space) this.gravidade.pular();
+    }
+    const correndo = this.teclas.ShiftLeft || this.teclas.ShiftRight;
+    const velocidade = correndo ? CONFIG.velocidadeCorrida : CONFIG.velocidade;
+    const fx = -Math.sin(this.yaw), fz = -Math.cos(this.yaw);
+    const rx = Math.cos(this.yaw), rz = -Math.sin(this.yaw);
+    let dx = fx * afrente + rx * lado, dz = fz * afrente + rz * lado;
+    const tam = Math.hypot(dx, dz);
+    if (tam > 0) { dx /= tam; dz /= tam; }
+    this.vel.x += (dx * velocidade - this.vel.x) * Math.min(1, dt * 10);
+    this.vel.z += (dz * velocidade - this.vel.z) * Math.min(1, dt * 10);
+    this.pos.x += this.vel.x * dt; this.pos.z += this.vel.z * dt;
+    resolverColisoes(this.pos, CONFIG.raioJogador);
+    const d = Math.hypot(this.pos.x, this.pos.z);
+    if (d > CONFIG.raioMundo - 3) { this.pos.x *= (CONFIG.raioMundo-3)/d; this.pos.z *= (CONFIG.raioMundo-3)/d; }
+    this.gravidade.atualizar(dt, this.pos);
+    const agora = Math.hypot(this.vel.x, this.vel.z);
+    const movendo = agora > .4 && this.gravidade.noChao;
+    this.bobAmp += ((movendo ? 1 : 0) - this.bobAmp) * Math.min(1, dt * 8);
+    this.bob += agora * dt;
+    const balanco = Math.sin(this.bob * 3.2) * .045 * this.bobAmp;
+    if (this.camY === undefined) this.camY = this.pos.y;
+    if (this.gravidade.noChao) this.camY += (this.pos.y - this.camY) * Math.min(1, dt * 18);   // suaviza degraus
+    else this.camY = this.pos.y;
+    this.camera.position.set(this.pos.x, this.camY + CONFIG.alturaOlhos + balanco, this.pos.z);
+    this.camera.rotation.set(this.pitch, this.yaw, 0);
+  }
+}
+
+
+/* =========================================================
+   HOTBAR + ITEM NA MÃO (estilo Minecraft)
+   - 9 slots, teclas 1-9
+   - itemAtual = item do slot selecionado (ou null)
+   - Clique no inventário equipa no slot ativo
+   - Modelo 3D do item aparece na mão (filho da câmera)
+========================================================= */
+let itemAtual = null;   // { tipo, nome, qtd, ... } | null
+const HOTBAR_SIZE = 9;
+let hotbarSlots = new Array(HOTBAR_SIZE).fill(null);  // refs para itens do inventário (por tipo)
+let hotbarIndex = 0;
+
+function criarModeloMao(tipo) {
+  const g = new THREE.Group();
+  const mat = (c, extra = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .55, metalness: .3, ...extra });
+  if (tipo === 'painel') {
+    const p = new THREE.Mesh(new THREE.BoxGeometry(.35, .02, .28), mat(0x1a2744, { emissive: 0x0a1525, emissiveIntensity: .4 }));
+    p.rotation.x = -.4; g.add(p);
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(.04, .12, .04), mat(0x3a3d44)));
+  } else if (tipo === 'turbina') {
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(.025, .04, .45, 8), mat(0xf2f4f5)));
+    const rotor = new THREE.Group(); rotor.position.y = .28;
+    for (let i = 0; i < 3; i++) {
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(.04, .22, .01), mat(0xffffff));
+      blade.position.y = .12; const arm = new THREE.Group(); arm.rotation.z = i * 2 * Math.PI / 3; arm.add(blade); rotor.add(arm);
+    }
+    g.add(rotor);
+    g.userData._rotor = rotor;
+  } else if (tipo === 'gerador') {
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(.28, .18, .2), mat(0xd98e04)));
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(.3, .04, .22), mat(0x2a2d33)));
+  } else if (tipo === 'rack') {
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(.18, .4, .16), mat(0x1a1d24, { metalness: .55 })));
+  } else if (tipo === 'cooler') {
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(.11, .12, .1, 14), mat(0x4a5058, { metalness: .6 })));
+    const rotor = new THREE.Group(); rotor.position.y = .08;
+    for (let i = 0; i < 5; i++) {
+      const arm = new THREE.Group(); arm.rotation.y = i / 5 * Math.PI * 2;
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(.1, .012, .035), mat(0xc8ccd0));
+      blade.position.x = .06; arm.add(blade); rotor.add(arm);
+    }
+    g.add(rotor);
+    g.userData._rotorY = rotor;
+  } else if (tipo === 'baia') {
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(.22, .08, .2), mat(0x0f1218, { metalness: .45 })));
+    const led = new THREE.Mesh(new THREE.BoxGeometry(.03, .03, .01), mat(0x0c2b18, { emissive: 0x3dff7c, emissiveIntensity: 1.4 }));
+    led.position.set(-.06, .02, .11); g.add(led);
+  } else if (tipo === 'dinheiro') {
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(.1, .1, .02, 16), mat(0xd4af37, { metalness: .7, roughness: .3 })));
+  } else if (tipo === 'chave') {
+    const k = new THREE.Mesh(new THREE.TorusGeometry(.06, .015, 8, 12), mat(0xc0c4c8, { metalness: .8 }));
+    k.rotation.x = Math.PI / 2; g.add(k);
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(.04, .02, .14), mat(0xc0c4c8, { metalness: .8 })));
+  } else {
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(.15, .15, .15), mat(0x888888)));
+  }
+  return g;
+}
+
+function criarHotbar({ camera, inventario }) {
+  const el = document.getElementById('hotbar');
+  const mao = new THREE.Group();   // item na mão
+  mao.position.set(0.32, -0.28, -0.55);
+  mao.rotation.set(0.15, -0.4, 0.1);
+  camera.add(mao);
+  // precisa que a câmera esteja na scene (já está via player)
+
+  let maoMesh = null;
+  let maoTipo = null;
+
+  function redesenharHotbar() {
+    el.innerHTML = '';
+    for (let i = 0; i < HOTBAR_SIZE; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'hot-slot' + (i === hotbarIndex ? ' ativo' : '');
+      const item = hotbarSlots[i];
+      let inner = `<span class="num">${i + 1}</span>`;
+      if (item) {
+        inner += item.icone || '';
+        if (item.qtd > 1) inner += `<span class="count">${item.qtd}</span>`;
+      }
+      slot.innerHTML = inner;
+      slot.addEventListener('click', () => { selecionarSlot(i); });
+      el.appendChild(slot);
+    }
+    atualizarItemAtual();
+  }
+
+  function atualizarItemAtual() {
+    const s = hotbarSlots[hotbarIndex];
+    itemAtual = s ? { ...s } : null;
+    // modelo na mão
+    const tipo = itemAtual ? itemAtual.tipo : null;
+    if (tipo !== maoTipo) {
+      if (maoMesh) { mao.remove(maoMesh); maoMesh = null; }
+      maoTipo = tipo;
+      if (tipo) {
+        maoMesh = criarModeloMao(tipo);
+        maoMesh.scale.setScalar(0.9);
+        mao.add(maoMesh);
+      }
+    }
+  }
+
+  function selecionarSlot(i) {
+    hotbarIndex = Math.max(0, Math.min(HOTBAR_SIZE - 1, i));
+    redesenharHotbar();
+  }
+
+  /** Equipa um item (do inventário) no slot atual da hotbar */
+  function equipar(item) {
+    if (!item) return;
+    // sincroniza qtd com inventário
+    const qtd = inventario.contar(it => it.tipo === item.tipo);
+    if (qtd <= 0) {
+      hotbarSlots[hotbarIndex] = null;
+    } else {
+      hotbarSlots[hotbarIndex] = { ...ITENS[item.tipo], tipo: item.tipo, qtd };
+    }
+    redesenharHotbar();
+  }
+
+  /** Atualiza contagens da hotbar a partir do inventário (após comprar/gastar) */
+  function sincronizar() {
+    for (let i = 0; i < HOTBAR_SIZE; i++) {
+      const s = hotbarSlots[i];
+      if (!s) continue;
+      const qtd = inventario.contar(it => it.tipo === s.tipo);
+      if (qtd <= 0) hotbarSlots[i] = null;
+      else hotbarSlots[i] = { ...s, qtd };
+    }
+    redesenharHotbar();
+  }
+
+  // teclas 1-9
+  addEventListener('keydown', e => {
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 9) {
+      selecionarSlot(n - 1);
+    }
+  });
+
+  // scroll do mouse muda slot
+  addEventListener('wheel', e => {
+    if (!document.pointerLockElement) return;
+    if (e.deltaY > 0) selecionarSlot((hotbarIndex + 1) % HOTBAR_SIZE);
+    else selecionarSlot((hotbarIndex + HOTBAR_SIZE - 1) % HOTBAR_SIZE);
+  }, { passive: true });
+
+  // animação leve do item na mão
+  ATUALIZAVEIS.push(dt => {
+    if (maoMesh) {
+      maoMesh.rotation.y += dt * 0.6;
+      if (maoMesh.userData._rotor) maoMesh.userData._rotor.rotation.z -= dt * 3;
+      if (maoMesh.userData._rotorY) maoMesh.userData._rotorY.rotation.y -= dt * 6;
+      // bob suave
+      const t = performance.now() / 1000;
+      mao.position.y = -0.28 + Math.sin(t * 2.2) * 0.008;
+    }
+  });
+
+  // preenche hotbar inicial com primeiros itens do inventário
+  function bootstrap() {
+    const tipos = ['painel', 'turbina', 'gerador', 'rack', 'baia', 'cooler', 'dinheiro', 'chave'];
+    let slot = 0;
+    for (const t of tipos) {
+      if (slot >= HOTBAR_SIZE) break;
+      const qtd = inventario.contar(it => it.tipo === t);
+      if (qtd > 0) {
+        hotbarSlots[slot] = { ...ITENS[t], tipo: t, qtd };
+        slot++;
+      }
+    }
+    redesenharHotbar();
+  }
+
+  redesenharHotbar();
+  return { redesenharHotbar, selecionarSlot, equipar, sincronizar, bootstrap, get index() { return hotbarIndex; } };
+}
+
+
+/* =========================================================
+   HUD
+========================================================= */
+function criarHUD() {
+  const prompt = document.getElementById('prompt'), toast = document.getElementById('toast');
+  let toastTimer = 0;
+  return {
+    setModo(modo) { document.body.classList.toggle('jogando', modo === 'jogando'); if (modo !== 'jogando') prompt.classList.remove('visivel'); },
+    setPrompt(texto) { prompt.innerHTML = texto ? `<b>[F]</b> ${texto}` : ''; prompt.classList.toggle('visivel', !!texto); },
+    toast(msg) {
+      toast.textContent = msg; toast.classList.remove('visivel'); void toast.offsetWidth; toast.classList.add('visivel');
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('visivel'), 2800);
+    }
+  };
+}
+
+/* =========================================================
+   INVENTÁRIO (itens empilháveis)
+========================================================= */
+function criarInventario({ canvas, aoAbrir, aoFechar }) {
+  const painel = document.getElementById('inventario'), grade = painel.querySelector('.grade'), infoBar = painel.querySelector('.info-bar');
+  const TOTAL_SLOTS = 24;
+  const slots = new Array(TOTAL_SLOTS).fill(null);
+  [['dinheiro', 12], ['baia', 4], ['painel', 6], ['turbina', 2], ['gerador', 1], ['rack', 2], ['cooler', 2], ['chave', 1]]
+    .forEach(([tipo, qtd], i) => slots[i] = { ...ITENS[tipo], tipo, qtd });
+
+  let aberto = false, selecionado = -1;
+
+  function redesenhar() {
+    grade.innerHTML = '';
+    for (let i = 0; i < TOTAL_SLOTS; i++) {
+      const item = slots[i], slot = document.createElement('button');
+      slot.className = 'slot' + (i === selecionado && item ? ' ativo' : '');
+      if (item) slot.innerHTML = item.icone + (item.qtd > 1 ? `<span class="count">${item.qtd}</span>` : '');
+      slot.addEventListener('click', () => {
+        selecionado = item ? i : -1; redesenhar();
+        infoBar.innerHTML = item ? `<b>${item.nome}</b> ×${item.qtd} — ${item.desc}` : 'Slot vazio.';
+        // equipa no slot ativo da hotbar
+        if (item && window._hotbar) {
+          window._hotbar.equipar(item);
+          infoBar.innerHTML += ` <span style="opacity:.6">· equipado no slot ${window._hotbar.index + 1}</span>`;
+        }
+      });
+      grade.appendChild(slot);
+    }
+  }
+  redesenhar();
+
+  const adicionarItem = (item) => {
+    const q = item.qtd || 1, pilha = slots.find(it => it && it.tipo === item.tipo);
+    if (pilha) pilha.qtd += q;
+    else { const i = slots.indexOf(null); if (i === -1) return false; slots[i] = { ...item, qtd: q }; }
+    redesenhar(); if (window._hotbar) window._hotbar.sincronizar(); return true;
+  };
+  const procurarItem = (fn) => slots.find(it => it && fn(it)) || null;
+  const removerItem = (fn) => {            // remove UMA unidade do primeiro item que combinar
+    const i = slots.findIndex(it => it && fn(it)); if (i === -1) return false;
+    if (--slots[i].qtd <= 0) { slots[i] = null; if (selecionado === i) selecionado = -1; }
+    redesenhar(); if (window._hotbar) window._hotbar.sincronizar(); return true;
+  };
+  const contar = (fn) => slots.reduce((s, it) => s + (it && fn(it) ? it.qtd : 0), 0);
+
+  function abrir() { if (aberto) return; aberto = true; painel.classList.remove('oculto'); document.exitPointerLock(); aoAbrir(); }
+  function fechar() { if (!aberto) return; aberto = false; painel.classList.add('oculto'); aoFechar(); canvas.requestPointerLock(); }
+  document.getElementById('btn-fechar-inv').addEventListener('click', fechar);
+  painel.addEventListener('click', e => { if (e.target === painel) fechar(); });
+  addEventListener('keydown', e => {
+    if (e.code === 'KeyE' || e.code === 'Tab') { e.preventDefault(); if (!aberto && document.pointerLockElement === canvas) abrir(); else if (aberto) fechar(); }
+    else if (aberto && e.code === 'Escape') fechar();
+  });
+  return { abrir, fechar, adicionarItem, procurarItem, removerItem, contar, get aberto() { return aberto; } };
+}
+
+/* =========================================================
+   INTERAÇÃO (raycast)
+========================================================= */
+function criarInteracao({ camera, scene, hud }) {
+  const ray = new THREE.Raycaster(); ray.far = 5.0;
+  const centro = new THREE.Vector2(0, 0); let alvo = null, ultRot = null;
+  // rotulo pode ser texto ou função (ex.: "Abrir Portão" / "Fechar Portão")
+  const rotuloDe = o => !o ? null : (typeof o.userData.rotulo === 'function' ? o.userData.rotulo() : o.userData.rotulo);
+  addEventListener('keydown', e => {
+    if (e.code === 'KeyF' && alvo && document.pointerLockElement) {
+      alvo.userData.interagir();
+    }
+  });
+  return {
+    atualizar() {
+      if (!document.pointerLockElement) { if (alvo) { alvo = null; ultRot = null; hud.setPrompt(null); } return; }
+      ray.setFromCamera(centro, camera);
+      const hits = ray.intersectObjects(scene.children, true);
+      let novo = null;
+      const hit = hits.find(h => { let o = h.object; while (o) { if (!o.visible) return false; o = o.parent; } return true; });
+      if (hit) { let o = hit.object; while (o && !o.userData.interagir) o = o.parent; novo = o; }
+      const rot = rotuloDe(novo);
+      if (novo !== alvo || rot !== ultRot) { alvo = novo; ultRot = rot; hud.setPrompt(rot); }
+    }
+  };
+}
+
+/* =========================================================
+   MAIN
+========================================================= */
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 400);
+camera.rotation.order = 'YXZ';
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight); 
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true; 
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+const rendererDom = renderer.domElement;
+
+const terreno = criarTerreno(scene);
+const rua = criarRua(scene);
+const casa = criarCasa(scene);
+const galpao = criarGalpao(scene, 18, -18);  // Sul da rua
+const player = new Player(camera, renderer.domElement);
+const hud = criarHUD();
+let modo = 'menu', menu, inventario;
+
+menu = {
+  mostrar: () => document.getElementById('overlay').classList.remove('oculto'),
+  esconder: () => document.getElementById('overlay').classList.add('oculto')
+};
+document.getElementById('overlay').addEventListener('click', () => rendererDom.requestPointerLock());
+document.addEventListener('pointerlockchange', () => {
+  if (document.pointerLockElement === rendererDom) { 
+    if (modo === 'menu' || modo === 'jogando') {
+      modo = 'jogando'; hud.setModo('jogando'); menu.esconder(); 
+    }
+  } else { 
+    if (modo === 'jogando') { modo = 'menu'; hud.setModo('menu'); menu.mostrar(); } 
+  }
+});
+
+inventario = criarInventario({
+  canvas: rendererDom,
+  aoAbrir: () => { modo = 'inventario'; hud.setModo('menu'); menu.esconder(); },
+  aoFechar: () => { modo = 'jogando'; hud.setModo('jogando'); }
+});
+
+// Hotbar + item na mão (precisa da câmera e do inventário)
+const hotbar = criarHotbar({ camera, inventario });
+window._hotbar = hotbar;
+hotbar.bootstrap();
+
+// Racks em fila no galpão (espaçados adequadamente, longe do escritório)
+const racks = [];
+const posicoesRacks = [
+  new THREE.Vector3(galpao.px + 0, .3, galpao.pz - 1.5),
+  new THREE.Vector3(galpao.px + 2.6, .3, galpao.pz - 1.5),
+  new THREE.Vector3(galpao.px + 5.2, .3, galpao.pz - 1.5),
+  new THREE.Vector3(galpao.px + 7.8, .3, galpao.pz - 1.5)
+];
+posicoesRacks.forEach((pos, i) => {
+  racks.push(criarRack({ scene, posicao: pos, inventario, hud, nomeBase: `Rack ${String.fromCharCode(65+i)}` }));
+});
+
+// Distrito de energia (norte da rua) — 20 lotes reservados
+const distrito = criarDistritoEnergia(scene, inventario, hud);
+
+// Lote de expansão (à direita do galpão)
+const loteExpansao1 = criarLoteExpansao(scene, galpao, racks, inventario, hud, galpao.xDir + 5, 'Expansão Leste');
+
+const interacao = criarInteracao({ camera, scene, hud });
+
+const relogio = new THREE.Clock();
+function animar() {
+  requestAnimationFrame(animar);
+  const dt = Math.min(relogio.getDelta(), 0.05);
+  player.atualizar(dt);
+  terreno.atualizar(dt);
+  casa.atualizar(dt);
+  galpao.atualizar(dt);
+  for (const r of racks) r.atualizar(dt);
+  ATUALIZAVEIS.forEach(f => f(dt));
+  interacao.atualizar();
+  renderer.render(scene, camera);
+}
+animar();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+  </script>
+</body>
+</html>
