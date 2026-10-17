@@ -2987,6 +2987,36 @@ function rackTex(chave, w, h, desenhar, repetir) {
   return RACK_TEX[chave];
 }
 
+/* PATCH-API-REMOVER-RACK: fetch genérico (POST/GET/PUT/DELETE) com CSRF do Django */
+const API = { removerRack: '/server/api/rack/remove/', instalarRack: '/server/api/rack/install/' };
+/* PATCH-API-INSTALAR-RACK: racks do Django ainda não instalados (fila) */
+const RACKS_INSTALAVEIS = (typeof data !== 'undefined' && data && Array.isArray(data.inventory_racks))
+  ? data.inventory_racks.slice() : [];
+async function apiFetch(url, { method = 'POST', data = null } = {}) {
+  const m = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/);
+  const campo = document.querySelector('[name=csrfmiddlewaretoken]');
+  const csrf = m ? decodeURIComponent(m[1]) : (campo ? campo.value : '');
+  const opts = {
+    method,
+    credentials: 'same-origin',
+    headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' }
+  };
+  let alvo = url;
+  if (data) {
+    const params = new URLSearchParams(data);
+    if (method === 'GET') alvo += (url.includes('?') ? '&' : '?') + params.toString();
+    else opts.body = params;      // application/x-www-form-urlencoded -> request.POST
+  }
+  try {
+    const r = await fetch(alvo, opts);
+    let json = null;
+    try { json = await r.json(); } catch (e) {}
+    return { ok: r.ok, status: r.status, data: json };
+  } catch (e) {
+    return { ok: false, status: 0, data: null };
+  }
+}
+
 function criarRack({ scene, posicao, inventario, hud, nomeBase, aoRemover }) {
   const COLS_BAIA = 3, LINHAS_BAIA = 5, NUM = COLS_BAIA * LINHAS_BAIA, LARG_BAIA = .5;
   const ALT = 0.5;
@@ -3170,6 +3200,7 @@ function criarRack({ scene, posicao, inventario, hud, nomeBase, aoRemover }) {
   let t = 0;
   const obj = {
     contarBaias() { return baias.filter(Boolean).length; },
+    indicesBaias() { return baias.map((b, i) => b ? i : -1).filter(i => i >= 0); },
     instalarBaiaDireto(i) { instalarBaia(i, true); },
     nomeBase,
     atualizar(dt) {
@@ -3184,14 +3215,29 @@ function criarRack({ scene, posicao, inventario, hud, nomeBase, aoRemover }) {
       matLedAmbar.emissiveIntensity = Math.sin(t * 13) * Math.sin(t * 7.3) > .2 ? 1.6 : .15;
       ventoinhas.forEach(v => { v.rotation.y -= dt * 9; });
     },
-    remover() {                                   // tira o rack inteiro (as baias instaladas também voltam)
+    async remover() {
+      if (obj._removendo) return;
+      if (obj.djangoId !== undefined && obj.djangoId !== null) {
+        obj._removendo = true;
+        const r = await apiFetch(API.removerRack, { data: { id: obj.djangoId } });
+        obj._removendo = false;
+        if (!r.ok) {
+          hud.toast((r.data && r.data.error) || `Não foi possível remover o rack (erro ${r.status || 'de rede'}).`);
+          return;
+        }
+      }
       const n = baias.filter(Boolean).length;
-      for (let k = 0; k < n; k++) inventario.adicionarItem({ ...ITENS.baia, tipo: 'baia', qtd: 1 });
       removerColisorPorId(idColisor);
       scene.remove(rack); liberar(rack);
       if (aoRemover) aoRemover();
-      inventario.adicionarItem({ ...ITENS.rack, tipo: 'rack', qtd: 1 });
-      hud.toast(`${nomeBase} removido — foi para o inventário` + (n ? ` (+${n} baias)` : ''));
+      const temId = obj.djangoId !== undefined && obj.djangoId !== null;
+      inventario.adicionarItem({
+        ...ITENS.rack, tipo: 'rack', qtd: 1,
+        nome: nomeBase, rackNome: nomeBase, baiasQtd: n, baiasIdx: obj.indicesBaias(),
+        ...(temId ? { djangoId: obj.djangoId } : {}),
+        desc: (temId ? `Rack do servidor (id ${obj.djangoId})` : 'Rack') + ` com ${n} baia(s). Instale nas marcações verdes do chão.`
+      });
+      hud.toast(`${nomeBase} removido — foi para o inventário` + (n ? ` (com ${n} baias)` : ''));
     }
   };
   rack.userData.remover = () => obj.remover();
@@ -3206,34 +3252,60 @@ function vagasRack(g, xs, zs, livre) {
 
 const MAT_MARCA_RACK = new THREE.MeshStandardMaterial({ color: 0x0c2b18, emissive: 0x3dff7c, emissiveIntensity: .7 });
 const VAGAS_RACK = [];
+const POSICAO_BASE = 1;   // se o servidor começa em 0, mude para 0
+let VAGA_SEQ = 0;
 function atualizarVagasRack() {
-  const ord = VAGAS_RACK.slice().sort((a, b) => Math.abs(a.z - b.z) > .01 ? a.z - b.z : a.x - b.x);
+  const ord = VAGAS_RACK.slice().sort((a, b) => a.pos - b.pos);
   ord.forEach((e, i) => { e.v.visible = e.marc.visible = (i === 0); });
 }
-function criarVagaRack(g, x, z) {
+function criarVagaRack(g, x, z, posFixa) {
+  const pos = posFixa !== undefined ? posFixa : (POSICAO_BASE + VAGA_SEQ++);
   const v = new THREE.Mesh(new THREE.BoxGeometry(1.84, .03, 1.34), new THREE.MeshBasicMaterial({ color: 0x3dff7c, transparent: true, opacity: .18, depthWrite: false }));
   v.position.set(x, .33, z); g.group.add(v);
   const marc = new THREE.Group(); g.group.add(marc);
   [[1.9, .06, 0, -.7], [1.9, .06, 0, .7], [.06, 1.4, -.95, 0], [.06, 1.4, .95, 0]].forEach(([w, d, dx, dz]) => {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, .02, d), MAT_MARCA_RACK); m.position.set(x + dx, .31, z + dz); marc.add(m);
   });
-  VAGAS_RACK.push({ x, z, v, marc }); atualizarVagasRack();
+  VAGAS_RACK.push({ x, z, v, marc, pos }); atualizarVagasRack();
   v.userData.rotulo = 'Instalar Rack';
-  v.userData.interagir = (gratis, nomeDjango) => {
-    if (gratis !== true) {
-      const it = inventario.procurarItem(i => i.tipo === 'rack');
-      if (!it) { hud.toast('Sem Rack no inventário — compre na Loja do terminal.'); return; }
-      inventario.removerItem(i => i === it);
-    }
+  const instalar = (nomeDjango) => {
     g.group.remove(v); liberar(v);
     { const k = VAGAS_RACK.findIndex(e => e.v === v); if (k >= 0) VAGAS_RACK.splice(k, 1); g.group.remove(marc); atualizarVagasRack(); }
     const obj = criarRack({
       scene, posicao: new THREE.Vector3(g.px + x, .3, g.pz + z), inventario, hud, nomeBase: (typeof nomeDjango === 'string' && nomeDjango) ? nomeDjango : proximoNomeRack(),
-      aoRemover: () => { const k = racks.indexOf(obj); if (k >= 0) racks.splice(k, 1); criarVagaRack(g, x, z); }
+      aoRemover: () => { const k = racks.indexOf(obj); if (k >= 0) racks.splice(k, 1); criarVagaRack(g, x, z, pos); }
     });
+    obj.position = pos;
     racks.push(obj);
     hud.toast('Rack instalado (vazio) — instale baias nele. Aperte G na mira para remover.');
     return obj;
+  };
+  /* PATCH-API-INSTALAR-RACK */
+  v.userData.interagir = (gratis, nomeDjango) => {
+    if (gratis === true) return instalar(nomeDjango);          // carga inicial vinda do Django
+    const it = inventario.procurarItem(i => i.tipo === 'rack');
+    if (!it) { hud.toast('Sem Rack no inventário — compre na Loja do terminal.'); return; }
+    if (v._instalando) return;
+    const idSrv = it.djangoId, nomeIt = it.rackNome, nBaias = it.baiasQtd || 0;
+    const idxBaias = Array.isArray(it.baiasIdx) ? it.baiasIdx : Array.from({ length: nBaias }, (_, k) => k);
+    const restaurarBaias = novo => idxBaias.forEach(k => novo.instalarBaiaDireto(k));
+    if (idSrv === undefined || idSrv === null) {               // rack local (sem id do servidor)
+      inventario.removerItem(i => i === it);
+      const novo = instalar(nomeIt);
+      if (novo) restaurarBaias(novo);
+      return novo;
+    }
+    v._instalando = true;
+    apiFetch(API.instalarRack, { data: { id: idSrv, position: pos } }).then(r => {
+      v._instalando = false;
+      if (!r.ok) {
+        hud.toast((r.data && r.data.error) || `Não foi possível instalar o rack (erro ${r.status || 'de rede'}).`);
+        return;
+      }
+      inventario.removerItem(i => i === it);
+      const novo = instalar(nomeIt);
+      if (novo) { novo.djangoId = idSrv; restaurarBaias(novo); }
+    });
   };
 }
 
@@ -4846,11 +4918,37 @@ function criarInventario({ canvas, aoAbrir, aoFechar }) {
   let saldo = DINHEIRO_INICIAL;      // dinheiro: só um número (aparece na navbar)
   let aberto = false, selecionado = null;
   const fmt = n => Number(n).toLocaleString('pt-BR');
-  const igual = (a, b) => a.tipo === b.tipo && (a.nivel || 1) === (b.nivel || 1);
+  const igual = (a, b) => a.tipo === b.tipo && (a.nivel || 1) === (b.nivel || 1) && (a.djangoId ?? null) === (b.djangoId ?? null);
   const sincHotbar = () => { if (window._hotbar) window._hotbar.sincronizar(); };
 
-  [['baia', 4], ['painel', 6], ['turbina', 2], ['gerador', 1], ['rack', 2], ['cooler', 2], ['chave', 1], ['ram', 1], ['ssd', 1], ['cpu', 1], ['gpu', 1]]
-    .forEach(([tipo, qtd]) => pilhas.push({ ...ITENS[tipo], tipo, qtd }));
+  /* inventário começa vazio e é preenchido por data.inventory_summary (servidor) */
+  {
+    const resumo = (typeof data !== 'undefined' && data && Array.isArray(data.inventory_summary)) ? data.inventory_summary : [];
+    const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const achaTipo = txt => Object.keys(ITENS).find(k => txt.includes(norm(ITENS[k].nome)) || txt.includes(k)) || null;
+    resumo.forEach(s => {
+      // 1) campo "tipo" do JSON  2) pelo NOME  3) pela descrição (só se o nome não bastar)
+      const tipo = (s.tipo && ITENS[s.tipo]) ? s.tipo : (achaTipo(norm(s.nome)) || achaTipo(norm(s.desc)));
+      if (!tipo) { console.warn('Item do servidor sem tipo reconhecido:', s); return; }
+      const base = ITENS[tipo];
+      const desc = s.desc || base.desc;
+      const item = {
+        ...base, tipo,
+        qtd: s.qtd || 1,
+        nivel: s.nivel || 1,
+        nome: s.nome || base.nome,
+        desc,
+        icone: s.icone || base.icone
+      };
+      if (tipo === 'rack') {
+        item.djangoId = s.id;                                   // id do rack no servidor
+        item.rackNome = s.nome || ('Rack ' + s.id);
+        item.baiasQtd = Number((String(desc).match(/(\d+)\s*baia/i) || [])[1] || 0);
+        item.qtd = 1;
+      }
+      pilhas.push(item);
+    });
+  }
 
   function pintarSaldo() {
     const t = fmt(saldo);
@@ -5105,19 +5203,33 @@ const interacao = criarInteracao({ camera, scene, hud });
 
 /* PATCH-DJANGO-RACKS: monta os racks e baias existentes vindos do Django */
 function carregarMundoDoDjango() {
-  const lista = (typeof data !== 'undefined' && data && Array.isArray(data.racks)) ? data.racks : [];
+  const lista = (typeof data !== 'undefined' && data && Array.isArray(data.racks)) ? data.racks.slice() : [];
   if (!lista.length) return;
+  const num = v => { const n = Number(v); return Number.isFinite(n) ? n : Infinity; };
+  lista.sort((a, b) => num(a.position) - num(b.position));          // 1, 2, 3...
   const toastOrig = hud.toast;
   hud.toast = () => {};                       // sem spam de avisos no carregamento
   try {
     lista.forEach(rd => {
-      const ord = VAGAS_RACK.slice().sort((a, b) => Math.abs(a.z - b.z) > .01 ? a.z - b.z : a.x - b.x);
-      const vaga = ord[0];
+      // vaga com a mesma position do rack; se não existir/estiver ocupada, usa a menor livre
+      let vaga = VAGAS_RACK.find(e => e.pos === Number(rd.position));
+      if (!vaga) vaga = VAGAS_RACK.slice().sort((a, b) => a.pos - b.pos)[0];
       if (!vaga) { console.warn('Sem vagas de rack livres para:', rd.name); return; }
       const obj = vaga.v.userData.interagir(true, rd.name || ('Rack ' + rd.id));
       if (!obj) return;
       obj.djangoId = rd.id;
-      (rd.bays || []).slice(0, 15).forEach((b, i) => obj.instalarBaiaDireto(i));
+      // baias em ordem de position, cada uma no slot da sua position
+      const usados = new Set();
+      (rd.bays || []).slice().sort((a, b) => num(a.position) - num(b.position)).forEach(b => {
+        let i = Number(b.position) - POSICAO_BASE;
+        if (!Number.isInteger(i) || i < 0 || i >= 15 || usados.has(i)) {
+          i = -1;
+          for (let k = 0; k < 15; k++) if (!usados.has(k)) { i = k; break; }
+        }
+        if (i < 0) return;
+        usados.add(i);
+        obj.instalarBaiaDireto(i);
+      });
     });
   } finally {
     hud.toast = toastOrig;

@@ -1,125 +1,153 @@
 #!/usr/bin/env python3
 """
-Patch: carrega no mundo os racks e baias que vêm do Django (variável `data`).
-
-Uso:
-    python patch_carregar_racks.py caminho/do/template.html
-
-Cria um backup (.bak) e aplica o patch no próprio arquivo. É idempotente.
-Formato esperado de data:
-    {"racks": [{"id": 1, "name": "Rack 1", "bays": [{"id": 1, "status": false}]}]}
+Uso:  python posicao_racks.py index.html
+Saída: index_posicao.html
 """
-import re
-import shutil
 import sys
+from pathlib import Path
 
-MARCA = "PATCH-DJANGO-RACKS"
+if len(sys.argv) < 2:
+    sys.exit("Uso: python posicao_racks.py arquivo.html")
 
-
-def sub(texto, padrao, novo, nome):
-    r, n = re.subn(padrao, lambda m: novo, texto, count=1, flags=re.S)
-    if n != 1:
-        sys.exit(f"ERRO: trecho '{nome}' não encontrado. Patch NÃO aplicado.")
-    return r
+src = Path(sys.argv[1])
+html = src.read_text(encoding="utf-8").replace("\r\n", "\n")
 
 
-def main():
-    caminho = sys.argv[1] if len(sys.argv) > 1 else "mundozinho.html"
-    with open(caminho, encoding="utf-8") as f:
-        html = f.read()
+def trocar(texto, antigo, novo, nome):
+    if texto.count(antigo) != 1:
+        sys.exit(f"[ERRO] trecho '{nome}' não encontrado (ou duplicado). Nada foi gravado.")
+    print(f"[ok] {nome}")
+    return texto.replace(antigo, novo)
 
-    if MARCA in html:
-        sys.exit("Patch já aplicado neste arquivo.")
 
-    # 1) Vaga de rack: aceita instalação direta (sem gastar item) e nome vindo do Django
-    html = sub(
-        html,
-        r"v\.userData\.interagir = \(\) => \{\s*const it = inventario\.procurarItem\(i => i\.tipo === 'rack'\);\s*"
-        r"if \(!it\) \{[^}]*\}\s*inventario\.removerItem\(i => i === it\); g\.group\.remove\(v\); liberar\(v\);",
-        "v.userData.interagir = (gratis, nomeDjango) => {\n"
-        "    if (gratis !== true) {\n"
-        "      const it = inventario.procurarItem(i => i.tipo === 'rack');\n"
-        "      if (!it) { hud.toast('Sem Rack no inventário — compre na Loja do terminal.'); return; }\n"
-        "      inventario.removerItem(i => i === it);\n"
-        "    }\n"
-        "    g.group.remove(v); liberar(v);",
-        "vaga de rack (interagir)",
-    )
-    html = sub(
-        html,
-        r"nomeBase: proximoNomeRack\(\),",
-        "nomeBase: (typeof nomeDjango === 'string' && nomeDjango) ? nomeDjango : proximoNomeRack(),",
-        "nomeBase",
-    )
-    html = sub(
-        html,
-        r"hud\.toast\('Rack instalado \(vazio\) — instale baias nele\. Aperte G na mira para remover\.'\);",
-        "hud.toast('Rack instalado (vazio) — instale baias nele. Aperte G na mira para remover.');\n"
-        "    return obj;",
-        "retorno do rack",
-    )
+# 1) Cada vaga de rack ganha uma position fixa (1, 2, 3...) na ordem de criação.
+html = trocar(
+    html,
+    "const VAGAS_RACK = [];",
+    "const VAGAS_RACK = [];\n"
+    "const POSICAO_BASE = 1;   // se o servidor começa em 0, mude para 0\n"
+    "let VAGA_SEQ = 0;",
+    "constantes de position",
+)
 
-    # 2) Baia: instalação direta (sem item do inventário)
-    html = sub(
-        html,
-        r"function instalarBaia\(i\) \{\s*if \(baias\[i\]\) return;\s*"
-        r"const item = inventario\.procurarItem\(it => it\.tipo === 'baia'\);\s*"
-        r"if \(!item\) \{[^}]*\}\s*inventario\.removerItem\(it => it === item\);",
-        "function instalarBaia(i, gratis) {\n"
-        "    if (baias[i]) return;\n"
-        "    if (gratis !== true) {\n"
-        "      const item = inventario.procurarItem(it => it.tipo === 'baia');\n"
-        "      if (!item) { hud.toast('Sem baias no inventário.'); return; }\n"
-        "      inventario.removerItem(it => it === item);\n"
-        "    }",
-        "instalarBaia",
-    )
-    html = sub(
-        html,
-        r"contarBaias\(\) \{ return baias\.filter\(Boolean\)\.length; \},",
-        "contarBaias() { return baias.filter(Boolean).length; },\n"
-        "    instalarBaiaDireto(i) { instalarBaia(i, true); },\n"
-        "    nomeBase,",
-        "contarBaias",
-    )
+html = trocar(
+    html,
+    "function criarVagaRack(g, x, z) {",
+    "function criarVagaRack(g, x, z, posFixa) {\n"
+    "  const pos = posFixa !== undefined ? posFixa : (POSICAO_BASE + VAGA_SEQ++);",
+    "criarVagaRack com position",
+)
 
-    # 3) Carregador: roda uma vez ao iniciar o mundo
-    carregador = """const interacao = criarInteracao({ camera, scene, hud });
+html = trocar(
+    html,
+    "VAGAS_RACK.push({ x, z, v, marc }); atualizarVagasRack();",
+    "VAGAS_RACK.push({ x, z, v, marc, pos }); atualizarVagasRack();",
+    "vaga guarda position",
+)
 
-/* PATCH-DJANGO-RACKS: monta os racks e baias existentes vindos do Django */
-function carregarMundoDoDjango() {
-  const lista = (typeof data !== 'undefined' && data && Array.isArray(data.racks)) ? data.racks : [];
+# 2) A vaga visível é sempre a de menor position livre.
+html = trocar(
+    html,
+    """function atualizarVagasRack() {
+  const ord = VAGAS_RACK.slice().sort((a, b) => Math.abs(a.z - b.z) > .01 ? a.z - b.z : a.x - b.x);
+  ord.forEach((e, i) => { e.v.visible = e.marc.visible = (i === 0); });
+}""",
+    """function atualizarVagasRack() {
+  const ord = VAGAS_RACK.slice().sort((a, b) => a.pos - b.pos);
+  ord.forEach((e, i) => { e.v.visible = e.marc.visible = (i === 0); });
+}""",
+    "vaga visível por position",
+)
+
+# 3) Rack instalado sabe sua position; ao remover, a vaga volta com a mesma position.
+html = trocar(
+    html,
+    "aoRemover: () => { const k = racks.indexOf(obj); if (k >= 0) racks.splice(k, 1); criarVagaRack(g, x, z); }",
+    "aoRemover: () => { const k = racks.indexOf(obj); if (k >= 0) racks.splice(k, 1); criarVagaRack(g, x, z, pos); }",
+    "vaga volta com a mesma position",
+)
+
+html = trocar(
+    html,
+    "    racks.push(obj);",
+    "    obj.position = pos;\n    racks.push(obj);",
+    "rack guarda position",
+)
+
+# 4) Instalar rack: manda id + position.
+html = trocar(
+    html,
+    "apiFetch(API.instalarRack, { data: { id: idSrv } })",
+    "apiFetch(API.instalarRack, { data: { id: idSrv, position: pos } })",
+    "POST de instalar com position",
+)
+
+# 5) Baias: lembra quais slots estavam ocupados ao remover o rack (G) e restaura nos mesmos.
+html = trocar(
+    html,
+    "    contarBaias() { return baias.filter(Boolean).length; },",
+    "    contarBaias() { return baias.filter(Boolean).length; },\n"
+    "    indicesBaias() { return baias.map((b, i) => b ? i : -1).filter(i => i >= 0); },",
+    "indicesBaias",
+)
+
+html = trocar(
+    html,
+    "nome: nomeBase, rackNome: nomeBase, baiasQtd: n,",
+    "nome: nomeBase, rackNome: nomeBase, baiasQtd: n, baiasIdx: obj.indicesBaias(),",
+    "inventário guarda slots das baias",
+)
+
+html = trocar(
+    html,
+    "const restaurarBaias = novo => { for (let k = 0; k < nBaias; k++) novo.instalarBaiaDireto(k); };",
+    "const idxBaias = Array.isArray(it.baiasIdx) ? it.baiasIdx : Array.from({ length: nBaias }, (_, k) => k);\n"
+    "    const restaurarBaias = novo => idxBaias.forEach(k => novo.instalarBaiaDireto(k));",
+    "restaurar baias nos mesmos slots",
+)
+
+# 6) Load da página: racks em ordem de position, baias em ordem de position.
+ini = html.find("function carregarMundoDoDjango() {")
+fim = html.find("\ncarregarMundoDoDjango();", ini)
+if ini < 0 or fim < 0:
+    sys.exit("[ERRO] carregarMundoDoDjango não encontrada. Nada foi gravado.")
+
+nova = """function carregarMundoDoDjango() {
+  const lista = (typeof data !== 'undefined' && data && Array.isArray(data.racks)) ? data.racks.slice() : [];
   if (!lista.length) return;
+  const num = v => { const n = Number(v); return Number.isFinite(n) ? n : Infinity; };
+  lista.sort((a, b) => num(a.position) - num(b.position));          // 1, 2, 3...
   const toastOrig = hud.toast;
   hud.toast = () => {};                       // sem spam de avisos no carregamento
   try {
     lista.forEach(rd => {
-      const ord = VAGAS_RACK.slice().sort((a, b) => Math.abs(a.z - b.z) > .01 ? a.z - b.z : a.x - b.x);
-      const vaga = ord[0];
+      // vaga com a mesma position do rack; se não existir/estiver ocupada, usa a menor livre
+      let vaga = VAGAS_RACK.find(e => e.pos === Number(rd.position));
+      if (!vaga) vaga = VAGAS_RACK.slice().sort((a, b) => a.pos - b.pos)[0];
       if (!vaga) { console.warn('Sem vagas de rack livres para:', rd.name); return; }
       const obj = vaga.v.userData.interagir(true, rd.name || ('Rack ' + rd.id));
       if (!obj) return;
       obj.djangoId = rd.id;
-      (rd.bays || []).slice(0, 15).forEach((b, i) => obj.instalarBaiaDireto(i));
+      // baias em ordem de position, cada uma no slot da sua position
+      const usados = new Set();
+      (rd.bays || []).slice().sort((a, b) => num(a.position) - num(b.position)).forEach(b => {
+        let i = Number(b.position) - POSICAO_BASE;
+        if (!Number.isInteger(i) || i < 0 || i >= 15 || usados.has(i)) {
+          i = -1;
+          for (let k = 0; k < 15; k++) if (!usados.has(k)) { i = k; break; }
+        }
+        if (i < 0) return;
+        usados.add(i);
+        obj.instalarBaiaDireto(i);
+      });
     });
   } finally {
     hud.toast = toastOrig;
   }
-}
-carregarMundoDoDjango();
-"""
-    html = sub(
-        html,
-        r"const interacao = criarInteracao\(\{ camera, scene, hud \}\);",
-        carregador,
-        "criarInteracao",
-    )
+}"""
+html = html[:ini] + nova + html[fim:]
+print("[ok] load por position (racks e baias)")
 
-    shutil.copyfile(caminho, caminho + ".bak")
-    with open(caminho, "w", encoding="utf-8") as f:
-        f.write(html)
-    print(f"OK! Patch aplicado em {caminho} (backup: {caminho}.bak)")
-
-
-if __name__ == "__main__":
-    main()
+saida = src.with_name(src.stem + "_posicao" + src.suffix)
+saida.write_text(html, encoding="utf-8")
+print(f"\nPronto: {saida}")
