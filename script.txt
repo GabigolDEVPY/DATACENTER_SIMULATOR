@@ -1,0 +1,26 @@
+Preciso de um script Python executável localmente para corrigir um arquivo HTML conforme as alterações que vou fornecer abaixo.
+
+Requisitos:
+
+O script deve receber o caminho do arquivo HTML como argumento.
+
+Aplicar todas as correções solicitadas automaticamente.
+
+Preservar o restante do HTML, sem alterar partes não relacionadas.
+
+Gerar o HTML corrigido em um novo arquivo, sem sobrescrever o original.
+
+Incluir tratamento de erros e criar um backup do arquivo original, se necessário.
+
+Entregar o script completo, pronto para executar, sem dependências desnecessárias.
+
+Formato da resposta:
+
+Forneça o código Python completo.
+
+Informe apenas o comando necessário para executá-lo.
+
+Não explique o código, não apresente introduções, resumos ou sugestões desnecessárias.
+
+Correções solicitadas:
+[COLE AQUI A LISTA DE CORREÇÕES]

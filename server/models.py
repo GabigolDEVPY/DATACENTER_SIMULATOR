@@ -19,7 +19,8 @@ class Rack(models.Model):
 
 class Bay(models.Model):
     name = models.CharField(max_length=80, blank=False)
-    rack = models.ForeignKey(Rack, on_delete=models.CASCADE, related_name="bays")
+    rack = models.ForeignKey(Rack, on_delete=models.CASCADE, related_name="bays", null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bays")
     position = models.IntegerField(blank=False, null=False, default=0)
     is_selected = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)

@@ -4,23 +4,58 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mundozinho — Data Center Cidade</title>
+      <!-- Bootstrap -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <!-- Bootstrap Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+  />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  />
+
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     :root { 
-      --ink: #f4f1e6; 
-      --accent: #ffd77a; 
-      --accent-dim: #c9a960;
-      --bg-panel: rgba(14, 22, 18, 0.92); 
-      --bg-panel-soft: rgba(18, 28, 22, 0.75);
+      --ink: #c8d6e5; 
+      --accent: #00d4ff; 
+      --accent-dim: #0891b2;
+      --bg-panel: rgba(20, 26, 36, 0.96); 
+      --bg-panel-soft: rgba(11, 14, 20, 0.85);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; overflow: hidden; font-family: "Segoe UI", system-ui, sans-serif; background: #0a1410; }
+    html, body { height: 100%; overflow: hidden; font-family: "Inter", "Segoe UI", system-ui, sans-serif; background: #0b0e14; }
     canvas { display: block; }
 
     #mira {
       position: fixed; left: 50%; top: 50%;
       width: 4px; height: 4px; margin: -2px 0 0 -2px;
       border-radius: 50%; background: var(--accent);
-      box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 0 6px rgba(255,215,122,.4);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 0 6px rgba(0, 212, 255,.4);
       pointer-events: none; opacity: 0; transition: opacity .3s; z-index: 5;
     }
     body.jogando #mira { opacity: 1; }
@@ -29,7 +64,7 @@
       position: fixed; inset: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 24px; text-align: center;
-      background: radial-gradient(120% 120% at 50% 30%, rgba(14,26,20,.7), rgba(8,14,12,.95));
+      background: radial-gradient(120% 120% at 50% 30%, rgba(20,26,36,.7), rgba(11,14,20,.95));
       color: var(--ink); cursor: pointer; transition: opacity .45s; z-index: 10;
     }
     #overlay.oculto { opacity: 0; pointer-events: none; }
@@ -43,19 +78,19 @@
     #entrar {
       font-size: 12px; letter-spacing: .2em; text-transform: uppercase;
       padding: 11px 28px; border-radius: 4px; border: 1px solid var(--accent);
-      color: var(--accent); background: rgba(255, 215, 122, 0.05);
+      color: var(--accent); background: rgba(0, 212, 255, 0.05);
       animation: respira 2.2s ease-in-out infinite;
     }
     @keyframes respira {
-      0%,100% { box-shadow: 0 0 0 0 rgba(255,215,122,.3); }
-      50% { box-shadow: 0 0 0 10px rgba(255,215,122,0); }
+      0%,100% { box-shadow: 0 0 0 0 rgba(0, 212, 255,.3); }
+      50% { box-shadow: 0 0 0 10px rgba(0, 212, 255,0); }
     }
 
     /* ============ INVENTÁRIO ============ */
     #inventario {
       position: fixed; inset: 0;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(5, 10, 8, 0.75); backdrop-filter: blur(6px);
+      background: rgba(5, 7, 11, 0.78); backdrop-filter: blur(6px);
       transition: opacity .25s; z-index: 20;
     }
     #inventario.oculto { opacity: 0; pointer-events: none; }
@@ -63,20 +98,20 @@
       width: min(720px, 92vw);
       color: var(--ink);
       background: var(--bg-panel); 
-      border: 1px solid rgba(255,255,255,.08);
+      border: 1px solid #1e2633;
       border-radius: 6px; box-shadow: 0 24px 60px rgba(0,0,0,.7);
     }
     .painel-inv-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 14px 20px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
+      border-bottom: 1px solid #1e2633;
     }
     .painel-inv-header h2 {
       font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
       color: var(--accent); font-weight: 600;
     }
     .painel-inv-header .btn-fechar {
-      background: transparent; border: 1px solid rgba(255,255,255,.1);
+      background: transparent; border: 1px solid #2a3345;
       color: var(--ink); font-size: 11px; padding: 4px 10px; border-radius: 3px;
       cursor: pointer; transition: all .15s;
     }
@@ -90,14 +125,14 @@
       width: 64px; height: 64px; flex-shrink: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       background: rgba(255,255,255,.03); 
-      border: 1px solid rgba(255,255,255,.08);
+      border: 1px solid #1e2633;
       border-radius: 4px; cursor: pointer; transition: all .15s;
       position: relative;
     }
     .slot svg { width: 28px; height: 28px; stroke: var(--ink); stroke-width: 1.4; fill: none; }
-    .slot:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); transform: translateY(-1px); }
+    .slot:hover { background: rgba(255,255,255,.06); border-color: #2a3345; transform: translateY(-1px); }
     .slot.ativo {
-      border-color: var(--accent); background: rgba(255, 215, 122, 0.08);
+      border-color: var(--accent); background: rgba(0, 212, 255, 0.08);
       box-shadow: inset 0 0 0 1px var(--accent);
     }
     .slot.ativo svg { stroke: var(--accent); }
@@ -108,14 +143,14 @@
     .info-bar { 
       padding: 12px 20px; font-size: 12px; min-height: 1.4em; 
       opacity: .85; color: var(--ink);
-      border-top: 1px solid rgba(255,255,255,.05);
+      border-top: 1px solid #1e2633;
       background: rgba(0,0,0,.15);
     }
     .info-bar b { color: var(--accent); margin-right: 6px; }
     .painel-inv small {
       display: block; padding: 8px 20px; font-size: 10px;
       opacity: .4; letter-spacing: .05em;
-      border-top: 1px solid rgba(255,255,255,.03);
+      border-top: 1px solid #1e2633;
     }
     .painel-inv small b { color: var(--accent-dim); }
 
@@ -136,7 +171,7 @@
     #toast {
       position: fixed; top: 24px; left: 50%;
       transform: translate(-50%,-10px);
-      font-size: 12px; font-weight: 600; color: #10231a;
+      font-size: 12px; font-weight: 600; color: #0b0e14;
       background: var(--accent); padding: 9px 18px; border-radius: 3px;
       box-shadow: 0 8px 24px rgba(0,0,0,.5);
       opacity: 0; transition: .25s; pointer-events: none; z-index: 30;
@@ -148,7 +183,7 @@
     #modal-root {
       position: fixed; inset: 0;
       display: none; align-items: center; justify-content: center;
-      background: rgba(3, 6, 5, 0.7); backdrop-filter: blur(8px);
+      background: rgba(3, 5, 8, 0.72); backdrop-filter: blur(8px);
       z-index: 50;
       animation: modalFade .25s ease-out;
     }
@@ -159,7 +194,7 @@
     .modal {
       width: min(520px, 92vw);
       background: var(--bg-panel);
-      border: 1px solid rgba(255,255,255,.08);
+      border: 1px solid #1e2633;
       border-radius: 6px;
       box-shadow: 0 30px 80px rgba(0,0,0,.7);
       overflow: hidden;
@@ -172,7 +207,7 @@
     .modal-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 14px 20px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
+      border-bottom: 1px solid #1e2633;
       background: rgba(0,0,0,.2);
     }
     .modal-header h3 {
@@ -200,7 +235,7 @@
       margin: 14px 0;
     }
     .modal-body .metrica {
-      background: rgba(0,0,0,.25); border: 1px solid rgba(255,255,255,.05);
+      background: rgba(0,0,0,.25); border: 1px solid #1e2633;
       padding: 10px 12px; border-radius: 4px;
     }
     .modal-body .metrica .label {
@@ -212,21 +247,21 @@
     }
     .modal-footer {
       display: flex; gap: 8px; padding: 14px 20px;
-      border-top: 1px solid rgba(255,255,255,.06);
+      border-top: 1px solid #1e2633;
       background: rgba(0,0,0,.15);
     }
     .btn {
-      background: transparent; border: 1px solid rgba(255,255,255,.15);
+      background: transparent; border: 1px solid #2a3345;
       color: var(--ink); padding: 8px 14px; border-radius: 3px;
       font-size: 12px; letter-spacing: .04em; cursor: pointer;
       transition: all .15s; font-family: inherit;
     }
     .btn:hover { border-color: var(--accent); color: var(--accent); }
     .btn-primario {
-      background: var(--accent); color: #10231a; border-color: var(--accent);
+      background: var(--accent); color: #0b0e14; border-color: var(--accent);
       font-weight: 600;
     }
-    .btn-primario:hover { background: #ffe594; color: #10231a; border-color: #ffe594; }
+    .btn-primario:hover { background: #5ee7ff; color: #0b0e14; border-color: #5ee7ff; }
     .status-dot {
       display: inline-block; width: 8px; height: 8px; border-radius: 50%;
       background: #3dff7c; margin-right: 6px;
@@ -247,8 +282,8 @@
     body.jogando #hotbar { opacity: 1; pointer-events: auto; }
     .hot-slot {
       width: 48px; height: 48px;
-      background: rgba(14, 22, 18, 0.88);
-      border: 2px solid rgba(255,255,255,.12);
+      background: rgba(20, 26, 36, 0.92);
+      border: 2px solid #2a3345;
       border-radius: 4px;
       display: flex; align-items: center; justify-content: center;
       position: relative; cursor: pointer;
@@ -256,7 +291,7 @@
     }
     .hot-slot.ativo {
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent), 0 0 12px rgba(255,215,122,.25);
+      box-shadow: 0 0 0 1px var(--accent), 0 0 12px rgba(0, 212, 255,.25);
     }
     .hot-slot svg { width: 26px; height: 26px; stroke: var(--ink); stroke-width: 1.4; fill: none; }
     .hot-slot.ativo svg { stroke: var(--accent); }
@@ -277,7 +312,7 @@
     }
     #navbar .nav-item {
       font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--accent);
-      background: var(--bg-panel); border: 1px solid rgba(255,255,255,.08);
+      background: var(--bg-panel); border: 1px solid #1e2633;
       padding: 7px 18px; border-radius: 4px; backdrop-filter: blur(8px); white-space: nowrap;
     }
     #toast { top: 64px; }
@@ -286,7 +321,7 @@
     .grade { max-height: 52vh; overflow-y: auto; align-content: flex-start; }
     .slot .nivel {
       position: absolute; top: 3px; left: 5px; font-size: 9px; font-weight: 700;
-      color: #10231a; background: var(--accent); border-radius: 2px; padding: 0 3px;
+      color: #0b0e14; background: var(--accent); border-radius: 2px; padding: 0 3px;
     }
     .painel-inv-header .inv-saldo { margin-left: auto; margin-right: 14px; color: var(--accent); font-size: 13px; font-weight: 700; }
     .info-bar .acoes { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
@@ -299,10 +334,10 @@
       z-index: 8;
       width: 158px;
       pointer-events: none;
-      font-family: "Segoe UI", system-ui, sans-serif;
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
       color: var(--ink);
       background: var(--bg-panel);
-      border: 1px solid rgba(255,255,255,.08);
+      border: 1px solid #1e2633;
       border-radius: 5px;
       box-shadow: 0 8px 24px rgba(0,0,0,.5);
       backdrop-filter: blur(8px);
@@ -320,7 +355,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 6px 9px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
+      border-bottom: 1px solid #1e2633;
       background: rgba(0,0,0,.18);
     }
     #hud-lateral .hud-titulo {
@@ -437,7 +472,85 @@
     /* Esconde elementos antigos espalhados (fallback se o JS não limpar) */
     #navbar { display: none !important; }
 
-  </style>
+  
+    /* ============ MODAL DE BAIA (partial remoto) + compatibilidade com Bootstrap ============ */
+    #modal-root .modal {
+      display: block; position: static; height: auto; overflow: hidden;
+      width: min(520px, 92vw); z-index: auto;
+    }
+    #modal-root .bay-shell {
+      width: min(1040px, 96vw); max-height: 94vh;
+      display: flex; flex-direction: column;
+      background: #0b0e14;
+      border: 1px solid #2a3345;
+      border-radius: 6px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.8);
+      overflow: hidden;
+      animation: modalIn .3s cubic-bezier(.2,.8,.3,1);
+    }
+    #modal-root .bay-shell-header {
+      flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px;
+      background: #10151d;
+      border-bottom: 1px solid #1e2633;
+    }
+    #modal-root .bay-shell-header h3 {
+      margin: 0; font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--accent); font-weight: 600;
+    }
+    #modal-root .bay-shell-x {
+      background: transparent; border: 1px solid #2a3345;
+      color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer;
+      width: 30px; height: 30px; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    #modal-root .bay-shell-x:hover { color: var(--accent); border-color: var(--accent); }
+    #modal-root .bay-shell-body {
+      flex: 1 1 auto; min-height: 0;
+      overflow-y: auto; overflow-x: hidden;
+      background: #0b0e14; color: var(--ink);
+      scrollbar-width: thin; scrollbar-color: #2a3345 transparent;
+    }
+    #modal-root .bay-loading { padding: 40px; text-align: center; font-size: 12px; opacity: .7; }
+
+  
+    /* ============ TEMA UNIFICADO (mesmo do modal de baia) ============ */
+    :root {
+      --line: #1e2633;
+      --line-2: #2a3345;
+      --bg-deep: #0b0e14;
+      --bg-card: #141a24;
+      --muted: #94a3b8;
+      --cyan: #00d4ff;
+    }
+    .modal-header, .painel-inv-header { background: var(--bg-deep); }
+    .modal-footer, .info-bar { background: var(--bg-deep); }
+    .modal-body .metrica { background: var(--bg-deep); border-color: var(--line); }
+    .modal-body .metrica .label, .hud-label { color: var(--muted); }
+    .modal-body p { color: var(--ink); }
+    .slot, .hot-slot { background: var(--bg-card); border-color: var(--line-2); }
+    .slot:hover { background: #1a212d; border-color: var(--line-2); }
+    .slot.ativo, .hot-slot.ativo { border-color: var(--cyan); background: rgba(0, 212, 255, 0.08); }
+    .btn { border-color: var(--line-2); background: var(--bg-deep); color: var(--ink); }
+    .btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0, 212, 255, 0.06); }
+    .btn-primario { background: var(--cyan); border-color: var(--cyan); color: var(--bg-deep); }
+    .btn-primario:hover { background: #5ee7ff; border-color: #5ee7ff; color: var(--bg-deep); }
+    #hud-lateral, #prompt, .painel-inv, .modal { background: var(--bg-card); }
+    #hud-lateral .hud-cabecalho { background: var(--bg-deep); }
+    #hud-lateral .hud-bloco { border-bottom-color: var(--line); }
+    #prompt { border-color: var(--cyan); }
+    #toast { background: var(--cyan); color: var(--bg-deep); }
+    .modal-body input, #modal-root input[type=number] {
+      background: var(--bg-deep) !important; border-color: var(--line-2) !important; color: var(--ink) !important;
+    }
+    .modal-body input:focus { outline: none; border-color: var(--cyan) !important; box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.15); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+    * { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
+</style>
 </head>
 <body>
   <div id="mira"></div>
@@ -529,12 +642,17 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    document.addEventListener("htmx:configRequest", function (e) {
+      var m = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/);
+      if (m) e.detail.headers["X-CSRFToken"] = decodeURIComponent(m[1]);
+    });
+  </script>
   {{ data|json_script:"data-json" }}
   <script>
     const data = JSON.parse(
         document.getElementById("data-json").textContent
     );
-    /* {"racks": [{"id": 1, "name": "Rack 1", "bays": [{"id": 1, "status": false}]}]} */
 
 </script>
   <script>
@@ -690,42 +808,42 @@ const Modal = (() => {
     root.innerHTML = '';
     root.classList.remove('visivel');
     if (rendererDom) rendererDom.requestPointerLock();
+    try { if (typeof inventario !== 'undefined' && inventario && inventario.sincronizar) inventario.sincronizar(); } catch (e) {}
   }
   // Fecha ao clicar no fundo
   root.addEventListener('click', e => { if (e.target === root) fechar(); });
   addEventListener('keydown', e => { if (e.code === 'Escape' && root.classList.contains('visivel')) fechar(); });
-  return { abrir, fechar };
+  // Delegação: botões de fechar dentro de conteúdo injetado/trocado pelo htmx
+  root.addEventListener('click', e => {
+    if (e.target.closest && e.target.closest('[data-fecha-modal]')) fechar();
+  });
+  // Busca o partial no Django e injeta dentro da casca (fundo + botão X)
+  async function abrirRemoto(url, titulo = 'Baia') {
+    abrir(`<div class="bay-shell">
+      <div class="bay-shell-header"><h3>${titulo}</h3><button type="button" class="bay-shell-x" data-fecha-modal title="Fechar">&times;</button></div>
+      <div class="bay-shell-body" id="modal-bay-conteudo"><div class="bay-loading">Carregando...</div></div>
+    </div>`);
+    try {
+      const r = await fetch(url, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const conteudo = document.getElementById('modal-bay-conteudo');
+      if (!conteudo) return;
+      conteudo.innerHTML = await r.text();
+      if (window.htmx) { try { window.htmx.process(conteudo); } catch (e) {} }
+    } catch (err) {
+      fechar();
+      if (typeof hud !== 'undefined') hud.toast('Não foi possível carregar a baia (' + err.message + ').');
+    }
+  }
+  return { abrir, abrirRemoto, fechar };
 })();
 
 // Templates de modal
 const ModalTemplates = {
-  baia: (nomeBaia, rackNome) => `
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Baia ${nomeBaia} · ${rackNome}</h3>
-        <button class="modal-fecha" data-fecha-modal>×</button>
-      </div>
-      <div class="modal-body">
-        <h4><span class="status-dot"></span>Status do Nó</h4>
-        <p>Servidor operacional. Carga de trabalho nominal.</p>
-        <div class="metricas">
-          <div class="metrica"><div class="label">CPU</div><div class="valor">42%</div></div>
-          <div class="metrica"><div class="label">RAM</div><div class="valor">12.4 GB</div></div>
-          <div class="metrica"><div class="label">Temp</div><div class="valor">${tempBaia()}°C</div></div>
-          <div class="metrica"><div class="label">Uptime</div><div class="valor">127d</div></div>
-        </div>
-        <h4>Ações</h4>
-        <p>Execute comandos administrativos neste nó.</p>
-      </div>
-      <div class="modal-footer">
-        <!-- Atributos hx-* prontos para futuro htmx -->
-        <button class="btn" hx-post="/api/baia/${nomeBaia}/reiniciar" hx-target="#modal-root">Reiniciar</button>
-        <button class="btn" hx-get="/api/baia/${nomeBaia}/logs" hx-target="#modal-root">Ver Logs</button>
-        <button class="btn btn-primario" data-fecha-modal>Fechar</button>
-      </div>
-    </div>
-  `,
-  
   pc: () => `
     <div class="modal">
       <div class="modal-header">
@@ -825,7 +943,7 @@ function zonaProibida(x, z, m = 0) {
    CICLO DIA / NOITE — 1 dia completo = 1 hora real
    Sol, lua, estrelas, céu, luzes dos postes. Tecla T = avança 3 h (teste).
 ========================================================= */
-const CICLO_DIA_SEG = 60;
+const CICLO_DIA_SEG = 1200;
 const suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const BRILHO_TEX = (() => {
   const cv = document.createElement('canvas'); cv.width = cv.height = 64;
@@ -2988,7 +3106,12 @@ function rackTex(chave, w, h, desenhar, repetir) {
 }
 
 /* PATCH-API-REMOVER-RACK: fetch genérico (POST/GET/PUT/DELETE) com CSRF do Django */
-const API = { removerRack: '/server/api/rack/remove/', instalarRack: '/server/api/rack/install/' };
+const API = {
+  removerRack: '/server/api/rack/remove/', instalarRack: '/server/api/rack/install/',
+  removerBaia: '/server/api/bay/remove/',  instalarBaia: '/server/api/bay/install/',
+  inventario: '/user/inventory/',
+  detalheBaia: '/server/get-bay-detail/'   // + id  (ajuste o prefixo se necessário)
+};
 /* PATCH-API-INSTALAR-RACK: racks do Django ainda não instalados (fila) */
 const RACKS_INSTALAVEIS = (typeof data !== 'undefined' && data && Array.isArray(data.inventory_racks))
   ? data.inventory_racks.slice() : [];
@@ -3015,6 +3138,14 @@ async function apiFetch(url, { method = 'POST', data = null } = {}) {
   } catch (e) {
     return { ok: false, status: 0, data: null };
   }
+}
+
+/* PATCH-API-BAIAS: POST genérico; true somente se o servidor devolver 200 */
+async function chamarApi(url, dados, msgErroPadrao) {
+  const r = await apiFetch(url, { data: dados });
+  if (r.status === 200) return true;
+  hud.toast((r.data && r.data.error) || `${msgErroPadrao} (erro ${r.status || 'de rede'}).`);
+  return false;
 }
 
 function criarRack({ scene, posicao, inventario, hud, nomeBase, aoRemover }) {
@@ -3119,6 +3250,8 @@ function criarRack({ scene, posicao, inventario, hud, nomeBase, aoRemover }) {
   });
 
   const baias = new Array(NUM).fill(null);
+  const baiaIds = new Array(NUM).fill(null);   // id da baia no Django (por slot)
+  const baiaOcupada = new Array(NUM).fill(false);   // evita cliques duplos durante o fetch
   const ghosts = new Array(NUM).fill(null);
   const anims = [];
 
@@ -3146,7 +3279,11 @@ function criarRack({ scene, posicao, inventario, hud, nomeBase, aoRemover }) {
     dec(new THREE.BoxGeometry(.22, .012, .012), matAco, .22, -.05, .452);                    // barra do puxador
     b.scale.x = LARG_BAIA / .78; raiz.position.set(xDoSlot(i), yDoSlot(i), 0);
     const nomeSlot = String(i + 1).padStart(2, '0');
-    b.userData.interagir = () => { Modal.abrir(ModalTemplates.baia(nomeSlot, nomeBase)); };
+    b.userData.interagir = () => {
+      const idBaia = baiaIds[i];
+      if (idBaia === null || idBaia === undefined) { hud.toast('Esta baia não possui registro no servidor.'); return; }
+      Modal.abrirRemoto(API.detalheBaia + idBaia, `Baia ${nomeSlot} · ${nomeBase}`);
+    };
     b.userData.rotulo = `Acessar ${nomeBase}-${nomeSlot}`;
     b.userData.remover = () => removerBaia(i);
     b.userData.rotuloRemover = `Remover baia ${nomeBase}-${nomeSlot}`;
@@ -3162,24 +3299,51 @@ function criarRack({ scene, posicao, inventario, hud, nomeBase, aoRemover }) {
     rack.add(m); return m;
   }
 
-  function instalarBaia(i, gratis) {
-    if (baias[i]) return;
-    if (gratis !== true) {
-      const item = inventario.procurarItem(it => it.tipo === 'baia');
+  async function instalarBaia(i, gratis, idDireto) {
+    if (baias[i] || baiaOcupada[i]) return;
+    let idSrv = null, item = null;
+    if (gratis === true) {
+      idSrv = (idDireto !== undefined && idDireto !== null) ? idDireto : null;   // carga inicial / restauração
+    } else {
+      item = inventario.procurarItem(it => it.tipo === 'baia');
       if (!item) { hud.toast('Sem baias no inventário.'); return; }
+      idSrv = (item.djangoId !== undefined && item.djangoId !== null) ? item.djangoId : null;
+      if (idSrv !== null) {                                   // baia do servidor: precisa confirmar com a API
+        if (obj.djangoId === undefined || obj.djangoId === null) {
+          hud.toast('Esta baia é do servidor — instale-a em um rack do servidor.');
+          return;
+        }
+        baiaOcupada[i] = true;
+        const ok = await chamarApi(API.instalarBaia,
+          { id: idSrv, position: i + POSICAO_BASE, rack_id: obj.djangoId },
+          'Não foi possível instalar a baia');
+        baiaOcupada[i] = false;
+        if (!ok || baias[i]) return;
+      }
       inventario.removerItem(it => it === item);
     }
     rack.remove(ghosts[i]); liberar(ghosts[i]); ghosts[i] = null;
     const b = criarBaiaMesh(i); b.scale.setScalar(.001); rack.add(b); baias[i] = b;
+    baiaIds[i] = idSrv;
     animarEscala(b, 1, .25);
     hud.toast(`Baia instalada no ${nomeBase}`); atualizarGhosts();
   }
 
-  function removerBaia(i) {
-    const b = baias[i]; if (!b) return;
-    rack.remove(b); liberar(b); baias[i] = null;
+  async function removerBaia(i) {
+    const b = baias[i]; if (!b || baiaOcupada[i]) return;
+    const idSrv = baiaIds[i];
+    if (idSrv !== null && idSrv !== undefined) {              // baia do servidor: só remove se a API responder 200
+      baiaOcupada[i] = true;
+      const ok = await chamarApi(API.removerBaia, { id: idSrv }, 'Não foi possível remover a baia');
+      baiaOcupada[i] = false;
+      if (!ok || baias[i] !== b) return;
+    }
+    rack.remove(b); liberar(b); baias[i] = null; baiaIds[i] = null;
     ghosts[i] = criarGhost(i);
-    inventario.adicionarItem({ ...ITENS.baia, tipo: 'baia', qtd: 1 });
+    inventario.adicionarItem({
+      ...ITENS.baia, tipo: 'baia', qtd: 1,
+      ...((idSrv !== null && idSrv !== undefined) ? { djangoId: idSrv } : {})
+    });
     hud.toast(`Baia removida do ${nomeBase} — foi para o inventário`); atualizarGhosts();
   }
 
@@ -3201,7 +3365,8 @@ function criarRack({ scene, posicao, inventario, hud, nomeBase, aoRemover }) {
   const obj = {
     contarBaias() { return baias.filter(Boolean).length; },
     indicesBaias() { return baias.map((b, i) => b ? i : -1).filter(i => i >= 0); },
-    instalarBaiaDireto(i) { instalarBaia(i, true); },
+    instalarBaiaDireto(i, id) { instalarBaia(i, true, id); },
+    idsBaias() { const r = []; baias.forEach((b, i) => { if (b) r.push(baiaIds[i]); }); return r; },
     nomeBase,
     atualizar(dt) {
       t += dt;
@@ -3233,7 +3398,7 @@ function criarRack({ scene, posicao, inventario, hud, nomeBase, aoRemover }) {
       const temId = obj.djangoId !== undefined && obj.djangoId !== null;
       inventario.adicionarItem({
         ...ITENS.rack, tipo: 'rack', qtd: 1,
-        nome: nomeBase, rackNome: nomeBase, baiasQtd: n, baiasIdx: obj.indicesBaias(),
+        nome: nomeBase, rackNome: nomeBase, baiasQtd: n, baiasIdx: obj.indicesBaias(), baiasIds: obj.idsBaias(),
         ...(temId ? { djangoId: obj.djangoId } : {}),
         desc: (temId ? `Rack do servidor (id ${obj.djangoId})` : 'Rack') + ` com ${n} baia(s). Instale nas marcações verdes do chão.`
       });
@@ -3288,7 +3453,7 @@ function criarVagaRack(g, x, z, posFixa) {
     if (v._instalando) return;
     const idSrv = it.djangoId, nomeIt = it.rackNome, nBaias = it.baiasQtd || 0;
     const idxBaias = Array.isArray(it.baiasIdx) ? it.baiasIdx : Array.from({ length: nBaias }, (_, k) => k);
-    const restaurarBaias = novo => idxBaias.forEach(k => novo.instalarBaiaDireto(k));
+    const restaurarBaias = novo => idxBaias.forEach((k, n) => novo.instalarBaiaDireto(k, (it.baiasIds || [])[n]));
     if (idSrv === undefined || idSrv === null) {               // rack local (sem id do servidor)
       inventario.removerItem(i => i === it);
       const novo = instalar(nomeIt);
@@ -4599,10 +4764,17 @@ class Player {
     this.gravidade = new Gravidade();
     addEventListener('keydown', e => { this.teclas[e.code] = true; if(e.code==='Space') e.preventDefault(); });
     addEventListener('keyup', e => { this.teclas[e.code] = false; });
+    this._ignorarMove = 0;
+    document.addEventListener('pointerlockchange', () => { this._ignorarMove = 3; });
     addEventListener('mousemove', e => {
       if (document.pointerLockElement !== this.dom) return;
-      this.yaw -= e.movementX * CONFIG.sensibilidade;
-      this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch - e.movementY * CONFIG.sensibilidade));
+      // descarta os primeiros eventos após travar o mouse (costumam vir com salto)
+      if (this._ignorarMove > 0) { this._ignorarMove--; return; }
+      const mx = e.movementX, my = e.movementY;
+      // descarta saltos absurdos (bug conhecido do pointer lock no Chromium)
+      if (Math.abs(mx) > 180 || Math.abs(my) > 180) return;
+      this.yaw -= mx * CONFIG.sensibilidade;
+      this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch - my * CONFIG.sensibilidade));
     });
   }
   atualizar(dt) {
@@ -4818,27 +4990,27 @@ function criarHotbar({ camera, inventario }) {
     redesenharHotbar();
   }
 
-  /** Equipa um item (do inventário) no slot atual da hotbar */
+  /** Equipa um item (do inventário) no slot atual da hotbar. Cada item ocupa só UM slot. */
   function equipar(item) {
     if (!item) return;
-    // sincroniza qtd com inventário
-    const qtd = inventario.contar(it => it.tipo === item.tipo);
-    if (qtd <= 0) {
-      hotbarSlots[hotbarIndex] = null;
-    } else {
-      hotbarSlots[hotbarIndex] = { ...ITENS[item.tipo], tipo: item.tipo, qtd };
+    for (let i = 0; i < HOTBAR_SIZE; i++) {
+      if (hotbarSlots[i] && hotbarSlots[i].ref === item) hotbarSlots[i] = null;
     }
+    hotbarSlots[hotbarIndex] = { ...ITENS[item.tipo], tipo: item.tipo, icone: item.icone || ITENS[item.tipo].icone, qtd: 1, ref: item };
     redesenharHotbar();
   }
 
-  /** Atualiza contagens da hotbar a partir do inventário (após comprar/gastar) */
+  /** Mantém a hotbar coerente com o inventário (item usado/vendido sai; reabastece com outra unidade igual) */
   function sincronizar() {
+    const itens = inventario.itens();
+    const usados = new Set(hotbarSlots.filter(s => s && itens.includes(s.ref)).map(s => s.ref));
     for (let i = 0; i < HOTBAR_SIZE; i++) {
       const s = hotbarSlots[i];
-      if (!s) continue;
-      const qtd = inventario.contar(it => it.tipo === s.tipo);
-      if (qtd <= 0) hotbarSlots[i] = null;
-      else hotbarSlots[i] = { ...s, qtd };
+      if (!s || itens.includes(s.ref)) continue;
+      const nv = (s.ref && s.ref.nivel) || 1;
+      const novo = itens.find(p => p.tipo === s.tipo && (p.nivel || 1) === nv && !usados.has(p));
+      if (novo) { usados.add(novo); hotbarSlots[i] = { ...s, icone: novo.icone || s.icone, ref: novo }; }
+      else hotbarSlots[i] = null;
     }
     redesenharHotbar();
   }
@@ -4873,20 +5045,18 @@ function criarHotbar({ camera, inventario }) {
   // preenche hotbar inicial com primeiros itens do inventário
   function bootstrap() {
     const tipos = ['painel', 'turbina', 'gerador', 'rack', 'baia', 'cooler', 'dinheiro', 'chave'];
+    const itens = inventario.itens();
     let slot = 0;
     for (const t of tipos) {
       if (slot >= HOTBAR_SIZE) break;
-      const qtd = inventario.contar(it => it.tipo === t);
-      if (qtd > 0) {
-        hotbarSlots[slot] = { ...ITENS[t], tipo: t, qtd };
-        slot++;
-      }
+      const it = itens.find(p => p.tipo === t);
+      if (it) hotbarSlots[slot++] = { ...ITENS[t], tipo: t, icone: it.icone || ITENS[t].icone, qtd: 1, ref: it };
     }
     redesenharHotbar();
   }
 
   redesenharHotbar();
-  return { redesenharHotbar, selecionarSlot, equipar, sincronizar, bootstrap, get index() { return hotbarIndex; } };
+  return { redesenharHotbar, selecionarSlot, equipar, sincronizar, bootstrap, get ref() { const s = hotbarSlots[hotbarIndex]; return s ? s.ref : null; }, get index() { return hotbarIndex; } };
 }
 
 
@@ -4921,33 +5091,64 @@ function criarInventario({ canvas, aoAbrir, aoFechar }) {
   const igual = (a, b) => a.tipo === b.tipo && (a.nivel || 1) === (b.nivel || 1) && (a.djangoId ?? null) === (b.djangoId ?? null);
   const sincHotbar = () => { if (window._hotbar) window._hotbar.sincronizar(); };
 
-  /* inventário começa vazio e é preenchido por data.inventory_summary (servidor) */
-  {
-    const resumo = (typeof data !== 'undefined' && data && Array.isArray(data.inventory_summary)) ? data.inventory_summary : [];
-    const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const achaTipo = txt => Object.keys(ITENS).find(k => txt.includes(norm(ITENS[k].nome)) || txt.includes(k)) || null;
-    resumo.forEach(s => {
-      // 1) campo "tipo" do JSON  2) pelo NOME  3) pela descrição (só se o nome não bastar)
-      const tipo = (s.tipo && ITENS[s.tipo]) ? s.tipo : (achaTipo(norm(s.nome)) || achaTipo(norm(s.desc)));
-      if (!tipo) { console.warn('Item do servidor sem tipo reconhecido:', s); return; }
-      const base = ITENS[tipo];
-      const desc = s.desc || base.desc;
-      const item = {
-        ...base, tipo,
-        qtd: s.qtd || 1,
-        nivel: s.nivel || 1,
-        nome: s.nome || base.nome,
-        desc,
-        icone: s.icone || base.icone
-      };
-      if (tipo === 'rack') {
-        item.djangoId = s.id;                                   // id do rack no servidor
-        item.rackNome = s.nome || ('Rack ' + s.id);
-        item.baiasQtd = Number((String(desc).match(/(\d+)\s*baia/i) || [])[1] || 0);
-        item.qtd = 1;
+  /* inventário é carregado do servidor toda vez que for aberto */
+  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const achaTipo = txt => Object.keys(ITENS).find(k => txt.includes(norm(ITENS[k].nome)) || txt.includes(k)) || null;
+  const TIPO_SRV = { bay: 'baia', bays: 'baia', server: 'baia', ...Object.fromEntries(Object.keys(ITENS).map(k => [k, k])) };
+
+  function montarItemServidor(s) {
+    const tipo = TIPO_SRV[String(s.type || s.tipo || '').toLowerCase()] || ((s.tipo && ITENS[s.tipo]) ? s.tipo : (achaTipo(norm(s.nome)) || achaTipo(norm(s.desc))));
+    if (!tipo) { console.warn('Item do servidor sem tipo reconhecido:', s); return null; }
+    const base = ITENS[tipo];
+    const desc = s.desc || base.desc;
+    const item = {
+      ...base, tipo,
+      qtd: s.qtd || 1,
+      nivel: s.nivel || 1,
+      nome: s.nome || base.nome,
+      desc,
+      icone: (typeof s.icone === 'string' && s.icone.length > 60) ? s.icone : base.icone,
+      servidor: true
+    };
+    if (tipo === 'rack') {
+      item.djangoId = s.id;
+      item.rackNome = s.nome || ('Rack ' + s.id);
+      item.baiasQtd = Number((String(desc).match(/(\d+)\s*baia/i) || [])[1] || 0);
+      item.qtd = 1;
+    } else if (s.id !== undefined && s.id !== null) {
+      item.djangoId = s.id;
+      item.qtd = 1;
+    }
+    const pr = Number(s.price);
+    if (s.price !== undefined && s.price !== null && s.price !== '' && Number.isFinite(pr)) {
+      item.preco = pr;
+      if (item.djangoId !== undefined && item.djangoId !== null) PRECO_SERVIDOR[tipo + ':' + item.djangoId] = pr;
+    }
+    return item;
+  }
+
+  let sincronizando = false, pendente = false;
+  async function sincronizarComServidor() {
+    if (sincronizando) { pendente = true; return; }
+    sincronizando = true;
+    try {
+      const r = await apiFetch(API.inventario, { method: 'GET' });
+      if (!r.ok || !r.data || !Array.isArray(r.data.inventory_summary)) {
+        hud.toast((r.data && r.data.error) || `Não foi possível carregar o inventário (erro ${r.status || 'de rede'}).`);
+        return;
       }
-      pilhas.push(item);
-    });
+      for (let i = pilhas.length - 1; i >= 0; i--) if (pilhas[i].servidor) pilhas.splice(i, 1);
+      r.data.inventory_summary.forEach(s => {
+        const item = montarItemServidor(s);
+        if (!item) return;
+        for (let n = 0, q = Math.max(1, Math.floor(item.qtd || 1)); n < q; n++) pilhas.push({ ...item, qtd: 1 });
+      });
+      if (selecionado && !pilhas.includes(selecionado)) selecionado = null;
+      redesenhar(); mostrarInfo(); sincHotbar();
+    } finally {
+      sincronizando = false;
+      if (pendente) { pendente = false; sincronizarComServidor(); }
+    }
   }
 
   function pintarSaldo() {
@@ -5006,11 +5207,15 @@ function criarInventario({ canvas, aoAbrir, aoFechar }) {
   }
 
   const adicionarItem = (item) => {
-    const q = item.qtd || 1, pilha = pilhas.find(p => igual(p, item));
-    if (pilha) pilha.qtd += q; else pilhas.push({ ...item, qtd: q });
+    const q = Math.max(1, Math.floor(item.qtd || 1));
+    for (let n = 0; n < q; n++) pilhas.push({ ...item, qtd: 1 });
     redesenhar(); if (selecionado) mostrarInfo(); sincHotbar(); return true;
   };
-  const procurarItem = (fn) => pilhas.find(p => fn(p)) || null;
+  const procurarItem = (fn) => {
+    const pref = window._hotbar && window._hotbar.ref;   // o item equipado é o primeiro a ser usado
+    if (pref && pilhas.includes(pref) && fn(pref)) return pref;
+    return pilhas.find(p => fn(p)) || null;
+  };
   const removerItem = (fn) => {            // remove UMA unidade do primeiro item que combinar
     const i = pilhas.findIndex(p => fn(p)); if (i === -1) return false;
     if (--pilhas[i].qtd <= 0) { if (selecionado === pilhas[i]) selecionado = null; pilhas.splice(i, 1); }
@@ -5022,7 +5227,7 @@ function criarInventario({ canvas, aoAbrir, aoFechar }) {
 
   redesenhar();
 
-  function abrir() { if (aberto) return; aberto = true; painel.classList.remove('oculto'); document.exitPointerLock(); aoAbrir(); }
+  function abrir() { if (aberto) return; aberto = true; painel.classList.remove('oculto'); document.exitPointerLock(); aoAbrir(); sincronizarComServidor(); }
   function fechar() { if (!aberto) return; aberto = false; painel.classList.add('oculto'); aoFechar(); canvas.requestPointerLock(); }
   document.getElementById('btn-fechar-inv').addEventListener('click', fechar);
   painel.addEventListener('click', e => { if (e.target === painel) fechar(); });
@@ -5030,7 +5235,7 @@ function criarInventario({ canvas, aoAbrir, aoFechar }) {
     if (e.code === 'KeyE' || e.code === 'Tab') { e.preventDefault(); if (!aberto && document.pointerLockElement === canvas) abrir(); else if (aberto) fechar(); }
     else if (aberto && e.code === 'Escape') fechar();
   });
-  return { abrir, fechar, adicionarItem, procurarItem, removerItem, contar, saldo: () => saldo, ganhar, gastar, vender, get aberto() { return aberto; } };
+  return { itens: () => pilhas.slice(), tem: it => pilhas.includes(it), abrir, fechar, adicionarItem, procurarItem, removerItem, contar, saldo: () => saldo, ganhar, gastar, vender, sincronizar: sincronizarComServidor, get aberto() { return aberto; } };
 }
 
 /* =========================================================
@@ -5083,6 +5288,7 @@ function criarInteracao({ camera, scene, hud }) {
 /* =========================================================
    V5 — venda / remoção de itens, sentar, utilitários
 ========================================================= */
+const PRECO_SERVIDOR = {};   // preços vindos do Django, chave 'tipo:id'
 const FATOR_VENDA = 1;            // 1 = vende pelo preço de compra · 0.5 = metade do preço
 const DINHEIRO_INICIAL = 12;
 let SEQ_ID = 0, RACK_SEQ = 0;
@@ -5097,6 +5303,11 @@ function proximoNomeRack() {
 
 /** Valor de venda de UMA unidade: preço da loja + custo das evoluções já feitas. */
 function valorVenda(item) {
+  if (item && item.preco !== undefined && item.preco !== null && Number.isFinite(Number(item.preco))) return Math.max(0, Number(item.preco));
+  if (item && item.djangoId !== undefined && item.djangoId !== null) {
+    const ps = PRECO_SERVIDOR[item.tipo + ':' + item.djangoId];
+    if (ps !== undefined) return Math.max(0, ps);
+  }
   const base = LOJA[item.tipo];
   if (!base) return 0;
   let total = base;
@@ -5205,31 +5416,55 @@ const interacao = criarInteracao({ camera, scene, hud });
 function carregarMundoDoDjango() {
   const lista = (typeof data !== 'undefined' && data && Array.isArray(data.racks)) ? data.racks.slice() : [];
   if (!lista.length) return;
-  const num = v => { const n = Number(v); return Number.isFinite(n) ? n : Infinity; };
-  lista.sort((a, b) => num(a.position) - num(b.position));          // 1, 2, 3...
+  // position válida = inteiro >= POSICAO_BASE (0/vazio/inválido = "sem position")
+  const posValida = v => {
+    if (v === null || v === undefined || v === '') return null;
+    const n = Number(v);
+    return (Number.isInteger(n) && n >= POSICAO_BASE) ? n : null;
+  };
+  const registrarPreco = (tipo, id, preco) => {
+    if (preco !== undefined && preco !== null && Number.isFinite(Number(preco))) PRECO_SERVIDOR[tipo + ':' + id] = Number(preco);
+  };
   const toastOrig = hud.toast;
   hud.toast = () => {};                       // sem spam de avisos no carregamento
   try {
-    lista.forEach(rd => {
-      // vaga com a mesma position do rack; se não existir/estiver ocupada, usa a menor livre
-      let vaga = VAGAS_RACK.find(e => e.pos === Number(rd.position));
-      if (!vaga) vaga = VAGAS_RACK.slice().sort((a, b) => a.pos - b.pos)[0];
-      if (!vaga) { console.warn('Sem vagas de rack livres para:', rd.name); return; }
+    const montarRack = (rd, vaga) => {
       const obj = vaga.v.userData.interagir(true, rd.name || ('Rack ' + rd.id));
       if (!obj) return;
       obj.djangoId = rd.id;
-      // baias em ordem de position, cada uma no slot da sua position
+      registrarPreco('rack', rd.id, rd.price);
       const usados = new Set();
-      (rd.bays || []).slice().sort((a, b) => num(a.position) - num(b.position)).forEach(b => {
-        let i = Number(b.position) - POSICAO_BASE;
-        if (!Number.isInteger(i) || i < 0 || i >= 15 || usados.has(i)) {
-          i = -1;
-          for (let k = 0; k < 15; k++) if (!usados.has(k)) { i = k; break; }
-        }
-        if (i < 0) return;
+      const colocar = (b, i) => {
         usados.add(i);
-        obj.instalarBaiaDireto(i);
+        registrarPreco('baia', b.id, b.price);
+        obj.instalarBaiaDireto(i, b.id);
+      };
+      const semPosicao = [];
+      // 1ª passada: baias com position válida vão exatamente para o slot da position
+      (rd.bays || []).forEach(b => {
+        const p = posValida(b.position);
+        const i = p !== null ? p - POSICAO_BASE : -1;
+        if (i >= 0 && i < 15 && !usados.has(i)) colocar(b, i); else semPosicao.push(b);
       });
+      // 2ª passada: as demais, na ordem em que vieram, nos primeiros slots livres
+      semPosicao.forEach(b => {
+        let i = -1;
+        for (let k = 0; k < 15; k++) if (!usados.has(k)) { i = k; break; }
+        if (i >= 0) colocar(b, i);
+      });
+    };
+
+    // racks: 1ª passada = vaga com a mesma position; 2ª = restantes na ordem recebida
+    const pendentes = [];
+    lista.forEach(rd => {
+      const p = posValida(rd.position);
+      const vaga = p !== null ? VAGAS_RACK.find(e => e.pos === p) : null;
+      if (vaga) montarRack(rd, vaga); else pendentes.push(rd);
+    });
+    pendentes.forEach(rd => {
+      const vaga = VAGAS_RACK.slice().sort((a, b) => a.pos - b.pos)[0];
+      if (!vaga) { console.warn('Sem vagas de rack livres para:', rd.name); return; }
+      montarRack(rd, vaga);
     });
   } finally {
     hud.toast = toastOrig;

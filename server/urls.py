@@ -1,7 +1,7 @@
 from django.urls import path
 from .views.views import HomeView
 from .views.bays_views import ChangeStatusBay, GetBayDetail, ChangeComponent, RemoveComponent
-from .views.rack_views import RemoveRack, InstallRack
+from .views.rack_views import RemoveRack, InstallRack, InstallBay, RemoveBay
 
 app_name = "server"
 
@@ -18,6 +18,9 @@ urlpatterns = [
     # api/
     path('api/rack/remove/', RemoveRack.as_view(), name="remove_rack"),
     path('api/rack/install/', InstallRack.as_view(), name="install_rack"),
+    
+    path('api/bay/remove/', RemoveBay.as_view(), name="remove_bay"),
+    path('api/bay/install/', InstallBay.as_view(), name="install_bay"),
 ]
 
 

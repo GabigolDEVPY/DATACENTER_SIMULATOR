@@ -56,5 +56,41 @@ class InventoryService:
                 "desc": f"rack com {rack.bays.count()} baias",
                 "qtd": 1,
                 "nivel": 1,
+                "type": "rack",
+                "price": 1000,
             })
+        for bay in Bay.objects.filter(user=self.user_id, is_selected=False):
+            inventory.append(
+            {
+                "id": bay.id,
+                "nome": bay.name,
+                "icone": "<svg>...</svg>",
+                "desc": f"baya de servidor",
+                "qtd": 1,
+                "nivel": 1,
+                "type": "bay",
+                "price": 1000,
+            })
+        components = [
+            ("cpu", self.get_cpus()),
+            ("gpu", self.get_gpus()),
+            ("ram", self.get_rams()),
+            ("ssd", self.get_ssds()),
+        ]
+
+        for component_type, items in components:
+            for item in items.select_related("item", "item__brand"):
+                hardware = item.item
+
+                inventory.append({
+                    "id": item.id,
+                    "nome": f"{hardware.brand.name} {hardware.model}",
+                    "icone": "<svg>...</svg>",
+                    "desc": hardware.type,
+                    "qtd": 1,
+                    "nivel": 1,
+                    "type": component_type,
+                    "price": hardware.price,
+                })
+                
         return inventory
