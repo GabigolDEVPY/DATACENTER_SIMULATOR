@@ -8,7 +8,8 @@ from user.models import User
 class Rack(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="racks")
     name = models.CharField(max_length=80, blank=False)
-    bay = models.IntegerField(blank=False, null=False)
+    bay = models.IntegerField(blank=False, null=False, default=16)
+    is_selected = models.BooleanField(default=False)
 
 
     def __str__(self):
@@ -18,6 +19,7 @@ class Rack(models.Model):
 class Bay(models.Model):
     name = models.CharField(max_length=80, blank=False)
     rack = models.ForeignKey(Rack, on_delete=models.CASCADE, related_name="bays")
+    is_selected = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     last_time_active = models.DateTimeField(null=True)
 

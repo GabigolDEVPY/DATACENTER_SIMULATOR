@@ -1,11 +1,11 @@
 from django.db import models
 
 class MarkModel(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
 
 # Create your models here.
 class AIModel(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     level = models.IntegerField(default=1)
     mark_model = models.ForeignKey(MarkModel, on_delete=models.CASCADE, related_name='ai_models')
     # Requisitos de hardware

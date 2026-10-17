@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'user.apps.UserConfig',
     'model',
     'operation',
+    'home',
 ]
 
 MIDDLEWARE = [

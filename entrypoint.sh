@@ -8,6 +8,7 @@ fi
 
 echo "==> Executando makemigrations..."
 python manage.py makemigrations
+yes
 
 echo "==> Executando migrate..."
 python manage.py migrate

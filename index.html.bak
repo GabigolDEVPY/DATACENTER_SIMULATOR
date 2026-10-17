@@ -290,11 +290,217 @@
     }
     .painel-inv-header .inv-saldo { margin-left: auto; margin-right: 14px; color: var(--accent); font-size: 13px; font-weight: 700; }
     .info-bar .acoes { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  
+    /* ============ HUD LATERAL UNIFICADO (compacto) ============ */
+    #hud-lateral {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 8;
+      width: 158px;
+      pointer-events: none;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg-panel);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 5px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.5);
+      backdrop-filter: blur(8px);
+      overflow: hidden;
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: opacity .3s, transform .3s;
+    }
+    body.jogando #hud-lateral { opacity: 1; transform: translateX(0); }
+    /* some um pouco quando o inventário está aberto */
+    body:has(#inventario:not(.oculto)) #hud-lateral { opacity: .35; }
+
+    #hud-lateral .hud-cabecalho {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 9px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      background: rgba(0,0,0,.18);
+    }
+    #hud-lateral .hud-titulo {
+      font-size: 9px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    #hud-lateral .hud-hora {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: .03em;
+    }
+
+    #hud-lateral .hud-bloco {
+      padding: 6px 9px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+    #hud-lateral .hud-bloco:last-child { border-bottom: none; }
+
+    #hud-lateral .hud-linha {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 3px;
+      font-size: 10px;
+      line-height: 1.25;
+    }
+    #hud-lateral .hud-linha:last-child { margin-bottom: 0; }
+    #hud-lateral .hud-label {
+      opacity: .6;
+      letter-spacing: .03em;
+      font-size: 9px;
+    }
+    #hud-lateral .hud-valor {
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      font-size: 10px;
+    }
+    #hud-lateral .hud-valor.neutro { color: var(--ink); opacity: .9; }
+    #hud-lateral .hud-valor.alerta { color: #ff6b4a; }
+    #hud-lateral .hud-valor.ok { color: #3dff7c; }
+
+    #hud-lateral .hud-saldo {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: .02em;
+    }
+
+    #hud-lateral .hud-barra {
+      height: 3px;
+      margin-top: 4px;
+      background: rgba(255,255,255,.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #hud-lateral .hud-barra > i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width .3s ease, background .3s;
+    }
+    #hud-lateral .hud-barra > i.alerta { background: #ff6b4a; }
+    #hud-lateral .hud-barra > i.ok { background: #3dff7c; }
+
+    #hud-lateral .hud-clima {
+      font-size: 9px;
+      opacity: .85;
+      letter-spacing: .03em;
+    }
+
+    /* Inventário maior ao abrir */
+    .painel-inv {
+      width: min(920px, 96vw) !important;
+      max-height: 88vh;
+    }
+    .painel-inv .grade {
+      max-height: 62vh !important;
+      gap: 12px !important;
+      padding: 22px 24px !important;
+    }
+    .painel-inv .slot {
+      width: 76px !important;
+      height: 76px !important;
+    }
+    .painel-inv .slot svg {
+      width: 34px !important;
+      height: 34px !important;
+    }
+    .painel-inv-header {
+      padding: 16px 24px !important;
+    }
+    .painel-inv-header h2 {
+      font-size: 13px !important;
+    }
+    .painel-inv .info-bar {
+      padding: 14px 24px !important;
+      font-size: 13px !important;
+      min-height: 2.2em;
+    }
+    .painel-inv small {
+      padding: 10px 24px !important;
+      font-size: 11px !important;
+    }
+
+    /* Esconde elementos antigos espalhados (fallback se o JS não limpar) */
+    #navbar { display: none !important; }
+
   </style>
 </head>
 <body>
   <div id="mira"></div>
   <div id="navbar"><span class="nav-item">💰 <span id="navbar-saldo">0</span></span></div>
+
+  <!-- HUD lateral unificado -->
+  <div id="hud-lateral">
+    <div class="hud-cabecalho">
+      <span class="hud-titulo">Status</span>
+      <span class="hud-hora" id="hud-hora">☀ 07:12</span>
+    </div>
+    <div class="hud-bloco">
+      <div class="hud-linha">
+        <span class="hud-label">Saldo</span>
+        <span class="hud-saldo" id="hud-saldo">💰 0</span>
+      </div>
+    </div>
+    <div class="hud-bloco">
+      <div class="hud-linha">
+        <span class="hud-label">Geração</span>
+        <span class="hud-valor" id="hud-geracao">0.0 kW</span>
+      </div>
+      <div class="hud-linha">
+        <span class="hud-label">Consumo</span>
+        <span class="hud-valor" id="hud-consumo">0.0 kW</span>
+      </div>
+      <div class="hud-linha">
+        <span class="hud-label">Saldo energia</span>
+        <span class="hud-valor" id="hud-saldo-energia">0.0 kW</span>
+      </div>
+      <div class="hud-barra"><i id="hud-barra-energia"></i></div>
+    </div>
+    <div class="hud-bloco">
+      <div class="hud-linha">
+        <span class="hud-label">Refrigeração</span>
+        <span class="hud-valor" id="hud-cooling">0.0 kW</span>
+      </div>
+      <div class="hud-linha">
+        <span class="hud-label">Carga térmica</span>
+        <span class="hud-valor" id="hud-termica">0.0 kW</span>
+      </div>
+      <div class="hud-linha">
+        <span class="hud-label">Temp. baia</span>
+        <span class="hud-valor" id="hud-temp">—</span>
+      </div>
+      <div class="hud-barra"><i id="hud-barra-cooling"></i></div>
+    </div>
+    <div class="hud-bloco">
+      <div class="hud-linha">
+        <span class="hud-label">Lotes</span>
+        <span class="hud-valor neutro" id="hud-lotes">0 / 20</span>
+      </div>
+      <div class="hud-linha">
+        <span class="hud-label">Racks / Baias</span>
+        <span class="hud-valor neutro" id="hud-racks">0 / 0</span>
+      </div>
+      <div class="hud-linha">
+        <span class="hud-label">Clima</span>
+        <span class="hud-clima" id="hud-clima">☁ Limpo</span>
+      </div>
+    </div>
+  </div>
+
   <div id="prompt"></div>
   <div id="toast"></div>
   
@@ -323,6 +529,14 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  {{ data|json_script:"data-json" }}
+  <script>
+    const data = JSON.parse(
+        document.getElementById("data-json").textContent
+    );
+    /* {"racks": [{"id": 1, "name": "Rack 1", "bays": [{"id": 1, "status": false}]}]} */
+
+</script>
   <script>
 /* PATCH-V9-MAO: braço estilo Minecraft segurando o item */
 /* PATCH-V10-BRACO-PECAS: braço menor no canto + item na ponta + RAM/SSD/CPU/GPU */
@@ -523,7 +737,7 @@ const ModalTemplates = {
         <p>Bem-vindo ao terminal de administração. Todos os sistemas operacionais.</p>
         <div class="metricas">
           <div class="metrica"><div class="label">Racks Online</div><div class="valor">${racks.length} / ${racks.length}</div></div>
-          <div class="metrica"><div class="label">Consumo</div><div class="valor">18.4 kW</div></div>
+          <div class="metrica"><div class="label">Consumo</div><div class="valor">${typeof consumoEletrico==='function'?consumoEletrico():0} kW</div></div>
           <div class="metrica"><div class="label">Geração</div><div class="valor">${energiaTotal()} kW</div></div>
           <div class="metrica"><div class="label">Rede</div><div class="valor">1 Gbps</div></div>
           <div class="metrica"><div class="label">Refrigeração (${COOLERS.length} un.)</div><div class="valor">${coolingTotal().toFixed(1)} kW</div></div>
@@ -683,9 +897,8 @@ function criarCicloDia(scene, { sol, amb, hemi, OFF }) {
   const pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffd9a0, 0, 26, 1.6); scene.add(l); return l; });
 
   // relógio na tela
-  const relogio = document.createElement('div');
-  relogio.style.cssText = 'position:fixed;top:56px;left:20px;z-index:6;font:600 12px "Segoe UI",sans-serif;letter-spacing:.08em;color:#ffd77a;background:rgba(14,22,18,.92);border:1px solid rgba(255,255,255,.08);padding:7px 12px;border-radius:4px;pointer-events:none';
-  document.body.appendChild(relogio);
+  // relógio movido para #hud-hora (painel lateral)
+  const relogio = { textContent: '' };
 
   let desloc = .30, tPool = 9, tCeu = 1, ultHora = '';          // começa às ~07:12
   addEventListener('keydown', e => { if (e.code === 'KeyT') desloc += 1 / 8; });
@@ -737,7 +950,11 @@ function criarCicloDia(scene, { sol, amb, hemi, OFF }) {
       // relógio
       const min = Math.floor(h * 1440);
       const txt = `${elev > 0 ? '☀' : '☾'} ${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
-      if (txt !== ultHora) relogio.textContent = ultHora = txt;
+      if (txt !== ultHora) {
+        ultHora = txt;
+        relogio.textContent = txt;
+        if (window._hud) window._hud.setHora(txt);
+      }
     }
   };
 }
@@ -3324,6 +3541,21 @@ const CUSTO_NIVEL = { painel: [0, 0, 1, 1, 2, 3, 4], gerador: [0, 0, 2, 2, 3, 4,
 const custoEvo = (tipo, nivel) => (CUSTO_NIVEL[tipo] || [])[(nivel || 1) + 1] || 0;
 const ENERGIA = { fontes: [] };
 const energiaTotal = () => Math.round(ENERGIA.fontes.reduce((s, f) => s + f.kw(), 0) * 10) / 10;
+
+/* ===== HUD: consumo elétrico estimado (0,8 kW por baia + 0,15 kW por rack vazio) ===== */
+function consumoEletrico() {
+  let c = 0;
+  if (typeof racks !== 'undefined' && Array.isArray(racks)) {
+    for (const r of racks) {
+      const b = (r && typeof r.contarBaias === 'function') ? r.contarBaias() : 0;
+      c += b * 0.8;
+      // overhead mínimo do rack ligado
+      if (b > 0) c += 0.12;
+    }
+  }
+  return Math.round(c * 10) / 10;
+}
+
 const vento = () => 1 + .35 * Math.sin(performance.now() / 6000);
 
 function pagar(inv, n, mudo) {
@@ -3630,10 +3862,9 @@ function criarClima(scene, player) {
   overlay.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .8s;background:linear-gradient(180deg,rgba(30,50,70,.12),rgba(20,40,60,.08));';
   document.body.appendChild(overlay);
 
-  // Indicador pequeno no canto
-  const ind = document.createElement('div');
-  ind.style.cssText = 'position:fixed;top:96px;left:20px;z-index:6;font:600 11px "Segoe UI",sans-serif;letter-spacing:.06em;color:#a8c4d8;background:rgba(14,22,18,.85);border:1px solid rgba(255,255,255,.06);padding:5px 10px;border-radius:4px;pointer-events:none;opacity:0;transition:opacity .4s';
-  document.body.appendChild(ind);
+  // Indicador de clima movido para #hud-clima (painel lateral)
+  const ind = { style: { opacity: '0' }, textContent: '', _op: '' };
+
 
   const fogBaseNear = 90, fogBaseFar = 360;
 
@@ -3699,10 +3930,16 @@ function criarClima(scene, player) {
       }
       { const op = (intensidade * 0.55).toFixed(2); if (op !== overlay._op) overlay.style.opacity = overlay._op = op; }
       if (intensidade > 0.15) {
-        ind.style.opacity = '1';
-        { const tx = intensidade > 0.7 ? '🌧 Chuva forte' : '🌦 Chuva'; if (ind.textContent !== tx) ind.textContent = tx; }
+        const tx = intensidade > 0.7 ? '🌧 Chuva forte' : '🌦 Chuva';
+        if (ind.textContent !== tx) {
+          ind.textContent = tx;
+          if (window._hud) window._hud.setClima(tx);
+        }
       } else {
-        ind.style.opacity = '0';
+        if (ind.textContent !== '☁ Limpo') {
+          ind.textContent = '☁ Limpo';
+          if (window._hud) window._hud.setClima('☁ Limpo');
+        }
       }
     },
     get chovendo() { return intensidade > 0.2; },
@@ -4198,15 +4435,9 @@ function usarGerador(l) {
     });
   }
 
-  // Contador de geração + lotes no canto da tela
-  const kwEl = document.createElement('div');
-  kwEl.style.cssText = 'position:fixed;top:20px;left:20px;z-index:6;font:600 12px "Segoe UI",sans-serif;letter-spacing:.08em;color:#ffd77a;background:rgba(14,22,18,.92);border:1px solid rgba(255,255,255,.08);padding:7px 12px;border-radius:4px;pointer-events:none';
-  document.body.appendChild(kwEl);
-  let ultKw = '';
-  ATUALIZAVEIS.push(() => {
-    const t = `⚡ ${energiaTotal()} kW · 🏗 Lotes ${lotesComprados()}/${LIMITE_LOTES}`;
-    if (t !== ultKw) kwEl.textContent = ultKw = t;
-  });
+  // Contador de geração/lotes agora vive no painel lateral (#hud-lateral)
+  // (mantém lotesComprados disponível para o HUD)
+
 
   revelar(2, 0);   // primeiro lote à venda (meio); os vizinhos aparecem conforme você compra
   return { lotes };
@@ -4617,6 +4848,7 @@ function criarInventario({ canvas, aoAbrir, aoFechar }) {
     const t = fmt(saldo);
     if (navSaldo) navSaldo.textContent = t;
     if (invSaldo) invSaldo.textContent = `💰 ${t}`;
+    if (window._hud) window._hud.setSaldo(saldo);
   }
 
   function mostrarInfo(extra) {
@@ -4862,6 +5094,120 @@ const sedeCemig = criarSedeCemig(scene, galpao);
 const loteExpansao1 = criarLoteExpansao(scene, galpao, racks, inventario, hud, galpao.xDir + 5, 'Expansão Leste');
 
 const interacao = criarInteracao({ camera, scene, hud });
+
+
+/* ===== HUD lateral unificado — atualização em tempo real ===== */
+(function initHudLateral() {
+  const el = {
+    saldo: document.getElementById('hud-saldo'),
+    geracao: document.getElementById('hud-geracao'),
+    consumo: document.getElementById('hud-consumo'),
+    saldoE: document.getElementById('hud-saldo-energia'),
+    barraE: document.getElementById('hud-barra-energia'),
+    cooling: document.getElementById('hud-cooling'),
+    termica: document.getElementById('hud-termica'),
+    temp: document.getElementById('hud-temp'),
+    barraC: document.getElementById('hud-barra-cooling'),
+    lotes: document.getElementById('hud-lotes'),
+    racks: document.getElementById('hud-racks'),
+    clima: document.getElementById('hud-clima'),
+    hora: document.getElementById('hud-hora'),
+  };
+
+  const fmt = n => (Math.round(Number(n) * 10) / 10).toLocaleString('pt-BR', {
+    minimumFractionDigits: 1, maximumFractionDigits: 1
+  });
+
+  let tAcc = 0;
+  function tick(dt) {
+    tAcc += dt;
+    if (tAcc < 0.2) return;   // ~5 Hz
+    tAcc = 0;
+
+    // Saldo (espelha inventário se existir)
+    if (el.saldo && typeof inventario !== 'undefined' && inventario && typeof inventario.saldo === 'function') {
+      el.saldo.textContent = '💰 ' + Number(inventario.saldo()).toLocaleString('pt-BR');
+    }
+
+    // Energia
+    let ger = 0, cons = 0;
+    try { ger = typeof energiaTotal === 'function' ? energiaTotal() : 0; } catch (e) {}
+    try { cons = typeof consumoEletrico === 'function' ? consumoEletrico() : 0; } catch (e) {}
+    const saldoE = Math.round((ger - cons) * 10) / 10;
+
+    if (el.geracao) el.geracao.textContent = fmt(ger) + ' kW';
+    if (el.consumo) el.consumo.textContent = fmt(cons) + ' kW';
+    if (el.saldoE) {
+      el.saldoE.textContent = (saldoE >= 0 ? '+' : '') + fmt(saldoE) + ' kW';
+      el.saldoE.className = 'hud-valor ' + (saldoE >= 0 ? 'ok' : 'alerta');
+    }
+    if (el.barraE) {
+      const ratio = ger + cons > 0 ? Math.min(1, ger / Math.max(ger, cons, 0.01)) : 0;
+      el.barraE.style.width = (ratio * 100).toFixed(1) + '%';
+      el.barraE.className = saldoE >= 0 ? 'ok' : 'alerta';
+    }
+
+    // Refrigeração
+    let cool = 0, term = 0, temp = null;
+    try { cool = typeof coolingTotal === 'function' ? coolingTotal() : 0; } catch (e) {}
+    try { term = typeof cargaTermica === 'function' ? cargaTermica() : 0; } catch (e) {}
+    try { temp = typeof tempBaia === 'function' ? tempBaia() : null; } catch (e) {}
+
+    if (el.cooling) el.cooling.textContent = fmt(cool) + ' kW';
+    if (el.termica) el.termica.textContent = fmt(term) + ' kW';
+    if (el.temp) {
+      if (temp == null) el.temp.textContent = '—';
+      else {
+        el.temp.textContent = temp + '°C';
+        el.temp.className = 'hud-valor ' + (temp > 45 ? 'alerta' : temp > 38 ? '' : 'ok');
+      }
+    }
+    if (el.barraC) {
+      const r = cool > 0 ? Math.min(1.2, term / cool) : (term > 0 ? 1.2 : 0);
+      el.barraC.style.width = (Math.min(1, r) * 100).toFixed(1) + '%';
+      el.barraC.className = r > 1 ? 'alerta' : r > 0.75 ? '' : 'ok';
+    }
+
+    // Lotes / racks
+    if (el.lotes) {
+      let comprados = 0, limite = 20;
+      try {
+        if (typeof distrito !== 'undefined' && distrito && distrito.lotes) {
+          comprados = distrito.lotes.filter(l => l.estado === 'comprado').length;
+          limite = distrito.lotes.length || 20;
+        }
+      } catch (e) {}
+      el.lotes.textContent = comprados + ' / ' + limite;
+    }
+    if (el.racks) {
+      let nr = 0, nb = 0;
+      try {
+        if (typeof racks !== 'undefined' && Array.isArray(racks)) {
+          nr = racks.length;
+          nb = typeof totalBaias === 'function' ? totalBaias() : 0;
+        }
+      } catch (e) {}
+      el.racks.textContent = nr + ' / ' + nb;
+    }
+  }
+
+  if (typeof ATUALIZAVEIS !== 'undefined' && Array.isArray(ATUALIZAVEIS)) {
+    ATUALIZAVEIS.push(tick);
+  } else {
+    // fallback se ATUALIZAVEIS ainda não existir (ordem de carregamento)
+    setInterval(() => tick(0.25), 250);
+  }
+
+  // API pública para o ciclo dia/noite e clima atualizarem o painel
+  window._hud = {
+    setHora(txt) { if (el.hora) el.hora.textContent = txt; },
+    setClima(txt) { if (el.clima) el.clima.textContent = txt; },
+    setSaldo(n) {
+      if (el.saldo) el.saldo.textContent = '💰 ' + Number(n).toLocaleString('pt-BR');
+    }
+  };
+})();
+
 
 const relogio = new THREE.Clock();
 function animar() {

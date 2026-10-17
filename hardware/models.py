@@ -10,7 +10,7 @@ class Brand(models.Model):
 
 class Hardware(models.Model):
     type = models.CharField(max_length=300)
-    model = models.CharField(max_length=100)
+    model = models.CharField(max_length=100, unique=True)
     brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
     price = models.IntegerField()
     watts = models.IntegerField()
