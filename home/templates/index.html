@@ -45,7 +45,6 @@
       --accent: #00d4ff; 
       --accent-dim: #0891b2;
       --bg-panel: rgba(20, 26, 36, 0.96); 
-      --bg-panel-soft: rgba(11, 14, 20, 0.85);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; overflow: hidden; font-family: "Inter", "Segoe UI", system-ui, sans-serif; background: #0b0e14; }
@@ -303,18 +302,8 @@
       position: absolute; top: 1px; left: 3px;
       font-size: 9px; opacity: .45; color: var(--ink);
     }
-  .grade{flex-wrap:wrap}
   
-    /* ============ PATCH V5 ============ */
-    #navbar {
-      position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 10px; z-index: 7; pointer-events: none;
-    }
-    #navbar .nav-item {
-      font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--accent);
-      background: var(--bg-panel); border: 1px solid #1e2633;
-      padding: 7px 18px; border-radius: 4px; backdrop-filter: blur(8px); white-space: nowrap;
-    }
+    /* ============ AJUSTES ============ */
     #toast { top: 64px; }
     #hotbar { bottom: 20px; }
     #prompt { bottom: 82px; }
@@ -469,10 +458,6 @@
       font-size: 11px !important;
     }
 
-    /* Esconde elementos antigos espalhados (fallback se o JS não limpar) */
-    #navbar { display: none !important; }
-
-  
     /* ============ MODAL DE BAIA (partial remoto) + compatibilidade com Bootstrap ============ */
     #modal-root .modal {
       display: block; position: static; height: auto; overflow: hidden;
@@ -550,11 +535,47 @@
     ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 999px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
     * { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
-</style>
+
+    /* ===== miniaturas 3D de GPU ===== */
+    .slot img.gpu-mini, .hot-slot img.gpu-mini { width: 92%; height: 92%; object-fit: contain; pointer-events: none; }
+
+    /* ===== miniaturas 3D de CPU ===== */
+    .slot img.cpu-mini, .hot-slot img.cpu-mini { width: 92%; height: 92%; object-fit: contain; pointer-events: none; }
+
+    /* ===== miniaturas 3D de RAM ===== */
+    .slot img.ram-mini, .hot-slot img.ram-mini { width: 92%; height: 92%; object-fit: contain; pointer-events: none; }
+
+    /* ===== miniaturas 3D de SSD ===== */
+    .slot img.ssd-mini, .hot-slot img.ssd-mini { width: 92%; height: 92%; object-fit: contain; pointer-events: none; }
+
+    /* ===== PATCH: inventário 10x8 sem scroll + hotbar visível no inventário ===== */
+    .painel-inv { width: min(920px, 96vw) !important; max-height: 96vh !important; }
+    .painel-inv .grade {
+      display: grid !important;
+      grid-template-columns: repeat(10, min(64px, 7.2vh)) !important;
+      grid-auto-rows: min(64px, 7.2vh) !important;
+      justify-content: center !important;
+      align-content: start !important;
+      gap: 6px !important;
+      padding: 14px 18px !important;
+      max-height: none !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      scrollbar-width: none !important;
+    }
+    .painel-inv .grade::-webkit-scrollbar { display: none !important; }
+    .painel-inv .slot {
+      width: 100% !important; height: 100% !important; min-width: 0 !important;
+      flex-shrink: initial !important;
+    }
+    .painel-inv .slot svg { width: 55% !important; height: 55% !important; }
+    body:has(#inventario:not(.oculto)) #hotbar {
+      opacity: 1 !important; pointer-events: auto !important; z-index: 25 !important;
+    }
+  </style>
 </head>
 <body>
   <div id="mira"></div>
-  <div id="navbar"><span class="nav-item">💰 <span id="navbar-saldo">0</span></span></div>
 
   <!-- HUD lateral unificado -->
   <div id="hud-lateral">
@@ -656,16 +677,12 @@
 
 </script>
   <script>
-/* PATCH-V9-MAO: braço estilo Minecraft segurando o item */
-/* PATCH-V10-BRACO-PECAS: braço menor no canto + item na ponta + RAM/SSD/CPU/GPU */
-/* PATCH-V8-MUNDOZINHO: piso do DC, item na mão, escritório, casa, galpão */
-/* PATCH-MUNDOZINHO-V7 — CEMIG + chuva + escritório/sala */
 /* =========================================================
    CONFIG — MUNDO 2x MAIOR (raio 140)
 ========================================================= */
 const CONFIG = {
   raioMundo: 140,
-  raioLimite: 122,   // V6: jogador barrado antes do pe das montanhas
+  raioLimite: 122,   // jogador barrado antes do pe das montanhas
   alturaOlhos: 1.68,
   raioJogador: 0.42,
   velocidade: 5.2,
@@ -936,7 +953,7 @@ function zonaProibida(x, z, m = 0) {
       || R(2, -36, 80, -3)           // data center + 4 expansões + lotes de expansão
       || R(-26, 6, 32, 60)           // distrito de energia (20 lotes reservados)
       || R(-4, -2, 10, 10)          // ponto de entrada do jogador
-      || R(-120, -20, -90, 12);        // sede CEMIG (V7)
+      || R(-120, -20, -90, 12);        // sede CEMIG
 }
 
 /* =========================================================
@@ -1014,9 +1031,6 @@ function criarCicloDia(scene, { sol, amb, hemi, OFF }) {
   const luaLuz = new THREE.DirectionalLight(0x8fa8ff, 0); scene.add(luaLuz);
   const pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffd9a0, 0, 26, 1.6); scene.add(l); return l; });
 
-  // relógio na tela
-  // relógio movido para #hud-hora (painel lateral)
-  const relogio = { textContent: '' };
 
   let desloc = .30, tPool = 9, tCeu = 1, ultHora = '';          // começa às ~07:12
   addEventListener('keydown', e => { if (e.code === 'KeyT') desloc += 1 / 8; });
@@ -1070,7 +1084,6 @@ function criarCicloDia(scene, { sol, amb, hemi, OFF }) {
       const txt = `${elev > 0 ? '☀' : '☾'} ${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
       if (txt !== ultHora) {
         ultHora = txt;
-        relogio.textContent = txt;
         if (window._hud) window._hud.setHora(txt);
       }
     }
@@ -1078,27 +1091,30 @@ function criarCicloDia(scene, { sol, amb, hemi, OFF }) {
 }
 
 /* =========================================================
-   V6 — MONTANHAS: cordilheira ao redor do mapa (so visual; CONFIG.raioLimite barra o jogador)
+   MONTANHAS: cordilheira ao redor do mapa (so visual; CONFIG.raioLimite barra o jogador)
 ========================================================= */
 function criarMontanhas(scene) {
-  const R0 = 112, R1 = 300, NR = 44, NT = 360;
-  const ruido = (x, z) => {                               // cristas (ridged) sem emendas
+  const R0 = 112, R1 = 300, NR = 120, NT = 800;
+  const sabs = v => Math.sqrt(v * v + .015);               // |v| suavizado (sem vincos nas cristas)
+  const ruido = (x, z) => {
     let v = 0, soma = 0, a = 1, f = .02;
-    for (let o = 0; o < 4; o++) {
+    for (let o = 0; o < 5; o++) {
       const n = (Math.sin(x * f + 1.7 * o) * Math.cos(z * f * 1.13 - .9 * o) + .6 * Math.sin((x + z) * f * .71 + 2.3 * o)) / 1.6;
-      v += (1 - Math.abs(n)) * a; soma += a; a *= .5; f *= 2.05;
+      v += (1 - sabs(n)) * a; soma += a; a *= .5; f *= 2.05;
     }
     return Math.max(0, Math.min(1, v / soma));
   };
   const altura = (x, z) => {
     const r = Math.hypot(x, z), ang = Math.atan2(z, x);
-    const r0 = 124 + 3 * Math.sin(ang * 5) + 2 * Math.sin(ang * 11 + 1);      // onde o pe da montanha comeca
+    const r0 = 124 + 3 * Math.sin(ang * 5) + 2 * Math.sin(ang * 11 + 1);
     const t = Math.min(1, Math.max(0, (r - r0) / 55));
     const rampa = t * t * (3 - 2 * t);
     const picos = 30 + 100 * Math.pow(ruido(x, z), 1.5) * (.8 + .2 * Math.sin(ang * 4 + .6));
     return -2 + rampa * picos * (1 - suave(235, 300, r));
   };
-  const pos = new Float32Array((NR + 1) * NT * 3), col = new Float32Array((NR + 1) * NT * 3);
+
+  const total = (NR + 1) * NT;
+  const pos = new Float32Array(total * 3), col = new Float32Array(total * 3);
   const C = [0x5e9a4b, 0x3d6b3a, 0x777a80, 0xf1f5f9].map(h => new THREE.Color(h)), c = new THREE.Color();
   for (let i = 0; i <= NR; i++) {
     const r = R0 + (R1 - R0) * Math.pow(i / NR, 1.35);
@@ -1106,21 +1122,32 @@ function criarMontanhas(scene) {
       const a = j / NT * Math.PI * 2, x = Math.cos(a) * r, z = Math.sin(a) * r;
       const h = altura(x, z), k = (i * NT + j) * 3, n = ruido(x * 1.7 + 40, z * 1.7 - 25);
       pos[k] = x; pos[k + 1] = h; pos[k + 2] = z;
-      c.copy(C[0]).lerp(C[1], suave(3, 18, h)).lerp(C[2], suave(28, 52, h + (n - .5) * 22)).lerp(C[3], suave(72, 92, h + (n - .5) * 26));
+      c.copy(C[0]).lerp(C[1], suave(3, 18, h))
+        .lerp(C[2], suave(28, 52, h + (n - .5) * 22))
+        .lerp(C[3], suave(72, 92, h + (n - .5) * 26));
       col[k] = c.r; col[k + 1] = c.g; col[k + 2] = c.b;
     }
   }
-  const idx = [];
+
+  const idx = new Uint32Array(NR * NT * 6);
+  let p = 0;
   for (let i = 0; i < NR; i++) for (let j = 0; j < NT; j++) {
     const j2 = (j + 1) % NT, A = i * NT + j, B = i * NT + j2, D = (i + 1) * NT + j, E = (i + 1) * NT + j2;
-    idx.push(A, B, D, B, E, D);
+    idx[p++] = A; idx[p++] = B; idx[p++] = D;
+    idx[p++] = B; idx[p++] = E; idx[p++] = D;
   }
+
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  geo.setIndex(idx); geo.computeVertexNormals();
-  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0, flatShading: true, side: THREE.DoubleSide }));
-  m.raycast = () => {}; m.frustumCulled = false;     // nao interfere na mira e nunca some do quadro
+  geo.setIndex(new THREE.BufferAttribute(idx, 1));
+  geo.computeVertexNormals();
+
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+    vertexColors: true, roughness: 1, metalness: 0, side: THREE.DoubleSide
+  }));
+  m.raycast = () => {};
+  m.frustumCulled = false;
   scene.add(m);
   return m;
 }
@@ -1401,7 +1428,7 @@ function criarCasa(scene) {
   };
   ATUALIZAVEIS.push(dt => { pAng += ((pAberta ? 1.75 : 0) - pAng) * Math.min(1, dt * 6); porta.rotation.y = pAng; });
 
-  // ===== V5: coisas para fazer na casa =====
+  // ===== coisas para fazer na casa =====
   const mundo = (x, z) => ({ x: -28 + x, z: -12 + z });             // coordenada local da casa → mundo
   const alvoInvisivel = (w, h, d, x, y, z) => {                      // caixa invisível que recebe a mira
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshBasicMaterial({ visible: false }));
@@ -1533,7 +1560,6 @@ function criarCasa(scene) {
   caixa(.07, .2, .5, mat(0xe9c46a), -3.57, 2.12, -2.6);
 
   
-  // ===== PATCH-V8: casa (decoração + funcionalidades) =====
   {
     const B = (w, h, d) => new THREE.BoxGeometry(w, h, d);
     const dec = (geo, m, x, y, z, ry) => {
@@ -1873,7 +1899,6 @@ function criarGalpao(scene, px = 18, pz = -18) {
   pcGroup.userData.interagir = () => abrirTerminal();
   const luzE = new THREE.PointLight(0xfff1d6, .6, 9); luzE.position.set(-6.5, 3, -8); g.group.add(luzE);
 
-  // ---- PATCH V7: melhorias no escritório ----
   // Luminária de mesa
   (() => {
     const lum = new THREE.Group(); lum.position.set(-5.3, 1.04, -10.2); g.group.add(lum);
@@ -1908,7 +1933,6 @@ function criarGalpao(scene, px = 18, pz = -18) {
   // Luz de teto extra no escritório
   const luzE2 = new THREE.PointLight(0xe8f0ff, .35, 8); luzE2.position.set(-7, 3.8, -7); g.group.add(luzE2);
 
-  // ---- PATCH-V8: escritório (decoração e funcionalidades) ----
   {
     const FL = .34;   // topo do carpete
     const mt = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .7, ...o });
@@ -2077,7 +2101,6 @@ function criarGalpao(scene, px = 18, pz = -18) {
   caixa(SALA.esp, 5.2, SALA.zFrente - SALA.zFundo + SALA.esp, matParede, SALA.x0, 2.6, (SALA.zFundo + SALA.zFrente) / 2);
   addColisor(px + SALA.x0 - .2, pz + SALA.zFundo - .2, px + SALA.x0 + .2, pz + SALA.zFrente + .2, 'sala-oeste');
 
-  // ---- PATCH V7: melhorias na sala de racks ----
   // Piso técnico elevado (falso piso) com textura mais escura
   const matPisoDC = new THREE.MeshStandardMaterial({ color: 0x1b1f25, roughness: .55, metalness: .25 });
   g.pisoTrecho = function (xa, xb) {
@@ -2086,8 +2109,6 @@ function criarGalpao(scene, px = 18, pz = -18) {
     g.group.add(m);
   };
   g.pisoTrecho(-g.W / 2 + .15, g.W / 2 - .15);
-  // Faixas amarelas de segurança no chão (corredor central)
-  const matFaixa = new THREE.MeshStandardMaterial({ color: 0xd9b23c, emissive: 0xd9b23c, emissiveIntensity: .15 });
   // Painéis de LED no teto da sala (iluminação técnica)
   for (let zi = -2; zi <= 6; zi += 2.5) {
     for (let xi = 0; xi <= 8; xi += 2.6) {
@@ -2186,9 +2207,8 @@ function criarGalpao(scene, px = 18, pz = -18) {
   luzTec.position.set(0, 6.8, 2); g.group.add(luzTec);
 
   vagasRack(g, [0, 2.6, 5.2, 7.8], [-1.5, 1.0, 3.5, 6.0], () => true);
-  dutoClima(g, [0, 2.6, 5.2, 7.8], [-1.5, 1.0, 3.5, 6.0], [1, 4.5, 8], -1.5, 9.8);   // V6: dutos de ar   // 4 fileiras; fileira de trás já tem racks
+  dutoClima(g, [0, 2.6, 5.2, 7.8], [-1.5, 1.0, 3.5, 6.0], [1, 4.5, 8], -1.5, 9.8);
 
-  // ====== PATCH-V8: acabamento externo/interno do galpão ======
   // faixa azul nas paredes (a frente respeita a abertura do portão; a parede leste anda com a expansão)
   const matAcento = new THREE.MeshStandardMaterial({ color: 0x1f6fb5, emissive: 0x0a3a66, emissiveIntensity: .5, roughness: .5, metalness: .3 });
   g.acentoTrecho = function (xa, xb, frenteInteira) {
@@ -2315,9 +2335,6 @@ function criarGalpao(scene, px = 18, pz = -18) {
 /* =========================================================
    EXPANSÃO DO GALPÃO (nova ala aberta por dentro; continua as linhas de rack)
 ========================================================= */
-// Marcações verdes no chão. livre(x,z) = true → vaga vazia onde se instala um Rack do inventário
-
-
 /** Guarda-corpo reto (eixo X ou Z). Coordenadas locais do galpão. id=null → só visual. */
 function criarGuardaCorpo(g, x1, z1, x2, z2, yBase, id, y1 = 5.0) {
   const grp = new THREE.Group(); g.group.add(grp);
@@ -2365,7 +2382,7 @@ function criarVagaCooler(g, x, z) {
 }
 
 /* =========================================================
-   V6 — DUTOS DE AR: tubulacao sobre todos os racks, alimentada pelos refrigeradores do teto
+   DUTOS DE AR: tubulacao sobre todos os racks, alimentada pelos refrigeradores do teto
    tronco (2 linhas em X) -> ramais em Z (um por coluna de racks) -> difusores sobre cada rack
    risers sobem do tronco ate cada vaga de refrigerador no terraco
 ========================================================= */
@@ -2377,7 +2394,7 @@ function dutoClima(g, xs, zs, xsRiser, xIni, xFim) {
   const matGrade = new THREE.MeshStandardMaterial({ color: 0x14181d, metalness: .6, roughness: .5 });
   const matAzul = new THREE.MeshStandardMaterial({ color: 0x0a1a24, emissive: 0x67e0ff, emissiveIntensity: .15 });
   const aditivo = cor => new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
-  const matFluxo = aditivo(0x9be8ff), matSopro = aditivo(0x67e0ff);
+  const matSopro = aditivo(0x67e0ff);
 
   // eixo: 'x' | 'z' (cilindro deitado) | null (vertical)
   const mk = (geo, mat, x, y, z, eixo, sombra) => {
@@ -2392,13 +2409,6 @@ function dutoClima(g, xs, zs, xsRiser, xIni, xFim) {
     if (eixo === 'x') m.rotation.y = PI / 2; else if (eixo === 'y') m.rotation.x = PI / 2;
     return m;
   };
-  const movs = [];
-  const fluxo = (r, eixo, x, y, z, a, b, n, vel) => { return;   // efeito de feixe desativado
-    for (let i = 0; i < n; i++) {
-      const m = mk(new THREE.CylinderGeometry(r * 1.12, r * 1.12, .35, 20, 1, true), matFluxo, x, y, z, eixo);
-      movs.push({ m, eixo, a, b, fase: i / n, vel });
-    }
-  };
 
   const zA = zs[0] - .7, zB = zs[zs.length - 1] + .7, cz = (zA + zB) / 2;
 
@@ -2410,7 +2420,6 @@ function dutoClima(g, xs, zs, xsRiser, xIni, xFim) {
       banda(R_TR * 1.03, x, Y_TR, zt, 'x', matAzul);
       if (x + 1.1 < xFim - .3) tubo(R_TR * 1.09, .08, matEsc, x + 1.1, Y_TR, zt, 'x');
     }
-    fluxo(R_TR, 'x', xIni, Y_TR, zt, xIni + .3, xFim - .3, 3, .22);
   });
 
   // ---- ramais (em Z), um por coluna de racks ----
@@ -2421,7 +2430,6 @@ function dutoClima(g, xs, zs, xsRiser, xIni, xFim) {
       tubo(R_BR * .8, Y_TR - Y_BR, matEsc, x, (Y_TR + Y_BR) / 2, zt, null);
       mk(new THREE.SphereGeometry(R_BR * 1.2, 14, 10), matEsc, x, Y_BR, zt, null, true);
     });
-    fluxo(R_BR, 'z', x, Y_BR, zA, zA + .3, zB - .3, 2, .3);
 
     // ---- difusores de ar sobre cada rack ----
     zs.forEach(z => {
@@ -2444,18 +2452,42 @@ function dutoClima(g, xs, zs, xsRiser, xIni, xFim) {
     banda(R_TR * .9, xr, 4.95, zt, 'y', matAzul);
   }));
 
-  // ---- animacao: o fluxo e o brilho dependem da refrigeracao instalada ----
+  // ---- fumacinha fria saindo dos difusores (só com refrigeração instalada) ----
+  {
+    const cvF = document.createElement('canvas'); cvF.width = cvF.height = 64;
+    const cxF = cvF.getContext('2d'), grF = cxF.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grF.addColorStop(0, 'rgba(255,255,255,.9)'); grF.addColorStop(.5, 'rgba(255,255,255,.35)'); grF.addColorStop(1, 'rgba(255,255,255,0)');
+    cxF.fillStyle = grF; cxF.fillRect(0, 0, 64, 64);
+    const texF = new THREE.CanvasTexture(cvF);
+    const fumos = [];
+    xs.forEach(x => zs.forEach(z => {
+      for (let i = 0; i < 3; i++) {
+        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: texF, color: 0xbdefff, transparent: true, opacity: 0, depthWrite: false, fog: false }));
+        sp.raycast = () => {}; sp.visible = false; grp.add(sp);
+        fumos.push({ sp, x, z, t: i / 3 + Math.random() * .1, vel: .22 + Math.random() * .08, dx: (Math.random() - .5) * .5, dz: (Math.random() - .5) * .5 });
+      }
+    }));
+    ATUALIZAVEIS.push(dt => {
+      const k = Math.min(1, coolingTotal() / 8);
+      fumos.forEach(f => {
+        if (k <= 0) { f.sp.visible = false; return; }
+        f.t = (f.t + dt * f.vel) % 1;
+        const u = f.t;
+        f.sp.visible = true;
+        f.sp.position.set(f.x + f.dx * u, 3.6 - u * 1.1, f.z + f.dz * u);
+        f.sp.scale.setScalar(.35 + u * .9);
+        f.sp.material.opacity = .5 * k * Math.sin(Math.PI * u);
+      });
+    });
+  }
+
+    // ---- animacao: o fluxo e o brilho dependem da refrigeracao instalada ----
   const T = { t: 0 };
   ATUALIZAVEIS.push(dt => {
     T.t += dt;
     const k = Math.min(1, coolingTotal() / 12), pulso = .85 + .15 * Math.sin(T.t * 3);
-    matFluxo.opacity = .4 * k;
     matSopro.opacity = .05 + .3 * k * pulso;
     matAzul.emissiveIntensity = .15 + 1.1 * k * pulso;
-    for (const o of movs) {
-      const u = (T.t * o.vel * (.25 + k) + o.fase) % 1, p = o.a + (o.b - o.a) * u;
-      if (o.eixo === 'x') o.m.position.x = p; else o.m.position.z = p;
-    }
   });
   return grp;
 }
@@ -2509,7 +2541,6 @@ function criarCoolerTeto(g, x, z, nivelInicial = 1) {
   return obj;
 }
 
-/* PATCH-EVOLUCOES-VISUAIS */
 // ===== EVOLUÇÕES FUTURISTAS (painel · gerador · turbina · refrigerador) =====
 // Todo o visual das evoluções vive neste bloco. Cores e níveis ficam nas tabelas de cada função.
 const FX = (() => {
@@ -2832,7 +2863,7 @@ const FX = (() => {
     }
   }
 
-  // ===== V6: niveis 4, 5 e 6 (camadas extras por cima do visual do nv3) =====
+  // ===== niveis 4, 5 e 6 (camadas extras por cima do visual do nv3) =====
   const COR_X = [0, 0, 0, 0, 0xa58bff, 0xffd24d, 0xff5ad1];   // violeta · dourado · magenta
   const KW_G = [0, 10, 15, 22, 30, 40, 55];
   const texDisp6 = nv => cache['d6' + nv] || (cache['d6' + nv] = (() => {
@@ -3056,7 +3087,7 @@ function expandirGalpao(galpao, scene, racks, inventario, hud) {
 
   // a SALA DE RACKS cresce junto: paredes de fundo e frente da sala no trecho novo
   galpao.salaTrecho(xA, xB, n);
-  // V8: o piso escuro, as faixas amarelas e a faixa azul acompanham a expansão
+  // o piso escuro, as faixas amarelas e a faixa azul acompanham a expansão
   galpao.pisoTrecho(xA - .15, xB - .15);
   galpao.faixasTrecho(xA - .1, xB - .2);
   galpao.acentoTrecho(xA, xB, true);
@@ -3083,7 +3114,7 @@ function expandirGalpao(galpao, scene, racks, inventario, hud) {
 
   // novas VAGAS de refrigerador no terraço da expansão (vazias)
   vagasCooler(galpao, [[xA + 2.5, 0], [xA + 7.5, 0], [xA + 2.5, 4], [xA + 7.5, 4]]);
-  dutoClima(galpao, xs, FILEIRAS, [xA + 2.5, xA + 7.5], xA - .3, xB - .2);   // V6: dutos da nova ala
+  dutoClima(galpao, xs, FILEIRAS, [xA + 2.5, xA + 7.5], xA - .3, xB - .2);
 
   galpao.W += novoW; galpao.xDir = xB; galpao.expansoes = n;
   hud.toast(`Galpão ampliado (${n}/4)! A sala de racks cresceu junto — 4 fileiras de vagas marcadas.`);
@@ -3105,16 +3136,13 @@ function rackTex(chave, w, h, desenhar, repetir) {
   return RACK_TEX[chave];
 }
 
-/* PATCH-API-REMOVER-RACK: fetch genérico (POST/GET/PUT/DELETE) com CSRF do Django */
 const API = {
   removerRack: '/server/api/rack/remove/', instalarRack: '/server/api/rack/install/',
   removerBaia: '/server/api/bay/remove/',  instalarBaia: '/server/api/bay/install/',
   inventario: '/user/inventory/',
+  expandirDatacenter: '/server/datacenter/upgrade/',
   detalheBaia: '/server/get-bay-detail/'   // + id  (ajuste o prefixo se necessário)
 };
-/* PATCH-API-INSTALAR-RACK: racks do Django ainda não instalados (fila) */
-const RACKS_INSTALAVEIS = (typeof data !== 'undefined' && data && Array.isArray(data.inventory_racks))
-  ? data.inventory_racks.slice() : [];
 async function apiFetch(url, { method = 'POST', data = null } = {}) {
   const m = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/);
   const campo = document.querySelector('[name=csrfmiddlewaretoken]');
@@ -3140,7 +3168,6 @@ async function apiFetch(url, { method = 'POST', data = null } = {}) {
   }
 }
 
-/* PATCH-API-BAIAS: POST genérico; true somente se o servidor devolver 200 */
 async function chamarApi(url, dados, msgErroPadrao) {
   const r = await apiFetch(url, { data: dados });
   if (r.status === 200) return true;
@@ -3445,7 +3472,6 @@ function criarVagaRack(g, x, z, posFixa) {
     hud.toast('Rack instalado (vazio) — instale baias nele. Aperte G na mira para remover.');
     return obj;
   };
-  /* PATCH-API-INSTALAR-RACK */
   v.userData.interagir = (gratis, nomeDjango) => {
     if (gratis === true) return instalar(nomeDjango);          // carga inicial vinda do Django
     const it = inventario.procurarItem(i => i.tipo === 'rack');
@@ -3489,7 +3515,6 @@ const ITENS = {
   cooler: { nome: 'Refrigerador de Teto', icone: ICONS.cooler, desc: 'Instale nas vagas azuis do terraço do data center. 5 evoluções (4 → 20 kW de refrigeração). Evolua com F.' },
   chave: { nome: 'Chave Admin', icone: ICONS.key, desc: 'Acessos privilegiados ao sistema.' }
 };
-/* PATCH-V10-PECAS: memória RAM, SSD, processador e placa de vídeo (só itens, sem função por enquanto) */
 ICONS.ram = `<svg viewBox="0 0 24 24"><rect x="1.5" y="5.5" width="21" height="10" rx="1"/><rect x="4" y="8" width="3.2" height="4.5" rx=".4"/><rect x="8.4" y="8" width="3.2" height="4.5" rx=".4"/><rect x="12.8" y="8" width="3.2" height="4.5" rx=".4"/><rect x="17.2" y="8" width="3.2" height="4.5" rx=".4"/><path d="M3.5 15.5v3M5.5 15.5v3M7.5 15.5v3M9.5 15.5v3M11.5 15.5v3M14 15.5v3M16 15.5v3M18 15.5v3M20 15.5v3"/></svg>`;
 ICONS.ssd = `<svg viewBox="0 0 24 24"><rect x="2" y="5" width="17.5" height="14" rx="2"/><rect x="5" y="8" width="8.5" height="5" rx=".6"/><path d="M5 15.5h5M12 15.5h1.5"/><circle cx="4.6" cy="7.2" r=".5"/><circle cx="16.9" cy="7.2" r=".5"/><circle cx="4.6" cy="16.8" r=".5"/><circle cx="16.9" cy="16.8" r=".5"/><path d="M19.5 8.5H22M19.5 11H22M19.5 13.5H22M19.5 16H22"/></svg>`;
 ICONS.cpu = `<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.5"/><rect x="8.5" y="8.5" width="7" height="7" rx=".8"/><path d="M8 2v3M12 2v3M16 2v3M8 19v3M12 19v3M16 19v3M2 8h3M2 12h3M2 16h3M19 8h3M19 12h3M19 16h3"/></svg>`;
@@ -3777,9 +3802,1207 @@ function criarModeloPeca(tipo) {
   return g;
 }
 
+/* ===== MODELOS 3D DE GPU (injetado) ===== */
+const GPUM = (() => {
+  const PI = Math.PI;
+  const ACC = { NVIDIA: 0x76b900, AMD: 0xed1c24, Intel: 0x00aeef };
+  const M = (c, o = {}) => {
+    const mt = (o.metalness !== undefined ? o.metalness : .6) * .6;
+    return new THREE.MeshStandardMaterial({ color: c, roughness: .45, emissive: c, emissiveIntensity: .05, ...o, metalness: mt });
+  };
+  const GOLD = () => M(0xd4af37, { metalness: .95, roughness: .28 });
+  const PLAS = () => M(0x1a1c20, { roughness: .7, metalness: .2 });
+
+  /* paleta RGB compartilhada (8 materiais, um único update por frame) */
+  const RGBP = Array.from({ length: 8 }, (_, i) => ({ m: new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide }), off: i / 8 }));
+  const rgb = i => RGBP[((i % 8) + 8) % 8].m;
+  ATUALIZAVEIS.push(() => {
+    const t = performance.now() / 1000;
+    RGBP.forEach(p => p.m.color.setHSL((t * .22 + p.off) % 1, 1, .52));
+  });
+
+  /* ---------- helpers (unidade = mm) ---------- */
+  function bx(g, w, h, d, m, x = 0, y = 0, z = 0) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); g.add(o); return o; }
+  function lbl(g, t, w, h, col, x, y, z, glow) {
+    const c = document.createElement('canvas'); c.width = 512; c.height = Math.round(512 * h / w);
+    const k = c.getContext('2d');
+    k.fillStyle = col; k.textAlign = 'center'; k.textBaseline = 'middle';
+    let s = c.height * .8;
+    do { k.font = `800 ${s}px Inter,Arial,sans-serif`; s -= 2; } while (k.measureText(t).width > c.width * .94 && s > 8);
+    if (glow) { k.shadowColor = col; k.shadowBlur = 12; }
+    k.fillText(t, 256, c.height / 2);
+    const tx = new THREE.CanvasTexture(c);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tx, transparent: true, depthWrite: false }));
+    m.position.set(x, y, z); g.add(m); return m;
+  }
+  function rr(w, h, c, holes) {
+    const s = new THREE.Shape(), x = -w / 2, y = -h / 2;
+    s.moveTo(x + c, y); s.lineTo(x + w - c, y); s.quadraticCurveTo(x + w, y, x + w, y + c); s.lineTo(x + w, y + h - c); s.quadraticCurveTo(x + w, y + h, x + w - c, y + h);
+    s.lineTo(x + c, y + h); s.quadraticCurveTo(x, y + h, x, y + h - c); s.lineTo(x, y + c); s.quadraticCurveTo(x, y, x + c, y);
+    (holes || []).forEach(([hx, hy, r]) => { const p = new THREE.Path(); p.absarc(hx, hy, r, 0, PI * 2, true); s.holes.push(p); });
+    return s;
+  }
+  function plate(g, w, h, holes, d, m, z) {
+    const o = new THREE.Mesh(new THREE.ExtrudeGeometry(rr(w, h, 3, holes), { depth: d, bevelEnabled: true, bevelSize: .5, bevelThickness: .5, bevelSegments: 2, curveSegments: 28 }), m);
+    o.position.z = z; g.add(o); return o;
+  }
+  function fan(r, n, col, led, ri) {
+    const g = new THREE.Group(), ro = new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.TorusGeometry(r, r * .07, 8, 40), M(0x2a2e34)));
+    if (ri !== undefined) { const ar = new THREE.Mesh(new THREE.TorusGeometry(r * .9, r * .03, 6, 48), rgb(ri)); ar.position.z = .2; g.add(ar); }
+    const bk = new THREE.Mesh(new THREE.CircleGeometry(r * .95, 32), M(0x04050a, { roughness: .9 })); bk.position.z = -.5; g.add(bk);
+    const s = new THREE.Shape(); s.moveTo(r * .2, -r * .05); s.bezierCurveTo(r * .4, -r * .22, r * .7, -r * .26, r * .93, -r * .08); s.lineTo(r * .93, r * .05); s.bezierCurveTo(r * .7, -r * .04, r * .4, r * .03, r * .2, r * .09);
+    const bg = new THREE.ShapeGeometry(s, 10), bm = M(col, { side: THREE.DoubleSide, roughness: .4 });
+    for (let i = 0; i < n; i++) { const b = new THREE.Mesh(bg, bm); b.rotation.z = i / n * PI * 2; ro.add(b); }
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(r * .22, r * .22, 1, 24), M(0x0e1013)); hub.rotation.x = PI / 2; ro.add(hub);
+    const hr = new THREE.Mesh(new THREE.TorusGeometry(r * .2, .35, 6, 28), ri !== undefined ? rgb(ri + 4) : M(led, { emissive: led, emissiveIntensity: 1.2 })); hr.position.z = .6; ro.add(hr);
+    g.add(ro); g.userData.rotor = ro; return g;
+  }
+  function bracket(g, L, H, T, np) {
+    const m = M(0x8a9098, { metalness: .85, roughness: .3 }), x = L / 2 + 1;
+    bx(g, 1.6, H, Math.min(T, 38), m, x, 0, 0); bx(g, 5, 8, 28, m, x, H / 2 + 4, 0);
+    for (let i = 0; i < np; i++) bx(g, .8, 9, i == np - 1 && np > 3 ? 11 : 7, M(0x08090c), x + .9, -H * .12 + (i - (np - 1) / 2) * 13, 0);
+  }
+  function fingers(g, L, H, T) {
+    bx(g, 89, 2.2, 1.6, M(0x0d2a20), L / 2 - 60, -H / 2 - 1, -T / 2 + 4);
+    for (let i = 0; i < 22; i++) if (i != 9) bx(g, 2.8, 2.2, 1.7, GOLD(), L / 2 - 60 - 44 + i * 4, -H / 2 - 1, -T / 2 + 4);
+  }
+  function power(g, L, H, T, w, y) {
+    if (w >= 300 && w < 800) { bx(g, 26, 10, 13, PLAS(), L / 2 - 45, H / 2 + 4, T / 2 - y); bx(g, 20, 1, 9, GOLD(), L / 2 - 45, H / 2 + 9.3, T / 2 - y); }
+    else for (let i = 0; i < (w > 200 ? 2 : 1); i++) bx(g, 20, 8, 11, PLAS(), L / 2 - 40 - i * 24, H / 2 + 3, T / 2 - y);
+  }
+
+  /* ---------- modelos ---------- */
+  function placa(m, E) {
+    const o = m.o, { L, H, T } = o, c = E.c, a = E.a, g = new THREE.Group(), R = [];
+    const n = o.ft ? 1 : o.n, fr = o.ft ? H * .37 : Math.min(H * .36, (L - 14) / n * .46);
+    const pos = o.ft ? [[L * .22, 0]] : Array.from({ length: n }, (_, i) => [-L / 2 + 7 + ((L - 14) / n) * (i + .5), 0]);
+    bx(g, L, H, 1.6, M(0x0d1014, { roughness: .7 }), 0, 0, -T / 2 + 4);
+    bx(g, L - 2, H - 2, T - 8, M(0x16181c), 0, 0, .5);
+    const hm = M(0x2a2e34, { roughness: .55, metalness: .8 });
+    if (o.ft) { for (let i = 0; i < 18; i++) bx(g, 1.2, H - 8, T - 12, hm, -L * .47 + i * L * .027, 0, .5); }
+    {
+      const x0 = o.ft ? L * .02 : -L / 2 + 5, x1 = L / 2 - 6, nf = Math.floor((x1 - x0) / 2.4);
+      const fi = new THREE.InstancedMesh(new THREE.BoxGeometry(.8, H - 10, 2.4), M(0x4a4f58, { roughness: .45, metalness: .9 }), nf), d = new THREE.Object3D();
+      for (let i = 0; i < nf; i++) { d.position.set(x0 + i * 2.4, 0, T / 2 - 2.6); d.updateMatrix(); fi.setMatrixAt(i, d.matrix); }
+      g.add(fi);
+    }
+    plate(g, L, H, pos.map(p => [p[0], p[1], fr + 1]), 4, M(c, { roughness: .4, metalness: .6 }), T / 2 - 4);
+    pos.forEach((p, i) => { const f = fan(fr, o.ft ? 9 : 11, 0x15181d, a, E.rgb ? E.o8 + i : undefined); f.position.set(p[0], p[1], T / 2 - 1.2); g.add(f); R.push(f.userData.rotor); });
+    if (!o.ft) for (let i = 1; i < n; i++) bx(g, 1.6, H * .72, 1.4, M(0x3a3e46, { metalness: .8 }), -L / 2 + 7 + ((L - 14) / n) * i, 0, T / 2 + .4);
+    else [1, -1].forEach(sg => { const b = bx(g, Math.hypot(L * .46, H * .86), 3.6, 2.2, M(0xaab0b8, { metalness: .9, roughness: .3 }), -L * .24, 0, T / 2 + .2); b.rotation.z = sg * Math.atan2(H * .86, L * .46); });
+    const bpM = M(o.ft ? c : 0x1a1c20, { roughness: .45, metalness: .6 });
+    if (o.ft) {
+      plate(g, L - 3, H - 3, [[-L * .22, 0, fr + 2]], 2, bpM, -T / 2);
+      const f = fan(fr, 9, 0x15181d, a, E.rgb ? E.o8 + 5 : undefined); f.position.set(-L * .22, 0, -T / 2 + 3.5); f.rotation.y = PI; g.add(f); R.push(f.userData.rotor);
+    } else {
+      bx(g, L - 3, H - 3, 2, bpM, 0, 0, -T / 2 + 1);
+      lbl(g, m.model, L * .4, 9, '#cfd5dc', 0, H * .2, -T / 2 - .2).rotation.y = PI;
+      bx(g, L * .55, 2, .6, E.rgb ? rgb(E.o8 + 3) : M(a, { emissive: a, emissiveIntensity: 1.6 }), 0, -H * .1, -T / 2 - .3);
+    }
+    bx(g, L * .72, 1.6, 1, E.rgb ? rgb(E.o8) : M(a, { emissive: a, emissiveIntensity: 2 }), 0, H / 2 - 3, T / 2 - .5);
+    bx(g, L * .5, 2.4, .8, M(a, { emissive: a, emissiveIntensity: 1.2 }), L * .02, -H / 2 + 6, T / 2 + .3);
+    if (E.rgb) bx(g, L * .62, .9, T * .55, rgb(E.o8 + 2), -L * .08, H / 2 + .3, 0);
+    lbl(g, m.brand == 'NVIDIA' ? 'GEFORCE RTX' : m.brand == 'AMD' ? 'RADEON' : 'ARC', L * .26, 8, '#ffffff', o.ft ? L * .28 : -L * .36, H * .4, T / 2 + .3, 1);
+    bracket(g, L, H, T, 4); fingers(g, L, H, T); power(g, L, H, T, m.watts, 18);
+    g.userData.rotors = R; return g;
+  }
+
+  /* RTX 4070 SUPER · Gigabyte Gaming OC (WindForce 3 fans) */
+  function rtx4070s(m, E) {
+    const o = m.o, { L, H, T } = o, g = new THREE.Group(), R = [], fr = 41, xs = [-86, 0, 86], blk = M(0x0f1013, { roughness: .55, metalness: .25 });
+    bx(g, L, H, 1.6, M(0x0d1014, { roughness: .7 }), 0, 0, -T / 2 + 4);
+    bx(g, L - 2, H - 2, T - 16.5, M(0x121417), 0, 0, -3.75);
+    const nf = Math.floor((L - 12) / 2.4), fi = new THREE.InstancedMesh(new THREE.BoxGeometry(.8, H - 12, 2.4), M(0x4a4f58, { roughness: .45, metalness: .9 }), nf), d = new THREE.Object3D();
+    for (let k = 0; k < nf; k++) { d.position.set(-L / 2 + 6 + k * 2.4, 0, T / 2 - 10.8); d.updateMatrix(); fi.setMatrixAt(k, d.matrix); }
+    g.add(fi);
+    plate(g, L, H, xs.map(x => [x, 0, fr + 1.5]), 14, blk, T / 2 - 14);
+    xs.forEach(x => {
+      const f = fan(fr, 13, 0x1b1d22, 0x2a2e34), ro = f.userData.rotor; f.position.set(x, 0, T / 2 - 9.5); g.add(f); R.push(ro);
+      const hb = new THREE.Mesh(new THREE.CylinderGeometry(fr * .3, fr * .3, 1.4, 32), M(0xd9dce2, { metalness: 1, roughness: .2 })); hb.rotation.x = PI / 2; hb.position.z = .9; ro.add(hb);
+      lbl(ro, 'GIGABYTE', fr * .46, fr * .09, '#2a2e36', 0, 0, 1.7);
+      for (let k = 0; k < 6; k++) {
+        const mat = E.rgb ? rgb(E.o8 + k) : new THREE.MeshBasicMaterial({ color: k % 2 ? 0xff7a18 : 0x20d8ee, transparent: true, opacity: .9, side: THREE.DoubleSide });
+        const a = new THREE.Mesh(new THREE.RingGeometry(fr * .6, fr * .93, 16, 1, k * PI / 3, PI / 3.4), mat); a.position.z = 1.1; ro.add(a);
+      }
+      const r = new THREE.Mesh(new THREE.TorusGeometry(fr + 3, 1.8, 8, 56), M(0x17191d)); r.position.set(x, 0, T / 2 + .3); g.add(r);
+    });
+    bx(g, L - 3, H - 3, 2, M(0x15171a, { roughness: .5, metalness: .6 }), 0, 0, -T / 2 + 1);
+    lbl(g, 'GIGABYTE', 70, 10, '#c9ced6', -L * .2, 0, -T / 2 - .3).rotation.y = PI;
+    lbl(g, 'RTX 4070 SUPER', 60, 7, '#8a8f96', L * .15, -H * .25, -T / 2 - .3).rotation.y = PI;
+    const bm = M(0x9aa0a8, { metalness: .85, roughness: .35 }), x = L / 2 + 1, z0 = -T / 2 + 21;
+    bx(g, 1.6, H, 42, bm, x, 0, z0); bx(g, 5, 8, 28, bm, x, H / 2 + 4, z0);
+    for (let k = 0; k < 4; k++) { const y = (k - 1.5) * 16 - 8; bx(g, .8, 6.5, 16, M(0x08090c), x + .9, y, -13); bx(g, .6, 3, 11, GOLD(), x + 1.1, y, -13); }
+    for (let r = 0; r < 13; r++) for (let c = 0; c < 2; c++) { const h = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, .8, 6), M(0x08090c)); h.rotation.z = PI / 2; h.position.set(x + .9, -H / 2 + 10 + r * 8.6, 1.5 + c * 8.5 + (r % 2) * 4); g.add(h); }
+    fingers(g, L, H, T);
+    bx(g, 26, 10, 13, PLAS(), L / 2 - 45, H / 2 + 4, T / 2 - 18); bx(g, 20, 1, 9, GOLD(), L / 2 - 45, H / 2 + 9.3, T / 2 - 18);
+    g.userData.rotors = R; return g;
+  }
+
+  function blower(m, E) {
+    const o = m.o, { L, H, T } = o, a = E.a, g = new THREE.Group(), c = E.c;
+    bx(g, L, H, 1.6, M(0x0d1014), 0, 0, -T / 2 + 4);
+    bx(g, L - 2, H - 2, T - 8, M(c, { roughness: .4 }), 0, 0, .5);
+    bx(g, L * .94, H * .9, 2, M(0x3a3e46, { roughness: .35, metalness: .8 }), 0, 0, T / 2 - 3);
+    bx(g, L * .02, H - 2, 2, E.rgb ? rgb(E.o8) : M(a, { emissive: a, emissiveIntensity: 1.6 }), -L * .47, 0, T / 2 - 1.5);
+    const r = H * .3, bl = new THREE.Group(), ro = new THREE.Group();
+    bl.add(new THREE.Mesh(new THREE.TorusGeometry(r, 1.4, 8, 48), M(0x2a2e34)));
+    const dk = new THREE.Mesh(new THREE.CircleGeometry(r, 40), M(0x06070a, { roughness: .9 })); dk.position.z = -.5; bl.add(dk);
+    for (let i = 0; i < 30; i++) { const b = bx(ro, r * .78, .7, 2, M(0x25292f), 0, 0, 0); b.position.set(Math.cos(i / 30 * PI * 2) * r * .5, Math.sin(i / 30 * PI * 2) * r * .5, .6); b.rotation.z = i / 30 * PI * 2 + .5; }
+    const hb = new THREE.Mesh(new THREE.CylinderGeometry(r * .16, r * .16, 2, 20), M(0x0e1013)); hb.rotation.x = PI / 2; hb.position.z = 1; ro.add(hb); bl.add(ro);
+    bl.position.set(-L * .2, 0, T / 2 - .5); g.add(bl);
+    bx(g, L * .3, H * .55, 1, M(0x1a2028, { transparent: true, opacity: .4 }), L * .26, 0, T / 2 - 1.5);
+    for (let i = 0; i < 10; i++) bx(g, .8, H * .5, 6, M(0x3a3e46, { metalness: .8 }), L * .12 + i * L * .028, 0, T / 2 - 5);
+    lbl(g, m.model, L * .3, 9, '#ffffff', L * .26, H * .38, T / 2 - .8, 1);
+    for (let i = 0; i < 6; i++) bx(g, 2, H * .7, 1, M(0x08090c), L * .4 + i * 3, 0, T / 2 - 1.4);
+    if (E.rgb) bx(g, L * .5, 1, T * .5, rgb(E.o8 + 1), -L * .05, H / 2 + .3, 0);
+    bracket(g, L, H, T, 4); fingers(g, L, H, T);
+    bx(g, 20, 8, 11, PLAS(), L / 2 - 40, H / 2 + 3, T / 2 - 12);
+    g.userData.rotors = [ro]; return g;
+  }
+
+  function passiva(m, E) {
+    const o = m.o, { L, H, T } = o, a = E.a, g = new THREE.Group();
+    bx(g, L, H, 1.6, M(0x0d1014), 0, 0, -T / 2 + 3);
+    bx(g, L - 1, H - 1, T - 5, M(E.c, { roughness: .45 }), 0, 0, .5);
+    bx(g, L * .96, H * .86, 1.2, M(0x2a2e34, { metalness: .8 }), 0, 0, T / 2 - 1.5);
+    for (let i = 0; i < 14; i++) bx(g, L * .7, 1.6, 1, M(0x05060a), -L * .06, -H * .38 + i * H * .058, T / 2 - .8);
+    bx(g, L * .012, H, T, M(a, { emissive: a, emissiveIntensity: 1 }), -L / 2 + 1, 0, 0);
+    bx(g, L * .5, 1.4, 1, M(a, { emissive: a, emissiveIntensity: 1.4 }), L * .05, H * .44, T / 2 - .6);
+    lbl(g, m.model, L * .26, 8, '#ffffff', L * .33, H * .38, T / 2 - .5, 1);
+    bx(g, 1.6, H, Math.min(T, 38), M(0x8a9098, { metalness: .85, roughness: .3 }), L / 2 + 1, 0, 0);
+    for (let i = 0; i < 5; i++) bx(g, .8, H * .7, 3, M(0x08090c), L / 2 + 1.9, 0, -T * .3 + i * T * .15);
+    fingers(g, L, H, T);
+    bx(g, 18, 9, 12, PLAS(), -L / 2 + 30, H / 2 + 4, 0);
+    g.userData.rotors = []; return g;
+  }
+
+  function modulo(m, E) {
+    const o = m.o, { L, H } = o, a = E.a, g = new THREE.Group(), hs = new THREE.Group();
+    bx(g, L, H, 2, M(o.oam ? 0x1e2a26 : 0x10161a, { roughness: .6, metalness: .3 }), 0, 0, 0);
+    bx(g, L * .82, 6, 1.2, GOLD(), 0, -H / 2 + 4, -1.2);
+    [[1, 1], [-1, 1], [1, -1], [-1, -1]].forEach(([sx, sy]) => { const s = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 3, 20), M(0x9aa0a8)); s.rotation.x = PI / 2; s.position.set(sx * (L / 2 - 7), sy * (H / 2 - 7), 1.5); g.add(s); });
+    const pw = L * .58, ph = H * .64;
+    bx(g, pw, ph, 2, M(o.oam ? 0x2a3a30 : 0x1e2a22, { roughness: .55 }), 0, 0, 2);
+    if (o.oam) { bx(g, pw * .8, ph * .8, 3.2, M(0xc8ccd2, { metalness: 1, roughness: .25 }), 0, 0, 4.2); lbl(g, 'AMD INSTINCT', pw * .6, 8, '#2a2e36', 0, 0, 5.9); }
+    else {
+      const cols = o.d > 1 ? 2 : 1, rows = o.d > 2 ? 2 : 1, bw = pw * .34, bh = ph * .72, dm = M(0x66788a, { metalness: .85, roughness: .28 });
+      for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) bx(g, bw / cols - 1.5, bh / rows - 1.5, 1.4, dm, (i - (cols - 1) / 2) * bw / cols, (j - (rows - 1) / 2) * bh / rows, 3.7);
+      const k = o.h / 2, ph2 = ph * .86 / k, sw = pw * .1, hm = M(0x3a3e48, { metalness: .5, roughness: .4 });
+      [-1, 1].forEach(s => { for (let i = 0; i < k; i++) { bx(g, sw, ph2 * .84, 1.2, hm, s * (bw / 2 + sw / 2 + 2.5), (i - (k - 1) / 2) * ph2, 3.6); bx(g, sw * .7, ph2 * .5, .3, GOLD(), s * (bw / 2 + sw / 2 + 2.5), (i - (k - 1) / 2) * ph2, 4.3); } });
+    }
+    bx(hs, L * .82, H * .88, 4, M(o.hs, { metalness: .9, roughness: .3 }), 0, 0, 8);
+    const nf = 34; for (let i = 0; i < nf; i++) bx(hs, 1, H * .84, 22, M(o.hs, { metalness: .85, roughness: .38 }), -L * .38 + i * (L * .76 / (nf - 1)), 0, 19);
+    bx(hs, L * .34, 15, 1.5, M(0x0a0c10), 0, 0, 30.5);
+    bx(hs, L * .5, 1.4, 1.4, E.rgb ? rgb(E.o8) : M(a, { emissive: a, emissiveIntensity: 1.6 }), 0, H * .46, 30.8);
+    bx(hs, L * .5, 1.4, 1.4, E.rgb ? rgb(E.o8 + 4) : M(a, { emissive: a, emissiveIntensity: 1.6 }), 0, -H * .46, 30.8);
+    lbl(hs, m.model.replace(/\s*\(.*\)/, ''), L * .32, 12, m.brand == 'AMD' ? '#ed1c24' : '#76b900', 0, 0, 31.4, 1);
+    g.add(hs); g.userData.hs = hs; g.userData.rotors = []; return g;
+  }
+
+  /* ---------- dados ---------- */
+  /* [modelo, marca, preço, watts, vram, MHz, raridade, tipo, opções]  tipo: c placa · b blower · p passiva · s módulo */
+  const DADOS = [
+   ['RTX 4070 SUPER','NVIDIA',4200,220,12,2475,'common','c',{L:261,H:126,T:50,n:3,fn:rtx4070s}],
+   ['RTX 5070 Ti','NVIDIA',6900,300,16,2452,'uncommon','c',{L:300,H:125,T:52,n:3}],
+   ['RTX 5080','NVIDIA',14000,360,16,2617,'uncommon','c',{L:304,H:137,T:40,ft:1,c:0x2a2e34}],
+   ['RTX 5090','NVIDIA',24000,575,32,2400,'very-rare','c',{L:304,H:137,T:48,ft:1,c:0x9aa0a8}],
+   ['RTX 4090','NVIDIA',19000,450,24,2520,'very-rare','c',{L:304,H:137,T:61,ft:1,c:0x2e3238}],
+   ['RTX 6000 Ada Generation','NVIDIA',25000,300,48,2505,'very-rare','b',{L:267,H:111,T:38,c:0x2a2e34}],
+   ['RTX PRO 6000 Blackwell','NVIDIA',45000,600,96,2617,'epic','b',{L:267,H:111,T:38,c:0x16181c}],
+   ['A100 80GB SXM4','NVIDIA',62000,400,80,1410,'epic','s',{L:140,H:100,d:1,h:6,hs:0x8a9098}],
+   ['H100 80GB SXM5','NVIDIA',175000,700,80,1980,'ancestral','s',{L:145,H:102,d:1,h:6,hs:0x2a2e34}],
+   ['H100 NVL','NVIDIA',190000,700,94,1980,'ancestral','p',{L:267,H:111,T:38,c:0x1a1c20}],
+   ['H200 141GB SXM5','NVIDIA',195000,700,141,1980,'ancestral','s',{L:145,H:102,d:1,h:6,hs:0x2a2e34}],
+   ['B200 192GB','NVIDIA',210000,1000,192,2100,'legendary','s',{L:165,H:110,d:2,h:8,hs:0x1e2228}],
+   ['B300 (Blackwell Ultra) 288GB','NVIDIA',260000,1400,288,2200,'legendary','s',{L:170,H:112,d:2,h:8,hs:0x1e2228}],
+   ['Rubin R200 288GB','NVIDIA',480000,1200,288,2400,'pearlescent','s',{L:175,H:115,d:2,h:8,hs:0x1a1e24}],
+   ['RX 7900 XTX','AMD',9800,355,24,2500,'uncommon','c',{L:287,H:130,T:52,n:3}],
+   ['Instinct MI300X','AMD',88000,750,192,2100,'ancestral','s',{L:165,H:102,oam:1,hs:0x2a2e34}],
+   ['RTX 4060 Ti','NVIDIA',2600,165,16,2535,'common','c',{L:227,H:100,T:40,n:2}],
+   ['RTX 5070','NVIDIA',5600,250,12,2512,'common','c',{L:242,H:111,T:40,ft:1,c:0x2a2e34}],
+   ['L40S','NVIDIA',22000,350,48,2520,'very-rare','p',{L:267,H:111,T:38,c:0x1a1c20}],
+   ['Instinct MI400','AMD',220000,1000,288,2300,'legendary','s',{L:175,H:110,oam:1,hs:0x2a2e34}],
+   ['RTX 4060','NVIDIA',2100,115,8,2460,'common','c',{L:200,H:110,T:38,n:2}],
+   ['RTX 4070 Ti SUPER','NVIDIA',11000,285,16,2610,'uncommon','c',{L:300,H:125,T:52,n:3}],
+   ['RTX 5060 Ti','NVIDIA',3400,180,16,2572,'common','c',{L:230,H:105,T:40,n:2}],
+   ['RX 7800 XT','AMD',6700,263,16,2430,'common','c',{L:267,H:120,T:45,n:2}],
+   ['RX 7600 XT','AMD',2550,190,16,2470,'common','c',{L:242,H:110,T:42,n:2}],
+   ['Radeon PRO W7900','AMD',17000,295,48,2500,'uncommon','b',{L:280,H:111,T:40,c:0x1a1c20}],
+   ['RTX A6000','NVIDIA',15500,300,48,1800,'uncommon','b',{L:267,H:111,T:38,c:0x2a2e34}],
+   ['RTX 4500 Ada','NVIDIA',7900,210,24,2580,'uncommon','b',{L:240,H:111,T:38,c:0x2a2e34}],
+   ['L4','NVIDIA',4300,72,24,2040,'common','p',{L:168,H:69,T:20,c:0x1a1c20}],
+   ['A40','NVIDIA',14000,300,48,1740,'uncommon','p',{L:267,H:111,T:38,c:0x1a1c20}],
+   ['Instinct MI250X','AMD',78000,560,128,1700,'epic','s',{L:165,H:102,oam:1,hs:0x2a2e34}],
+   ['Instinct MI210','AMD',34000,300,64,1700,'very-rare','p',{L:267,H:111,T:38,c:0x16181c}],
+   ['RTX 6090 Ti (Rubin)','NVIDIA',68000,600,48,2900,'epic','c',{L:320,H:145,T:58,ft:1,c:0x2e3238}],
+   ['RTX 6080 (Rubin)','NVIDIA',32000,400,24,2800,'very-rare','c',{L:304,H:137,T:48,ft:1,c:0x2a2e34}],
+   ['Rubin Ultra R300','NVIDIA',550000,1500,384,2600,'iris','s',{L:185,H:125,d:4,h:16,hs:0x1a1e24}],
+   ['Rubin CPX','NVIDIA',205000,800,128,2500,'ancestral','p',{L:267,H:111,T:38,c:0x1a1c20}],
+   ['Feynman F1 (pós-Rubin)','NVIDIA',3500000,1600,512,2700,'iris','s',{L:190,H:130,d:4,h:16,hs:0x1a1e24}],
+   ['Instinct MI500X','AMD',400000,1200,432,2400,'pearlescent','s',{L:185,H:115,oam:1,hs:0x2a2e34}],
+   ['Instinct MI450','AMD',260000,1100,288,2350,'legendary','s',{L:175,H:110,oam:1,hs:0x2a2e34}],
+   ['Radeon RX 10900 XTX (UDNA)','AMD',30000,500,32,2700,'very-rare','c',{L:320,H:140,T:60,n:3}],
+   ['Radeon PRO W9900','AMD',42000,350,64,2650,'epic','b',{L:280,H:111,T:40,c:0x1a1c20}],
+   ['RTX PRO 8000 Blackwell Ultra','NVIDIA',82000,700,128,2700,'epic','b',{L:267,H:111,T:38,c:0x15171a}],
+   ['GB300 NVL144 Superchip GPU','NVIDIA',300000,1400,288,2200,'pearlescent','s',{L:175,H:115,d:2,h:8,hs:0x1e2228}],
+   ['Arc B770','Intel',3200,190,16,2450,'common','c',{L:272,H:112,T:42,n:2}]
+  ].map(a => ({ model: a[0], brand: a[1], price: a[2], watts: a[3], vram: a[4], mhz: a[5], rarity: a[6], tipo: a[7], o: a[8] }));
+
+  /* ---------- estilo: preto + verde NVIDIA, variações brancas e RGB ---------- */
+  const RGB_RAR = ['uncommon', 'very-rare', 'epic', 'legendary', 'pearlescent', 'iris'];
+  function hash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
+  function estilo(m) {
+    const h = hash(m.model), o = m.o;
+    const preto = { NVIDIA: 0x0b0d0a, AMD: 0x0d0b0b, Intel: 0x0a0c10 }[m.brand] || 0x101214;
+    let c = o.c !== undefined ? o.c : preto;
+    if (m.tipo === 'c' && !o.ft && o.c === undefined && h % 4 === 1) c = 0xdde1e6;   // edição branca
+    const rgbOn = (m.tipo === 'c' && (h % 2 === 0 || RGB_RAR.includes(m.rarity)))
+      || (m.tipo === 's' && ['legendary', 'pearlescent', 'iris'].includes(m.rarity))
+      || (m.tipo === 'b' && m.rarity === 'epic');
+    return { c, a: ACC[m.brand] || 0x76b900, rgb: rgbOn, o8: h % 8 };
+  }
+
+  /* ---------- busca por nome ---------- */
+  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\b(nvidia|amd|intel|geforce|radeon|quadro|corporation|gpu)\b/g, ' ').replace(/[^a-z0-9]+/g, '');
+  const INDEX = [];
+  DADOS.forEach((m, i) => {
+    INDEX.push({ k: norm(m.model), i });
+    const sem = norm(m.model.replace(/\(.*?\)/g, ''));
+    if (sem && sem !== norm(m.model)) INDEX.push({ k: sem, i });
+  });
+  function achar(nome, frouxo) {
+    const k = norm(nome); if (!k) return null;
+    let e = INDEX.find(x => x.k === k);
+    if (!e && frouxo) e = INDEX.filter(x => x.k.length >= 5 && k.includes(x.k)).sort((a, b) => b.k.length - a.k.length)[0];
+    return e ? DADOS[e.i] : null;
+  }
+
+  function criar(m) {
+    const E = estilo(m), o = m.o;
+    const g = (o.fn || { c: placa, b: blower, p: passiva, s: modulo }[m.tipo])(m, E);
+    g.userData._tam = m.tipo === 's' ? .19 : .26;
+    g.userData._fans = g.userData.rotors || [];
+    g.userData.gpuModelo = m.model;
+    return g;
+  }
+
+  /* ---------- miniatura 3D para o inventário / hotbar ---------- */
+  const THUMBS = {};
+  let TR = null, TS = null, TC = null;
+  function miniatura(m) {
+    if (THUMBS[m.model] !== undefined) return THUMBS[m.model];
+    let url = null;
+    try {
+      if (!TR) {
+        TR = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+        TR.setSize(128, 128); TR.setPixelRatio(1); TR.setClearColor(0x000000, 0);
+        TS = new THREE.Scene();
+        TS.add(new THREE.AmbientLight(0xffffff, .9));
+        const d1 = new THREE.DirectionalLight(0xffffff, 1.3); d1.position.set(.5, 1, 1.4); TS.add(d1);
+        const d2 = new THREE.DirectionalLight(0x76b900, .6); d2.position.set(-1, -.3, .6); TS.add(d2);
+        TC = new THREE.PerspectiveCamera(30, 1, .01, 8000);
+      }
+      const g = criar(m), pv = new THREE.Group();
+      pv.add(g); g.updateMatrixWorld(true);
+      const bb = new THREE.Box3().setFromObject(g), ct = bb.getCenter(new THREE.Vector3()), r = bb.getSize(new THREE.Vector3()).length() / 2;
+      g.position.sub(ct); pv.rotation.set(.35, .5, 0);
+      TS.add(pv);
+      TC.position.set(0, 0, r * 3.2); TC.lookAt(0, 0, 0);
+      TR.render(TS, TC);
+      url = TR.domElement.toDataURL('image/png');
+      TS.remove(pv);
+      pv.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+    } catch (e) { console.warn('Miniatura de GPU falhou:', e); url = null; }
+    THUMBS[m.model] = url;
+    return url;
+  }
+
+  return { DADOS, achar, criar, miniatura };
+})();
+
+/* ===== MODELOS 3D DE CPU (injetado) ===== */
+const CPUM = (() => {
+  const PI = Math.PI;
+  const SOQ = {
+    lga:  { label: 'LGA1700/1851', w: 37.5, h: 45,   iw: 33, ih: 34, pitch: .8 },
+    am5:  { label: 'AM5',          w: 40,   h: 40,   iw: 27, ih: 27, pitch: .8, legs: 1 },
+    xeon: { label: 'LGA4677',      w: 77.5, h: 56.5, iw: 62, ih: 46, pitch: 1 },
+    big:  { label: 'SP5 / sTR5',   w: 75.4, h: 72,   iw: 60, ih: 56, pitch: 1 }
+  };
+
+  /* [modelo, marca, preço, watts, núcleos, threads, GHz, raridade, soquete] */
+  const DADOS = [
+   ['Ryzen 7 5700X','AMD',1050,65,8,16,4.6,'common','am5'],
+   ['Ryzen 7 7800X3D','AMD',2400,120,8,16,5.0,'uncommon','am5'],
+   ['Ryzen 9 9950X','AMD',4600,170,16,32,5.7,'uncommon','am5'],
+   ['Core i7-14700K','Intel',2700,125,20,28,5.6,'uncommon','lga'],
+   ['Core Ultra 9 285K','Intel',4100,125,24,24,5.7,'uncommon','lga'],
+   ['Threadripter PRO 7975WX','AMD',24000,350,32,64,5.3,'epic','big'],
+   ['Threadripper PRO 7995WX','AMD',47000,350,96,192,5.1,'ancestral','big'],
+   ['EPYC 9354','AMD',14000,280,32,64,3.8,'epic','big'],
+   ['EPYC 9654','AMD',44000,360,96,192,3.7,'ancestral','big'],
+   ['EPYC 9965 (Turin)','AMD',68000,500,192,384,3.7,'legendary','big'],
+   ['Xeon w9-3495X','Intel',32000,350,56,112,4.8,'epic','xeon'],
+   ['Xeon Platinum 8592+','Intel',40000,350,64,128,3.9,'ancestral','xeon'],
+   ['Ryzen 5 9600X','AMD',1250,65,6,12,5.4,'common','am5'],
+   ['Core Ultra 7 265K','Intel',2600,125,20,20,5.5,'uncommon','lga'],
+   ['Threadripper PRO 9995WX','AMD',62000,350,96,192,5.4,'legendary','big'],
+   ['Xeon 6980P','Intel',55000,500,128,256,3.2,'ancestral','xeon'],
+   ['Ryzen 5 8500G','AMD',950,65,6,12,5.0,'common','am5'],
+   ['Ryzen 5 7600','AMD',1100,65,6,12,5.2,'common','am5'],
+   ['Ryzen 7 9700X','AMD',2200,65,8,16,5.5,'uncommon','am5'],
+   ['Ryzen 9 9900X','AMD',3400,120,12,24,5.6,'uncommon','am5'],
+   ['Ryzen 9 9950X3D','AMD',4800,170,16,32,5.7,'very-rare','am5'],
+   ['Core i5-14600K','Intel',1900,125,14,20,5.3,'uncommon','lga'],
+   ['Core Ultra 5 245K','Intel',1800,125,14,14,5.2,'common','lga'],
+   ['Xeon w7-3465X','Intel',15000,350,28,56,4.7,'epic','xeon'],
+   ['Xeon Platinum 8580','Intel',39000,350,60,120,3.8,'epic','xeon'],
+   ['EPYC 9174F','AMD',6800,320,16,32,4.4,'very-rare','big'],
+   ['EPYC 9755','AMD',45000,500,128,256,3.4,'ancestral','big'],
+   ['Threadripper 7970X','AMD',22000,350,32,64,5.3,'epic','big'],
+   ['Threadripper 7960X','AMD',12000,350,24,48,5.3,'very-rare','big'],
+   ['Ryzen 10 11950X3D','AMD',9500,170,20,40,6.0,'very-rare','am5'],
+   ['Ryzen Threadripper PRO 11995WX','AMD',75000,400,128,256,5.6,'pearlescent','big'],
+   ['EPYC Venice 10995','AMD',89000,500,256,512,3.9,'pearlescent','big'],
+   ['Core Ultra 9 385K (Panther Lake)','Intel',5200,125,28,28,5.9,'very-rare','lga'],
+   ['Xeon Diamond Rapids 7900P','Intel',63000,500,144,288,3.6,'legendary','xeon'],
+   ['Xeon Coral Rapids AI Max','Intel',70000,600,176,352,3.5,'pearlescent','xeon'],
+   ['Ryzen AI Max+ 495','AMD',5400,140,20,40,5.8,'very-rare','am5'],
+   ['Threadripper PRO Shimada Peak Ultra 12995WX','AMD',92000,450,160,320,5.7,'iris','big'],
+   ['Core Ultra X9 395K (Nova Lake)','Intel',5600,130,32,32,6.1,'very-rare','lga'],
+   ['EPYC Verano 11995 (Zen 7)','AMD',98000,550,320,640,4.0,'iris','big'],
+   ['Xeon Clearwater Forest E9','Intel',58000,500,288,288,3.0,'legendary','xeon'],
+   ['Ryzen 3 8300G','AMD',720,65,4,8,4.9,'common','am5'],
+   ['Core i3-14100','Intel',690,60,4,8,4.7,'common','lga'],
+   ['Ryzen 5 7500F','AMD',980,65,6,12,5.0,'common','am5'],
+   ['Core i5-13400F','Intel',1700,65,10,16,4.6,'common','lga']
+  ].map(a => ({ model: a[0], brand: a[1], price: a[2], watts: a[3], cores: a[4], threads: a[5], ghz: a[6], rarity: a[7], soq: a[8] }));
+
+  /* ---------- helpers (unidade = mm) ---------- */
+  const mat = (c, o = {}) => {
+    const mt = (o.metalness !== undefined ? o.metalness : .3) * .55;
+    return new THREE.MeshStandardMaterial({ color: c, roughness: .5, emissive: c, emissiveIntensity: .05, ...o, metalness: mt });
+  };
+  function rr(w, h, c, curva) {
+    const s = new THREE.Shape(), x = -w / 2, y = -h / 2;
+    const k = (px, py, cx, cy) => curva ? s.quadraticCurveTo(cx, cy, px, py) : s.lineTo(px, py);
+    s.moveTo(x + c, y); s.lineTo(x + w - c, y); k(x + w, y + c, x + w, y);
+    s.lineTo(x + w, y + h - c); k(x + w - c, y + h, x + w, y + h);
+    s.lineTo(x + c, y + h); k(x, y + h - c, x, y + h);
+    s.lineTo(x, y + c); k(x + c, y, x, y);
+    return s;
+  }
+  function flat(shape, depth, bevel) {
+    const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: !!bevel, bevelSize: bevel || 0, bevelThickness: bevel || 0, bevelSegments: 2, curveSegments: 10 });
+    g.rotateX(-PI / 2); return g;
+  }
+  const tex = c => { const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t; };
+  const TXC = {};
+
+  function texTopo(m, S) {
+    const ck = 'T' + m.model; if (TXC[ck]) return TXC[ck];
+    const k = 28, W = S.iw * k, H = S.ih * k, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d'); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = 'rgba(28,32,40,.9)';
+    const F = (t, y, sz, wt = '700', st = '') => { let s = sz; do { x.font = `${st} ${wt} ${s}px Inter,Arial,sans-serif`; s -= 2; } while (x.measureText(t).width > W * .84 && s > 10); x.fillText(t, W / 2, y); };
+    const intel = m.brand === 'Intel';
+    F(intel ? 'intel' : 'AMD', H * .2, H * .17, '800', intel ? 'italic' : '');
+    const n = m.model.replace(/[()]/g, ''), p = n.split(' ');
+    if (n.length > 15) { const h = Math.ceil(p.length / 2); F(p.slice(0, h).join(' '), H * .42, H * .1); F(p.slice(h).join(' '), H * .54, H * .1); }
+    else F(n, H * .48, H * .11);
+    F(`${m.cores}C / ${m.threads}T · ${m.ghz.toFixed(1)} GHz`, H * .72, H * .065, '500');
+    F(`TDP ${m.watts} W · ${S.label}`, H * .82, H * .05, '500');
+    return (TXC[ck] = tex(c));
+  }
+  function texPads(m, S) {
+    const ck = 'P' + m.brand + S.label; if (TXC[ck]) return TXC[ck];
+    const s = 1024 / Math.max(S.w, S.h), W = S.w * s, H = S.h * s, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d'); x.fillStyle = m.brand === 'Intel' ? '#1c5233' : '#26402a'; x.fillRect(0, 0, W, H);
+    const p = S.pitch * s, pad = p * .58, hx = W * .2, hy = H * .2;
+    x.fillStyle = '#d8b04a';
+    for (let i = p; i < W - p; i += p) for (let j = p; j < H - p; j += p) {
+      if (Math.abs(i - W / 2) < hx && Math.abs(j - H / 2) < hy) continue;
+      x.fillRect(i - pad / 2, j - pad / 2, pad, pad);
+    }
+    x.fillStyle = '#2a2420';
+    for (let i = -3; i <= 3; i++) for (let j = -2; j <= 2; j++) x.fillRect(W / 2 + i * hx / 3.6 - s * .5, H / 2 + j * hy / 2.8 - s * .3, s * 1.1, s * .6);
+    return (TXC[ck] = tex(c));
+  }
+
+  /* ---------- modelo ---------- */
+  function criar(m) {
+    const S = SOQ[m.soq], g = new THREE.Group();
+    const sg = flat(rr(S.w, S.h, 1.6, true), 1); sg.translate(0, -.5, 0);
+    g.add(new THREE.Mesh(sg, mat(m.brand === 'Intel' ? 0x1d5a35 : 0x27422b, { roughness: .65, metalness: .1 })));
+    const pads = new THREE.Mesh(new THREE.PlaneGeometry(S.w - .6, S.h - .6), new THREE.MeshStandardMaterial({ map: texPads(m, S), roughness: .45, metalness: .3 }));
+    pads.rotation.x = PI / 2; pads.position.y = -.51; g.add(pads);
+    const caps = [];
+    for (let x = -S.w / 2 + 4; x <= S.w / 2 - 4; x += 2.2) { caps.push([x, S.h / 2 - 2.4, 0]); caps.push([x, -S.h / 2 + 2.4, 0]); }
+    if ((S.w - S.iw) / 2 > 3.5) for (let z = -S.h / 2 + 5; z <= S.h / 2 - 5; z += 2.2) { caps.push([S.w / 2 - 2.4, z, 1]); caps.push([-S.w / 2 + 2.4, z, 1]); }
+    const im = new THREE.InstancedMesh(new THREE.BoxGeometry(1.1, .55, .6), mat(0x4a3a2e, { roughness: .6 }), caps.length);
+    const d = new THREE.Object3D();
+    caps.forEach((p, i) => { d.position.set(p[0], .78, p[1]); d.rotation.y = p[2] ? PI / 2 : 0; d.updateMatrix(); im.setMatrixAt(i, d.matrix); });
+    im.frustumCulled = false; g.add(im);
+    const tri = new THREE.Shape(); tri.moveTo(0, 0); tri.lineTo(2.6, 0); tri.lineTo(0, 2.6); tri.closePath();
+    const tg = new THREE.ShapeGeometry(tri); tg.rotateX(-PI / 2);
+    const tm = new THREE.Mesh(tg, mat(0xd8b04a, { metalness: .95, roughness: .3 })); tm.position.set(-S.w / 2 + 1.4, .52, S.h / 2 - 1.4); g.add(tm);
+    const ihsMat = mat(0xd5d8dd, { metalness: 1, roughness: .3 });
+    const ig = flat(rr(S.iw, S.ih, 2.2, false), 2.6, .25); ig.translate(0, .5, 0);
+    g.add(new THREE.Mesh(ig, ihsMat));
+    if (S.legs) {
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([a, b]) => [-1, 1].forEach(o => {
+        const w = a ? 3 : 5, dd = a ? 5 : 3;
+        const l = new THREE.Mesh(new THREE.BoxGeometry(w, 2.6, dd), ihsMat);
+        l.position.set(a * (S.iw / 2 + 1) + (a ? 0 : o * S.iw * .22), 1.8, b * (S.ih / 2 + 1) + (b ? 0 : o * S.ih * .22)); g.add(l);
+      }));
+    }
+    const txt = new THREE.Mesh(new THREE.PlaneGeometry(S.iw - 1, S.ih - 1), new THREE.MeshBasicMaterial({ map: texTopo(m, S), transparent: true, depthWrite: false }));
+    txt.rotation.x = -PI / 2; txt.position.y = 3.37; g.add(txt);
+
+    // face principal (topo) voltada para +z, como as demais peças de PC
+    const out = new THREE.Group();
+    g.rotation.x = PI / 2; out.add(g);
+    out.userData._tam = S.h >= 56 ? .17 : .14;
+    out.userData._fans = [];
+    out.userData.cpuModelo = m.model;
+    return out;
+  }
+
+  /* ---------- busca por nome ---------- */
+  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/threadripter/g, 'threadripper')
+    .replace(/\b(amd|intel|processador|processor|cpu)\b/g, ' ').replace(/[^a-z0-9]+/g, '');
+  const INDEX = [];
+  DADOS.forEach((m, i) => {
+    INDEX.push({ k: norm(m.model), i });
+    const sem = norm(m.model.replace(/\(.*?\)/g, ''));
+    if (sem && sem !== norm(m.model)) INDEX.push({ k: sem, i });
+  });
+  function achar(nome, frouxo) {
+    const k = norm(nome); if (!k) return null;
+    let e = INDEX.find(x => x.k === k);
+    if (!e && frouxo) e = INDEX.filter(x => x.k.length >= 5 && k.includes(x.k)).sort((a, b) => b.k.length - a.k.length)[0];
+    return e ? DADOS[e.i] : null;
+  }
+
+  /* ---------- miniatura 3D para o inventário / hotbar ---------- */
+  const THUMBS = {};
+  let TR = null, TS = null, TC = null;
+  function miniatura(m) {
+    if (THUMBS[m.model] !== undefined) return THUMBS[m.model];
+    let url = null;
+    try {
+      if (!TR) {
+        TR = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+        TR.setSize(128, 128); TR.setPixelRatio(1); TR.setClearColor(0x000000, 0);
+        TS = new THREE.Scene();
+        TS.add(new THREE.AmbientLight(0xffffff, .9));
+        const d1 = new THREE.DirectionalLight(0xffffff, 1.3); d1.position.set(.5, 1, 1.4); TS.add(d1);
+        const d2 = new THREE.DirectionalLight(0x9aa4b2, .6); d2.position.set(-1, -.3, .6); TS.add(d2);
+        TC = new THREE.PerspectiveCamera(30, 1, .01, 8000);
+      }
+      const g = criar(m), pv = new THREE.Group();
+      pv.add(g); g.updateMatrixWorld(true);
+      const bb = new THREE.Box3().setFromObject(g), ct = bb.getCenter(new THREE.Vector3()), r = bb.getSize(new THREE.Vector3()).length() / 2;
+      g.position.sub(ct); pv.rotation.set(.35, .5, 0);
+      TS.add(pv);
+      TC.position.set(0, 0, r * 3.2); TC.lookAt(0, 0, 0);
+      TR.render(TS, TC);
+      url = TR.domElement.toDataURL('image/png');
+      TS.remove(pv);
+      pv.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+    } catch (e) { console.warn('Miniatura de CPU falhou:', e); url = null; }
+    THUMBS[m.model] = url;
+    return url;
+  }
+
+  return { DADOS, SOQ, achar, criar, miniatura };
+})();
+
+/* ===== MODELOS 3D DE RAM (injetado) ===== */
+const RAMM = (() => {
+  const PI = Math.PI;
+  const RAR = {
+    common: ['Comum', '#9aa4b2'], uncommon: ['Incomum', '#4ade80'], rare: ['Raro', '#38bdf8'],
+    'very-rare': ['Muito raro', '#a78bfa'], epic: ['Épico', '#e879f9'], legendary: ['Lendário', '#fb923c'],
+    ancestral: ['Ancestral', '#f43f5e'], pearlescent: ['Perolado', '#f0e6ff'], iris: ['Íris', '#ffffff']
+  };
+
+  /* [modelo, marca, preço, watts, MHz, GB, raridade] */
+  const DADOS = [
+    ["Corsair Vengeance DDR5","Corsair",920,6,6000,32,"common"],
+    ["Corsair Dominator Platinum DDR5","Corsair",2700,8,6400,64,"very-rare"],
+    ["G.Skill Trident Z5 RGB","G.Skill",1400,7,7200,32,"uncommon"],
+    ["Kingston Fury Renegade Pro DDR5 ECC RDIMM","Kingston",2200,9,5600,64,"uncommon"],
+    ["Kingston Server Premier DDR5 ECC RDIMM 128GB","Kingston",6800,10,5600,128,"epic"],
+    ["Samsung DDR5 ECC RDIMM 128GB","Samsung",5600,10,5600,128,"epic"],
+    ["SK Hynix DDR5 ECC RDIMM 256GB","SK Hynix",19500,12,5600,256,"ancestral"],
+    ["Micron DDR5 ECC RDIMM 96GB","Micron",3800,9,6400,96,"epic"],
+    ["Kingston Fury Beast DDR5","Kingston",480,5,5600,16,"common"],
+    ["Kingston Fury Beast RGB DDR5","Kingston",900,6,6000,32,"common"],
+    ["Crucial Pro DDR5","Crucial",890,6,6000,32,"common"],
+    ["Kioxia/SK Hynix DDR5 ECC RDIMM 512GB","SK Hynix",58000,14,6400,512,"legendary"],
+    ["Corsair Vengeance DDR5 16GB","Corsair",480,5,5600,16,"common"],
+    ["G.Skill Ripjaws S5 DDR5","G.Skill",1200,6,6400,32,"uncommon"],
+    ["G.Skill Trident Z5 Neo DDR5","G.Skill",1300,7,6800,32,"uncommon"],
+    ["Corsair Vengeance DDR5 96GB","Corsair",3600,8,6000,96,"very-rare"],
+    ["Kingston Fury Renegade DDR5","Kingston",1350,7,7200,32,"uncommon"],
+    ["Crucial DDR5 Laptop SODIMM 32GB","Crucial",850,4,5600,32,"common"],
+    ["Micron DDR5 RDIMM 32GB","Micron",620,6,5200,32,"common"],
+    ["Samsung DDR5 ECC RDIMM 64GB","Samsung",2100,9,5600,64,"uncommon"],
+    ["SK Hynix DDR5 ECC RDIMM 96GB","SK Hynix",3400,9,6000,96,"very-rare"],
+    ["Kingston Server Premier DDR5 ECC RDIMM 64GB","Kingston",1950,8,5200,64,"uncommon"],
+    ["Micron DDR5 ECC RDIMM 32GB","Micron",700,6,5600,32,"common"],
+    ["Crucial Pro DDR5 64GB","Crucial",2600,7,6000,64,"very-rare"],
+    ["Kioxia/SK Hynix DDR5 ECC RDIMM 384GB","SK Hynix",30000,13,6000,384,"legendary"],
+    ["Samsung DDR5 ECC RDIMM 256GB","Samsung",16000,11,5600,256,"ancestral"],
+    ["Western Digital (SanDisk) DDR5 SODIMM 16GB","Western Digital",400,4,5200,16,"common"],
+    ["Corsair Dominator Titanium DDR5","Corsair",3100,8,7200,64,"very-rare"],
+    ["G.Skill Trident Z5 RGB 128GB Kit","G.Skill",7200,10,6400,128,"epic"],
+    ["Samsung DDR6 Extreme 32GB","Samsung",1700,6,10000,32,"uncommon"],
+    ["SK Hynix DDR6 RDIMM 128GB","SK Hynix",13800,12,9600,128,"ancestral"],
+    ["SK Hynix DDR6 ECC RDIMM 512GB","SK Hynix",95000,16,9200,512,"pearlescent"],
+    ["Micron DDR6 ECC RDIMM 256GB","Micron",42000,14,9600,256,"legendary"],
+    ["Corsair Dominator DDR6","Corsair",5400,9,10400,64,"epic"],
+    ["G.Skill Trident Z6 RGB","G.Skill",3300,8,11000,48,"very-rare"],
+    ["Kingston Fury DDR6 Renegade","Kingston",3200,8,10600,48,"very-rare"],
+    ["Kingston Server Premier DDR6 ECC RDIMM 1TB","Kingston",98000,20,8800,1024,"pearlescent"],
+    ["Samsung DDR6 ECC RDIMM 1TB","Samsung",110000,20,9000,1024,"iris"],
+    ["Micron DDR6 CXL Pooled Memory 2TB","Micron",140000,28,8000,2048,"iris"],
+    ["Crucial DDR6 Pro 64GB","Crucial",3900,8,9800,64,"epic"],
+    ["Western Digital HBM-Class Cache DIMM 128GB","Western Digital",13500,15,8800,128,"ancestral"],
+    ["SK Hynix HBM4 Stack Module 192GB","SK Hynix",25000,30,12000,192,"legendary"],
+    ["Samsung HBM4E Stack Module 288GB","Samsung",62000,34,12800,288,"pearlescent"],
+    ["Micron HBM4 Stack Module 192GB","Micron",24000,30,12000,192,"ancestral"]
+  ].map(a => ({ model: a[0], brand: a[1], price: a[2], watts: a[3], ram_mhz: a[4], ram_gb: a[5], rarity: a[6] }));
+
+  /* ---------- helpers (unidade = mm) ---------- */
+  const mat = (c, o = {}) => {
+    const mt = (o.metalness !== undefined ? o.metalness : .3) * .6;
+    return new THREE.MeshStandardMaterial({ color: c, roughness: .5, emissive: c, emissiveIntensity: .05, ...o, metalness: mt });
+  };
+  const tex = c => { const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t; };
+  const TXC = {};
+
+  /* material RGB compartilhado (um único update por frame) */
+  const RGBM = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 1.7, roughness: .3 });
+  ATUALIZAVEIS.push(() => {
+    const t = performance.now() / 1000;
+    const col = new THREE.Color().setHSL((t * .35) % 1, .95, .55);
+    RGBM.color.copy(col); RGBM.emissive.copy(col);
+    RGBM.emissiveIntensity = 1.6 + Math.sin(t * 3) * .4;
+  });
+
+  function texLabel(m, style) {
+    const ck = 'L' + m.model + style; if (TXC[ck]) return TXC[ck];
+    const W = 1024, H = 220, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    x.fillStyle = style === 'dark' ? 'rgba(10,12,16,.95)' : style === 'metal' ? 'rgba(30,34,42,.92)' : 'rgba(18,22,30,.93)';
+    x.fillRect(0, 0, W, H);
+    x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#eef4ff';
+    x.font = '700 38px Inter,Arial,sans-serif'; x.fillText(m.brand.toUpperCase(), W / 2, 48);
+    x.font = '600 30px Inter,Arial,sans-serif';
+    x.fillText(m.model.length > 40 ? m.model.slice(0, 38) + '…' : m.model, W / 2, 100);
+    x.font = '500 24px Inter,Arial,sans-serif'; x.fillStyle = '#00d4ff';
+    x.fillText(`${m.ram_gb} GB  ·  ${m.ram_mhz} MHz  ·  ${m.watts}W`, W / 2, 150);
+    x.fillStyle = RAR[m.rarity][1]; x.font = '600 22px Inter,Arial,sans-serif';
+    x.fillText(RAR[m.rarity][0].toUpperCase(), W / 2, 190);
+    return (TXC[ck] = tex(c));
+  }
+  function texContacts(isSodimm) {
+    const ck = 'C' + isSodimm; if (TXC[ck]) return TXC[ck];
+    const W = 1024, H = 110, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    x.fillStyle = '#14181f'; x.fillRect(0, 0, W, H);
+    const fingers = isSodimm ? 72 : 288, gap = W / fingers;
+    x.fillStyle = '#d4a84b';
+    for (let i = 0; i < fingers; i++) x.fillRect(i * gap + gap * .12, 6, gap * .72, H - 12);
+    x.fillStyle = '#07080a';
+    if (isSodimm) x.fillRect(W * .41, 0, W * .09, H); else x.fillRect(W * .265, 0, W * .07, H);
+    return (TXC[ck] = tex(c));
+  }
+
+  /* ---------- modelo ---------- */
+  function criarRAM(m) {
+    const g = new THREE.Group();
+    const name = m.model.toLowerCase();
+    const isSodimm = name.includes('sodimm') || name.includes('laptop');
+    const isHbm = name.includes('hbm');
+    const isServer = name.includes('rdimm') || name.includes('server') || name.includes('ecc') || name.includes('cxl');
+    const hasRGB = name.includes('rgb');
+    const isDominator = name.includes('dominator');
+    const isTrident = name.includes('trident');
+    const isVengeance = name.includes('vengeance');
+    const isFury = name.includes('fury') || name.includes('beast') || name.includes('renegade');
+    const isPremium = ['very-rare', 'epic', 'legendary', 'ancestral', 'pearlescent', 'iris'].includes(m.rarity);
+
+    let L = isSodimm ? 67 : 133, H = isSodimm ? 30 : 31, T = isSodimm ? 3.6 : 4.0;
+    if (isHbm) { L = 52; H = 38; T = 14; }
+    if (isServer && !isSodimm) { H = 34; T = 4.4; }
+
+    let pcbCol = 0x1a2230;
+    if (isServer) pcbCol = 0x163528;
+    if (isHbm) pcbCol = 0x12161e;
+    if (m.brand === 'Samsung' && isServer) pcbCol = 0x1a2e22;
+
+    const pcb = new THREE.Mesh(new THREE.BoxGeometry(L, H, T), mat(pcbCol, { roughness: .72, metalness: .12 }));
+    pcb.position.y = H / 2; g.add(pcb);
+
+    const cH = 6.2;
+    const contacts = new THREE.Mesh(new THREE.BoxGeometry(L - 1.5, cH, T + .5),
+      new THREE.MeshStandardMaterial({ map: texContacts(isSodimm), roughness: .32, metalness: .55, color: 0xd4a84b }));
+    contacts.position.y = cH / 2 - .4; g.add(contacts);
+
+    const nW = isSodimm ? 5.5 : 7.5, nX = isSodimm ? L * .07 : -L * .19;
+    const notch = new THREE.Mesh(new THREE.BoxGeometry(nW, cH + 1.2, T + 1.2), mat(0x060708));
+    notch.position.set(nX, cH / 2 - .4, 0); g.add(notch);
+
+    const chipMat = mat(0x0e1014, { roughness: .4, metalness: .45 });
+    let cols = 4;
+    if (m.ram_gb >= 32) cols = 6;
+    if (m.ram_gb >= 64) cols = 8;
+    if (m.ram_gb >= 128) cols = 10;
+    if (m.ram_gb >= 256) cols = 12;
+    if (isSodimm) cols = Math.min(cols, 5);
+    if (isHbm) cols = 6;
+    const chipW = isSodimm ? 8.5 : 10.5, chipH = isSodimm ? 10.5 : 12.5, rows = isHbm ? 2 : 1;
+    const chipGeo = new THREE.BoxGeometry(chipW, chipH, 1.05);
+    for (let side = -1; side <= 1; side += 2) for (let r = 0; r < rows; r++) for (let i = 0; i < cols; i++) {
+      const chip = new THREE.Mesh(chipGeo, chipMat);
+      const spacing = (L - 16) / Math.max(cols - 1, 1);
+      chip.position.set(-L / 2 + 8 + i * spacing, H * .52 + (r - (rows - 1) / 2) * (chipH + 2.2), side * (T / 2 + .6));
+      g.add(chip);
+    }
+
+    const ledMat = (hex) => hasRGB ? RGBM : new THREE.MeshStandardMaterial({ color: hex, emissive: hex, emissiveIntensity: 1.7, roughness: .3 });
+
+    if (isHbm) {
+      const stackMat = mat(0x1c222c, { roughness: .28, metalness: .55 });
+      for (let i = 0; i < 5; i++) {
+        const layer = new THREE.Mesh(new THREE.BoxGeometry(L * .88, 3.8, T * .82), stackMat);
+        layer.position.y = H + 3 + i * 4.3; g.add(layer);
+      }
+      const topCap = new THREE.Mesh(new THREE.BoxGeometry(L * .92, 2.2, T * .9), mat(0x2a323e, { metalness: .7, roughness: .25 }));
+      topCap.position.y = H + 26; g.add(topCap);
+    } else if (isDominator) {
+      const bodyH = H * 1.55;
+      const body = new THREE.Mesh(new THREE.BoxGeometry(L - 3, bodyH, T + 3.2), mat(0x1a1e26, { roughness: .28, metalness: .72 }));
+      body.position.y = H * .55 + bodyH / 2 - 4; g.add(body);
+      const finMat = mat(0x222830, { metalness: .65, roughness: .3 });
+      for (let i = 0; i < 7; i++) {
+        const fin = new THREE.Mesh(new THREE.BoxGeometry(1.6, bodyH * .9, T + 4.5), finMat);
+        fin.position.set(-L / 2 + 10 + i * ((L - 20) / 6), body.position.y, 0); g.add(fin);
+      }
+      const topBar = new THREE.Mesh(new THREE.BoxGeometry(L - 6, 3.2, T + 3.6), mat(0xc0c8d4, { metalness: .9, roughness: .18 }));
+      topBar.position.y = body.position.y + bodyH / 2 + 1.2; g.add(topBar);
+      if (hasRGB || isPremium) {
+        const led = new THREE.Mesh(new THREE.BoxGeometry(L - 10, 2.4, 1.2), ledMat(0xff0044));
+        led.position.set(0, topBar.position.y, T / 2 + 2.1); g.add(led);
+      }
+    } else if (isTrident) {
+      const bodyH = H * 1.25;
+      const body = new THREE.Mesh(new THREE.BoxGeometry(L - 4, bodyH, T + 2.8), mat(0x15191f, { roughness: .32, metalness: .6 }));
+      body.position.y = H * .55 + bodyH / 2 - 3; g.add(body);
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(L - 8, 4.5, T + 4), mat(0x1e242e, { metalness: .7, roughness: .25 }));
+      wing.position.y = body.position.y + bodyH / 2 + 1.5; g.add(wing);
+      if (hasRGB) {
+        const led = new THREE.Mesh(new THREE.BoxGeometry(L - 14, 2.8, 1.4), RGBM);
+        led.position.set(0, wing.position.y + .5, T / 2 + 2.3); g.add(led);
+        const led2 = led.clone(); led2.position.z = -(T / 2 + 2.3); g.add(led2);
+      }
+    } else if (isVengeance || isFury || isPremium) {
+      const bodyH = H * (isPremium ? 1.15 : .95);
+      const body = new THREE.Mesh(new THREE.BoxGeometry(L - 3.5, bodyH, T + 2.4), mat(isFury ? 0x1a1214 : 0x181c24, { roughness: .35, metalness: .55 }));
+      body.position.y = H * .55 + bodyH / 2 - 2.5; g.add(body);
+      if (hasRGB) {
+        const led = new THREE.Mesh(new THREE.BoxGeometry(L - 12, 2.6, 1.1), RGBM);
+        led.position.set(0, body.position.y + bodyH / 2 - 1, T / 2 + 1.8); g.add(led);
+      } else if (isPremium) {
+        const accent = new THREE.Mesh(new THREE.BoxGeometry(L - 10, 2.2, T + 2.8), mat(0xa0a8b4, { metalness: .85, roughness: .2 }));
+        accent.position.y = body.position.y + bodyH / 2 + .8; g.add(accent);
+      }
+    } else if (!isSodimm && m.rarity !== 'common') {
+      const bodyH = H * .85;
+      const body = new THREE.Mesh(new THREE.BoxGeometry(L - 4, bodyH, T + 1.8), mat(0x1c222c, { roughness: .4, metalness: .45 }));
+      body.position.y = H * .55 + bodyH / 2 - 2; g.add(body);
+    }
+
+    const labelStyle = isDominator || isTrident ? 'metal' : (isServer ? 'dark' : 'normal');
+    const labelMap = texLabel(m, labelStyle);
+    const labelW = L * .78, labelH = isDominator || isTrident ? 13 : 11;
+    const labelY = isHbm ? H + 28 : (isDominator ? H * 1.4 : H * .78);
+    const label = new THREE.Mesh(new THREE.PlaneGeometry(labelW, labelH), new THREE.MeshBasicMaterial({ map: labelMap, transparent: true, depthWrite: false }));
+    label.position.set(0, labelY, isHbm ? 0 : T / 2 + 1.6);
+    if (isHbm) label.rotation.x = -PI / 2;
+    g.add(label);
+    if (!isHbm) {
+      const labelB = label.clone();
+      labelB.rotation.y = PI; labelB.position.z = -(T / 2 + 1.6); g.add(labelB);
+      const smdMat = mat(0x3a2a1c, { roughness: .5 });
+      const smdGeo = new THREE.BoxGeometry(2.0, 1.3, .7);
+      for (let i = 0; i < 5; i++) {
+        const smd = new THREE.Mesh(smdGeo, smdMat);
+        smd.position.set(-L / 2 + 14 + i * ((L - 28) / 4), H - 2.8, T / 2 + .5); g.add(smd);
+      }
+    }
+
+    g.position.y = -H / 2 + 9;
+    const out = new THREE.Group();
+    out.add(g);
+    out.userData._tam = isHbm ? .14 : (isSodimm ? .16 : .22);
+    out.userData._fans = [];
+    out.userData.ramModelo = m.model;
+    return out;
+  }
+  const criar = criarRAM;
+
+  /* ---------- busca por nome ---------- */
+  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '');
+  const INDEX = [];
+  DADOS.forEach((m, i) => {
+    INDEX.push({ k: norm(m.model), i });
+    const sem = norm(m.model.replace(/\(.*?\)/g, ''));
+    if (sem && sem !== norm(m.model)) INDEX.push({ k: sem, i });
+  });
+  function achar(nome, frouxo) {
+    const k = norm(nome); if (!k) return null;
+    let e = INDEX.find(x => x.k === k);
+    if (!e && frouxo) e = INDEX.filter(x => x.k.length >= 5 && k.includes(x.k)).sort((a, b) => b.k.length - a.k.length)[0];
+    return e ? DADOS[e.i] : null;
+  }
+  const fmtGB = gb => gb >= 1024 ? (gb / 1024) + ' TB' : gb + ' GB';
+
+  /* ---------- miniatura 3D para o inventário / hotbar ---------- */
+  const THUMBS = {};
+  let TR = null, TS = null, TC = null;
+  function miniatura(m) {
+    if (THUMBS[m.model] !== undefined) return THUMBS[m.model];
+    let url = null;
+    try {
+      if (!TR) {
+        TR = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+        TR.setSize(128, 128); TR.setPixelRatio(1); TR.setClearColor(0x000000, 0);
+        TS = new THREE.Scene();
+        TS.add(new THREE.AmbientLight(0xffffff, .9));
+        const d1 = new THREE.DirectionalLight(0xffffff, 1.3); d1.position.set(.5, 1, 1.4); TS.add(d1);
+        const d2 = new THREE.DirectionalLight(0x9aa4b2, .6); d2.position.set(-1, -.3, .6); TS.add(d2);
+        TC = new THREE.PerspectiveCamera(30, 1, .01, 8000);
+      }
+      const g = criar(m), pv = new THREE.Group();
+      pv.add(g); g.updateMatrixWorld(true);
+      const bb = new THREE.Box3().setFromObject(g), ct = bb.getCenter(new THREE.Vector3()), r = bb.getSize(new THREE.Vector3()).length() / 2;
+      g.position.sub(ct); pv.rotation.set(.35, .5, 0);
+      TS.add(pv);
+      TC.position.set(0, 0, r * 3.2); TC.lookAt(0, 0, 0);
+      TR.render(TS, TC);
+      url = TR.domElement.toDataURL('image/png');
+      TS.remove(pv);
+      pv.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+    } catch (e) { console.warn('Miniatura de RAM falhou:', e); url = null; }
+    THUMBS[m.model] = url;
+    return url;
+  }
+
+  return { DADOS, achar, criar, miniatura, fmtGB };
+})();
+
+/* ===== MODELOS 3D DE SSD (injetado) ===== */
+const SSDM = (() => {
+  const PI = Math.PI;
+  const ACC = { Kingston: 0xe1261c, Samsung: 0x1b4bd8, Crucial: 0xff7a00, 'Western Digital': 0xd71920, Kioxia: 0xe60012, Solidigm: 0x00a3e0, Micron: 0x1a8cff, 'SK Hynix': 0xea002c };
+  const hx = n => '#' + n.toString(16).padStart(6, '0');
+  const hash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
+  const cap = gb => gb === 1024 ? '1 TB' : gb < 1000 ? gb + ' GB' : (+(gb / 1000).toFixed(2)) + ' TB';
+  const M = (c, o = {}) => {
+    const mt = (o.metalness !== undefined ? o.metalness : .5) * .6;
+    return new THREE.MeshStandardMaterial({ color: c, roughness: .45, emissive: c, emissiveIntensity: .04, ...o, metalness: mt });
+  };
+  const GOLD = () => M(0xd9b24a, { metalness: .9, roughness: .28, emissive: 0x2a1e04 });
+  const DARK = () => M(0x08090b, { roughness: .8, metalness: .1 });
+
+  /* paleta RGB compartilhada (um único update por frame) */
+  const RGBP = Array.from({ length: 8 }, (_, i) => ({ m: new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide }), off: i / 8 }));
+  const rgb = i => RGBP[((i % 8) + 8) % 8].m;
+  ATUALIZAVEIS.push(() => {
+    const t = performance.now() / 1000;
+    RGBP.forEach(p => p.m.color.setHSL((t * .22 + p.off) % 1, 1, .52));
+  });
+
+  /* ---------- helpers (unidade = mm; face principal em +z) ---------- */
+  const TXC = {};
+  function tx(key, w, h, draw) {
+    if (!TXC[key]) {
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      draw(c.getContext('2d'), w, h);
+      const t = new THREE.CanvasTexture(c); t.anisotropy = 4; TXC[key] = t;
+    }
+    return TXC[key];
+  }
+  const sticker = (key, w, h, draw) => new THREE.MeshStandardMaterial({ map: tx(key, w, h, draw), roughness: .5, metalness: .15 });
+  function fit(c, t, maxW, size, wt) { let s = size; do { c.font = `${wt} ${s}px Inter,Arial,sans-serif`; s -= 2; } while (c.measureText(t).width > maxW && s > 10); }
+  function bx(g, w, h, d, m, x = 0, y = 0, z = 0) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); g.add(o); return o; }
+
+  function drawLabel(c, w, h, m, st, lay, extra) {
+    const A = st[1], F = st[2], B = m.brand.toUpperCase(), C = cap(m.ssd_gb), S = m.speed + ' MB/s';
+    c.fillStyle = st[0]; c.fillRect(0, 0, w, h); c.textBaseline = 'alphabetic';
+    if (lay === 1) {
+      c.fillStyle = A; c.fillRect(0, h * .86, w, h * .14); c.fillRect(0, 0, w, h * .05);
+      c.textAlign = 'center';
+      c.fillStyle = F; fit(c, B, w * .6, h * .2, '800'); c.fillText(B, w / 2, h * .25);
+      fit(c, C, w * .7, h * .46, '800'); c.fillStyle = A; c.fillText(C, w / 2, h * .65);
+      c.fillStyle = F; fit(c, m.model, w * .86, h * .1, '600'); c.fillText(m.model, w / 2, h * .8);
+    } else if (lay === 2) {
+      c.fillStyle = A; c.fillRect(0, 0, w * .04, h);
+      c.textAlign = 'left'; c.fillStyle = A; fit(c, C, w * .45, h * .55, '800'); c.fillText(C, w * .07, h * .62);
+      c.fillStyle = F; fit(c, B, w * .42, h * .18, '800'); c.fillText(B, w * .55, h * .3);
+      fit(c, m.model, w * .42, h * .1, '600'); c.fillText(m.model, w * .55, h * .5);
+      c.fillStyle = A; fit(c, S, w * .4, h * .1, '600'); c.fillText(S, w * .55, h * .7);
+    } else {
+      c.fillStyle = A; c.beginPath(); c.moveTo(w * .62, 0); c.lineTo(w * .68, 0); c.lineTo(w * .56, h); c.lineTo(w * .5, h); c.closePath(); c.fill();
+      c.textAlign = 'left';
+      c.fillStyle = F; fit(c, B, w * .42, h * .2, '800'); c.fillText(B, w * .05, h * .3);
+      fit(c, m.model, w * .42, h * .14, '700'); c.fillText(m.model, w * .05, h * .52);
+      c.fillStyle = A; fit(c, S, w * .4, h * .12, '600'); c.fillText(S, w * .05, h * .82);
+      c.textAlign = 'right'; c.fillStyle = F; fit(c, C, w * .3, h * .42, '800'); c.fillText(C, w * .95, h * .62);
+      if (extra) {
+        let s = hash(m.model) || 7; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+        c.fillStyle = F; let x = w * .66;
+        while (x < w * .94) { const bw = 2 + Math.floor(rnd() * 6); c.fillRect(x, h * .76, bw, h * .16); x += bw + 2 + Math.floor(rnd() * 4); }
+      }
+    }
+  }
+  function lblPlane(g, key, w, h, m, st, lay, x, y, z, ry, extra) {
+    const cw = 1024, ch = Math.max(64, Math.round(1024 * h / w));
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), sticker(key, cw, ch, (c, W, H) => drawLabel(c, W, H, m, st, lay, extra)));
+    p.position.set(x, y, z); if (ry) p.rotation.y = ry; g.add(p); return p;
+  }
+  const stl = o => [hx(new THREE.Color(o.c).offsetHSL(0, 0, .05).getHex()), hx(o.a), '#f2f5f8'];
+  const stEnt = (o, hsh) => hsh % 2 === 1 ? ['#dfe3e8', hx(o.a), '#14171c'] : ['#14171c', hx(o.a), '#f2f5f8'];
+
+  /* conector M.2 (dedos dourados + entalhe + furo do parafuso) */
+  function m2cx(g, L, W, T) {
+    const au = GOLD(), pk = DARK();
+    for (let i = 0; i < 33; i++) {
+      if (i >= 21 && i <= 24) continue;
+      const y = -8 + i * .5;
+      [1, -1].forEach(s => bx(g, 2.6, .34, .1, au, -L / 2 + 1.3, y, s * (T / 2 + .05)));
+    }
+    bx(g, 2.8, 2.2, T + .4, pk, -L / 2 + 1.4, 3.25, 0);
+    [1, -1].forEach(s => {
+      const c = new THREE.Mesh(new THREE.CircleGeometry(2.4, 20), pk);
+      c.position.set(L / 2, 0, s * (T / 2 + .03)); if (s < 0) c.rotation.y = PI; g.add(c);
+    });
+  }
+
+  function mkFan(r, n, col, ri, acc) {
+    const g = new THREE.Group(), ro = new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.TorusGeometry(r, r * .09, 8, 40), M(0x1b1d22)));
+    if (ri !== undefined) { const ar = new THREE.Mesh(new THREE.TorusGeometry(r * .88, r * .035, 6, 48), rgb(ri)); ar.position.z = .3; g.add(ar); }
+    const bk = new THREE.Mesh(new THREE.CircleGeometry(r * .95, 32), M(0x04050a, { roughness: .9 })); bk.position.z = -.4; g.add(bk);
+    const s = new THREE.Shape(); s.moveTo(r * .2, -r * .05); s.bezierCurveTo(r * .4, -r * .22, r * .7, -r * .26, r * .93, -r * .08); s.lineTo(r * .93, r * .05); s.bezierCurveTo(r * .7, -r * .04, r * .4, r * .03, r * .2, r * .09);
+    const bg = new THREE.ShapeGeometry(s, 10), bm = M(col, { side: THREE.DoubleSide, roughness: .4 });
+    for (let i = 0; i < n; i++) { const b = new THREE.Mesh(bg, bm); b.rotation.z = i / n * PI * 2; ro.add(b); }
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(r * .22, r * .22, 1, 24), M(0x0e1013)); hub.rotation.x = PI / 2; ro.add(hub);
+    const hr = new THREE.Mesh(new THREE.TorusGeometry(r * .2, .3, 6, 28), ri !== undefined ? rgb(ri + 4) : M(acc || 0x2a7aff, { emissive: acc || 0x2a7aff, emissiveIntensity: 1.2 }));
+    hr.position.z = .5; ro.add(hr);
+    g.add(ro); g.userData.rotor = ro; return g;
+  }
+
+  /* ================= M.2 simples (adesivo) ================= */
+  function m2(m, o) {
+    const g = new THREE.Group(), L = 80, W = 22, T = .8, z0 = T / 2;
+    bx(g, L, W, T, M(o.pcb, { roughness: .6, metalness: .2 }), 0, 0, 0);
+    m2cx(g, L, W, T);
+    const chip = M(0x101216, { roughness: .35, metalness: .4 }), ctl = M(0x24272d, { roughness: .3, metalness: .6 }), capM = M(0x6b5a3c, { roughness: .5 });
+    [[8, 0], [27, 0]].forEach(([x, y]) => bx(g, 13, 16, 1, chip, x, y, z0 + .5));
+    bx(g, 9, 9, .9, ctl, -10, 3, z0 + .45);
+    if (o.dram) bx(g, 6, 9, .7, chip, -24, -3, z0 + .35);
+    for (let i = 0; i < 4; i++) bx(g, 1.2, .7, .5, capM, -31 + i * 2, -8, z0 + .25);
+    const w = o.half ? 46 : 66, x = o.half ? 15 : 6;
+    lblPlane(g, 'L' + m.model + 'a', w, 19.5, m, o.stk, o.lay || 0, x, 0, z0 + 1.06, 0, true);
+    if (m.ssd_gb >= 2000 || o.dual) {
+      [[8, 0], [27, 0]].forEach(([cx, cy]) => bx(g, 13, 16, 1, chip, cx, cy, -(z0 + .5)));
+      lblPlane(g, 'L' + m.model + 'b', 50, 17, m, o.stk, 1, 8, 0, -(z0 + 1.06), PI);
+    }
+    return g;
+  }
+
+  /* ================= M.2 com dissipador ================= */
+  function hs(m, o) {
+    const g = new THREE.Group(), L = 80, W = 22, T = .8, top = T / 2, hsh = hash(m.model);
+    bx(g, L, W, T, M(0x0d0f12, { roughness: .6, metalness: .2 }), 0, 0, 0); m2cx(g, L, W, T);
+    const body = M(o.c, { metalness: .92, roughness: .3 });
+    const c2 = new THREE.Color(o.c).offsetHSL(0, 0, .07).getHex(), body2 = M(c2, { metalness: .9, roughness: .35 });
+    const am = M(o.a, { emissive: o.a, emissiveIntensity: .7, metalness: .4 }), dk = DARK(), S = stl(o);
+    bx(g, 72, 22, .6, body, 2, 0, -(top + .3));
+    const st = o.hs;
+    if (st === 'slab') {
+      bx(g, 72, 24, 3.2, body, 2, 0, top + 1.6);
+      bx(g, 60, 10, 2, body2, 2, 0, top + 4.2);
+      for (let k = -3; k <= 3; k++) { const s = bx(g, .9, 23, .35, dk, 2 + k * 8, 0, top + 3.32); s.rotation.z = .5; }
+      [1, -1].forEach(s => { bx(g, 72, .8, 1.2, body2, 2, s * 11.6, top + 3.8); bx(g, 56, 1, .9, o.rgb ? rgb(s > 0 ? 0 : 3) : am, 2, s * 5.6, top + 4.0); });
+      lblPlane(g, 'L' + m.model + 'h', 54, 8.4, m, S, 2, 2, 0, top + 5.22, 0);
+    } else if (st === 'fin') {
+      bx(g, 72, 24, 1.6, body, 2, 0, top + .8);
+      for (let i = 0; i < 21; i++) bx(g, 1.1, 22, 7, body2, -30 + i * 3.2, 0, top + 1.6 + 3.5);
+      bx(g, 66, 8, 1.2, body, 2, 0, top + 1.6 + 7.6);
+      lblPlane(g, 'L' + m.model + 'h', 62, 6.6, m, S, 2, 2, 0, top + 1.6 + 8.22, 0);
+      [1, -1].forEach(s => bx(g, 66, .9, .8, o.rgb ? rgb(s > 0 ? 2 : 6) : am, 2, s * 8.2, top + 8.7));
+    } else if (st === 'wing') {
+      bx(g, 72, 24, 2, body, 2, 0, top + 1);
+      bx(g, 66, 7, 6, body2, 2, 0, top + 5);
+      [1, -1].forEach(s => {
+        const w = bx(g, 66, 11, 1.4, body, 2, s * 8.5, top + 5.2); w.rotation.x = s * .38;
+        for (let k = 0; k < 11; k++) { const sl = bx(g, 1, 9, .3, dk, -26 + k * 5.6, s * 8.5, top + 5.95); sl.rotation.x = s * .38; }
+        bx(g, 64, .7, 3.2, o.rgb ? rgb(s > 0 ? 1 : 5) : am, 2, s * 3.6, top + 5.2);
+      });
+      lblPlane(g, 'L' + m.model + 'h', 62, 5.4, m, S, 2, 2, 0, top + 8.02, 0);
+    } else {
+      const ph = (hsh % 6) * .5;
+      bx(g, 72, 24, 1.4, body, 2, 0, top + .7);
+      for (let i = 0; i < 15; i++) {
+        const h = 2.5 + 5 * (.5 + .5 * Math.sin(i * .6 + ph)), x = -22 + i * 3.6;
+        bx(g, 2.6, 22, h, body2, x, 0, top + 1.4 + h / 2);
+        bx(g, 2.6, 22, .5, o.rgb ? rgb(i) : am, x, 0, top + 1.4 + h + .25);
+      }
+      const p = lblPlane(g, 'L' + m.model + 'h', 20, 11, m, S, 1, -30, 0, top + 1.45, 0); p.rotation.z = PI / 2;
+    }
+    return g;
+  }
+
+  /* ================= M.2 com cooler ativo (PCIe 5/6) ================= */
+  function fanc(m, o) {
+    const g = new THREE.Group(), L = 80, W = 22, T = .8, top = T / 2, fans = [], hsh = hash(m.model);
+    bx(g, L, W, T, M(0x0d0f12, { roughness: .6, metalness: .2 }), 0, 0, 0); m2cx(g, L, W, T);
+    const body = M(o.c, { metalness: .92, roughness: .3 });
+    const c2 = new THREE.Color(o.c).offsetHSL(0, 0, .07).getHex(), body2 = M(c2, { metalness: .9, roughness: .35 });
+    const cu = M(0xb87333, { metalness: .9, roughness: .3 });
+    bx(g, 78, 30, 2.4, body, 0, 0, top + 1.2);
+    [1, -1].forEach(s => { const p = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 66, 12), cu); p.rotation.z = PI / 2; p.position.set(-4, s * 7, top + 2.4 + 1.6); g.add(p); });
+    for (let i = 0; i < 12; i++) bx(g, 1.1, 28, 9, body2, -36 + i * 3.1, 0, top + 2.4 + 4.5);
+    bx(g, 36, 9, 1.2, body2, -19, 0, top + 2.4 + 9.6);
+    lblPlane(g, 'L' + m.model + 'f', 34, 8, m, stl(o), 2, -19, 0, top + 2.4 + 10.22, 0);
+    const fx = 21, fz = top + 2.4 + 1.6;
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => bx(g, 3, 3, 5, body, fx + a * 14.5, b * 13, fz + .4));
+    const f = mkFan(12.5, 9, 0x2a2e35, o.rgb ? hsh % 8 : undefined, o.a); f.position.set(fx, 0, fz + 2); g.add(f); fans.push(f.userData.rotor);
+    if (o.rgb) [1, -1].forEach(s => bx(g, 34, .9, .8, rgb(s > 0 ? 2 : 6), -19, s * 11, top + 2.4 + 9.3));
+    g.userData.fans = fans; return g;
+  }
+
+  /* ================= U.2 / U.3 (2,5") ================= */
+  function u2(m, o) {
+    const g = new THREE.Group(), L = 100, W = 70, T = o.T || 15, hsh = hash(m.model), v = hsh % 3;
+    const cs = M(o.c, { metalness: .85, roughness: .35 });
+    const c2 = new THREE.Color(o.c).offsetHSL(0, 0, .07).getHex();
+    const am = M(o.a, { emissive: o.a, emissiveIntensity: .5, metalness: .4 }), dk = DARK(), au = GOLD();
+    bx(g, L, W, T, cs, 0, 0, 0);
+    bx(g, L - 3, W - 3, .6, M(c2, { metalness: .8, roughness: .4 }), 0, 0, T / 2 + .3);
+    lblPlane(g, 'L' + m.model + 'u', L - 24, W - 16, m, stEnt(o, hsh), v === 0 ? 0 : (v === 1 ? 1 : 2), -6, 0, T / 2 + .65, 0, true);
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
+      const s = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, .8, 14), M(0x9aa0a8, { metalness: .9 }));
+      s.rotation.x = PI / 2; s.position.set(sx * (L / 2 - 4.5), sy * (W / 2 - 4.5), T / 2 + .7); g.add(s);
+    });
+    for (let i = 0; i < 10; i++) bx(g, v === 1 ? 4 : 2, 4, .3, dk, -47, -27 + i * 6, T / 2 + .62);
+    [1, -1].forEach(s => bx(g, L - 6, 1.2, .5, am, 0, s * (W / 2 - 1.5), T / 2 + .65));
+    bx(g, 5, 58, T * .7, M(0x0a0b0d), L / 2 + 2.5, 0, 0);
+    for (let i = 0; i < 15; i++) [1, -1].forEach(s => bx(g, .5, 1.4, 2.2, au, L / 2 + 5.2, -26 + i * 3.7, s * T * .18));
+    bx(g, 1.6, 3, .8, M(0x0c2b18, { emissive: 0x3dff7c, emissiveIntensity: 1.5 }), -L / 2 + 2, W / 2 - 6, T / 2 + .5);
+    lblPlane(g, 'L' + m.model + 'ub', 60, 30, m, stEnt(o, hsh + 1), 1, -6, 0, -(T / 2 + .65), PI);
+    return g;
+  }
+
+  /* ================= E3.S (1T / 2T) ================= */
+  function e3s(m, o) {
+    const g = new THREE.Group(), L = 112.75, W = 76, T = o.T || 7.5, hsh = hash(m.model);
+    const cs = M(o.c, { metalness: .88, roughness: .32 });
+    const c2 = new THREE.Color(o.c).offsetHSL(0, 0, .06).getHex();
+    const am = M(o.a, { emissive: o.a, emissiveIntensity: .6, metalness: .4 }), dk = DARK(), au = GOLD();
+    bx(g, L, W, T, cs, 0, 0, 0);
+    bx(g, L - 3, W - 3, .6, M(c2, { metalness: .8, roughness: .4 }), 0, 0, T / 2 + .3);
+    lblPlane(g, 'L' + m.model + 'e', 50, 58, m, stEnt(o, hsh), hsh % 2 ? 1 : 2, -16, 0, T / 2 + .65, 0, true);
+    for (let i = 0; i < 9; i++) bx(g, 1.4, 50, .3, dk, 14 + i * 4.1, 0, T / 2 + .62);
+    const hm = M(0x1a1c20, { metalness: .8, roughness: .4 });
+    bx(g, 6, W - 10, T - .8, hm, -L / 2 - 3, 0, 0);
+    const hole = new THREE.Mesh(new THREE.CircleGeometry(6, 24), dk); hole.position.set(-L / 2 - 6.05, 0, 0); hole.rotation.y = -PI / 2; g.add(hole);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(6.3, .8, 8, 28), am); rim.position.set(-L / 2 - 6, 0, 0); rim.rotation.y = PI / 2; g.add(rim);
+    bx(g, 12, 22, 1.4, am, -L / 2 + 8, 0, T / 2 + .7);
+    bx(g, 4, 60, 1.2, M(0x10161a), L / 2 + 2, 0, 0);
+    for (let i = 0; i < 30; i++) [1, -1].forEach(s => bx(g, 2.4, 1, .1, au, L / 2 + 2.8, -29 + i * 2, s * .65));
+    bx(g, 1.6, 1.6, .8, M(0x0c2b18, { emissive: 0x3dff7c, emissiveIntensity: 1.6 }), -L / 2 + 6, W / 2 - 5, T / 2 + .5);
+    bx(g, 1.6, 1.6, .8, M(0x2b1a05, { emissive: 0xffa31a, emissiveIntensity: 1.4 }), -L / 2 + 6, W / 2 - 9, T / 2 + .5);
+    if (o.rgb) [1, -1].forEach((s, i) => bx(g, L - 26, 1.6, .7, rgb(i * 3 + hsh), 0, s * (W / 2 - 2.2), T / 2 + .35));
+    else [1, -1].forEach(s => bx(g, L - 26, .8, .4, am, 0, s * (W / 2 - 2.2), T / 2 + .35));
+    return g;
+  }
+
+  /* ================= E1.L "ruler" ================= */
+  function e1l(m, o) {
+    const g = new THREE.Group(), L = 318.75, W = 38.4, T = 9.5, hsh = hash(m.model);
+    const cs = M(o.c, { metalness: .88, roughness: .32 });
+    const c2 = new THREE.Color(o.c).offsetHSL(0, 0, .07).getHex(), body2 = M(c2, { metalness: .85, roughness: .38 });
+    const am = M(o.a, { emissive: o.a, emissiveIntensity: .6, metalness: .4 }), dk = DARK(), au = GOLD();
+    bx(g, L, W, T, cs, 0, 0, 0);
+    for (let i = 0; i < 22; i++) bx(g, 1.2, 36, 3.2, body2, -L / 2 + 10 + i * 3.2, 0, T / 2 + 1.6);
+    lblPlane(g, 'L' + m.model + 'l', 190, 28, m, stEnt(o, hsh), 0, 20, 0, T / 2 + .1, 0, true);
+    for (let i = 0; i < 12; i++) bx(g, 1.4, 30, .3, dk, 122 + i * 2.8, 0, T / 2 + .12);
+    bx(g, 8, W, T, M(0x1a1c20, { metalness: .8 }), -L / 2 - 4, 0, 0);
+    const hole = new THREE.Mesh(new THREE.CircleGeometry(5, 24), dk); hole.position.set(-L / 2 - 8.05, 0, 0); hole.rotation.y = -PI / 2; g.add(hole);
+    bx(g, 4, 28, 1.2, M(0x10161a), L / 2 + 2, 0, 0);
+    for (let i = 0; i < 24; i++) [1, -1].forEach(s => bx(g, 2.4, .9, .1, au, L / 2 + 2.8, -11.5 + i, s * .65));
+    [0x3dff7c, 0xffa31a, 0x2a7aff].forEach((c, i) => bx(g, 2, 2, .8, M(c, { emissive: c, emissiveIntensity: 1.5 }), -L / 2 + 84 + i * 4, 0, T / 2 + .4));
+    if (o.rgb) [1, -1].forEach((s, i) => bx(g, L - 60, 1.2, .7, rgb(i * 4 + hsh), 10, s * (W / 2 - 1.5), T / 2 + .35));
+    else [1, -1].forEach(s => bx(g, L - 60, .8, .4, am, 10, s * (W / 2 - 1.5), T / 2 + .3));
+    return g;
+  }
+
+  /* ================= Placa AIC (HHHL) ================= */
+  function aic(m, o) {
+    const g = new THREE.Group(), L = 167.65, W = 68.9, fans = [], hsh = hash(m.model), S = stl(o);
+    const au = GOLD(), dk = DARK();
+    bx(g, L, W, 1.6, M(0x10161a, { roughness: .55, metalness: .25 }), 0, 0, 0);
+    for (let i = 0; i < 30; i++) { if (i === 19 || i === 20) continue; [1, -1].forEach(s => bx(g, 1.2, 2.8, .1, au, L / 2 - 72 + i * 1.9, -W / 2 + 1.4, s * .85)); }
+    const body = M(o.c, { metalness: .92, roughness: .3 });
+    const c2 = new THREE.Color(o.c).offsetHSL(0, 0, .07).getHex(), body2 = M(c2, { metalness: .9, roughness: .35 });
+    const am = M(o.a, { emissive: o.a, emissiveIntensity: .6, metalness: .4 });
+    const sx = -9, sw = L - 26, sz = .8 + 7.5, top = .8 + 15;
+    bx(g, sw, W - 5, 15, body, sx, 0, sz);
+    [1, -1].forEach(s => bx(g, sw, .8, 3, am, sx, s * (W - 5) / 2, top - 2));
+    bx(g, sw, W - 5, 1.2, M(0x1a1c20, { metalness: .8, roughness: .4 }), sx, 0, -1.2);
+    lblPlane(g, 'L' + m.model + 'ab', 90, 40, m, S, 1, sx, 0, -1.85, PI);
+    const bm = M(0x9aa0a8, { metalness: .85, roughness: .35 }), by = W / 2 + 4 - 60;
+    bx(g, 1.6, 120, 18, bm, L / 2 + 1, by, 6);
+    for (let i = 0; i < 9; i++) bx(g, .8, 3.4, 9, dk, L / 2 + 1.9, by + 34 - i * 7.5, 6);
+    if (o.fan === 0) {
+      const n = 32;
+      for (let i = 0; i < n; i++) bx(g, 1.2, 60, 5, body2, sx - sw / 2 + 4 + i * (sw - 8) / (n - 1), 0, top + 2.5);
+      bx(g, 100, 14, 1.4, body, sx, 0, top + 5.7);
+      lblPlane(g, 'L' + m.model + 'a', 96, 12, m, S, 0, sx, 0, top + 6.42, 0);
+    } else {
+      const xs = o.fan === 2 ? [-44, 24] : [-38];
+      xs.forEach((x, i) => {
+        bx(g, 52, W - 7, 3, body2, x, 0, top + 1.5);
+        const f = mkFan(24, 11, 0x2a2e35, o.rgb ? (hsh + i) % 8 : undefined, o.a); f.position.set(x, 0, top + 3.2); g.add(f); fans.push(f.userData.rotor);
+      });
+      if (o.fan === 1) lblPlane(g, 'L' + m.model + 'a', 58, 36, m, S, 1, 30, 0, top + .02, 0);
+    }
+    g.userData.fans = fans; return g;
+  }
+
+  /* ---------- dados ---------- */
+  /* [modelo, marca, preço, watts, GB, MB/s, raridade, tipo, opções]  tipo: m M.2 · h dissipador · f cooler · u U.2 · e E3.S · l E1.L · a AIC */
+  const DADOS = [
+    ["Kingston KC3000","Kingston",850,5,1024,7000,"common","h",{hs:'slab',c:0x1b1b1f,a:0xe1261c}],
+    ["Samsung 990 PRO","Samsung",1300,6,2000,7450,"uncommon","h",{hs:'slab',c:0x101216,a:0x2b7bff,rgb:1}],
+    ["Crucial T705 PCIe 5.0","Crucial",3900,10,2000,14500,"very-rare","h",{hs:'wing',c:0x15161a,a:0xff7a00}],
+    ["Samsung PM9A3 Enterprise NVMe 3.84TB","Samsung",2500,12,3840,6800,"uncommon","u",{c:0x30343c,a:0x1b4bd8}],
+    ["Kioxia CM7 Enterprise NVMe 7.68TB","Kioxia",18500,14,7680,14000,"epic","e",{c:0x2a2e35,a:0xe60012,T:7.5}],
+    ["Solidigm D5-P5336 Enterprise NVMe 15.36TB","Solidigm",17800,15,15360,7000,"epic","u",{c:0x23272e,a:0x00a3e0}],
+    ["Micron 9550 Enterprise NVMe 7.68TB","Micron",16200,16,7680,14000,"epic","e",{c:0x1e2228,a:0x1a8cff,T:7.5}],
+    ["Kingston NV3","Kingston",290,4,500,5000,"common","m",{pcb:0x101012,stk:['#b3191a','#ffffff','#ffffff'],half:1}],
+    ["Samsung 990 EVO Plus","Samsung",750,4,1000,7150,"common","m",{pcb:0x0c0e14,stk:['#e8ebf0','#1b4bd8','#12161c'],lay:1}],
+    ["WD Black SN8100","Western Digital",4600,8,2000,14900,"very-rare","h",{hs:'wing',c:0x0e0f12,a:0xd71920,rgb:1}],
+    ["Solidigm D5-P5336 Enterprise NVMe 30.72TB","Solidigm",48000,18,30720,7000,"ancestral","l",{c:0x24292f,a:0x00a3e0}],
+    ["Kingston NV2","Kingston",220,3,500,3500,"common","m",{pcb:0x1b2230,stk:['#2a2d33','#e1261c','#f2f2f2'],half:1,lay:2}],
+    ["Kingston KC3000 2TB","Kingston",1150,6,2000,7000,"uncommon","h",{hs:'fin',c:0x17181c,a:0xe1261c,rgb:1}],
+    ["Samsung 990 EVO","Samsung",500,4,1000,5000,"common","m",{pcb:0x101318,stk:['#cfd4dc','#1b4bd8','#12161c'],half:1}],
+    ["Samsung 9100 PRO","Samsung",4200,9,2000,14800,"very-rare","h",{hs:'wave',c:0x15171b,a:0x3ad6ff,rgb:1}],
+    ["Crucial T500","Crucial",900,6,1000,7400,"common","h",{hs:'fin',c:0x1c1d20,a:0xff7a00}],
+    ["Crucial P310","Crucial",600,3,1000,6600,"common","m",{pcb:0x0a0d12,stk:['#0f4cc4','#ff7a00','#ffffff']}],
+    ["WD Black SN850X","Western Digital",1250,6,2000,7300,"uncommon","h",{hs:'slab',c:0x0d0e11,a:0xff2a2a,rgb:1}],
+    ["WD Blue SN5000","Western Digital",550,4,1000,5500,"common","m",{pcb:0x16316b,stk:['#1c63c9','#ffffff','#ffffff'],half:1,lay:1}],
+    ["Kioxia Exceria Plus G4","Kioxia",680,5,1000,7000,"common","m",{pcb:0x0e0f10,stk:['#e8e8e8','#e60012','#16181c']}],
+    ["Solidigm P44 Pro","Solidigm",1100,6,2000,7000,"uncommon","h",{hs:'fin',c:0x232831,a:0x00a3e0}],
+    ["Micron 4600","Micron",1400,7,2000,10000,"uncommon","m",{pcb:0x1f4d2f,stk:['#d9dde2','#0a5ea8','#12161c'],dram:1,lay:2}],
+    ["Kioxia CD8P Enterprise NVMe 3.84TB","Kioxia",3600,11,3840,6900,"very-rare","u",{c:0x353a42,a:0xe60012}],
+    ["Samsung PM1743 Enterprise NVMe 7.68TB","Samsung",12800,13,7680,13000,"epic","e",{c:0x262a31,a:0x1b4bd8,T:7.5}],
+    ["Micron 7450 Enterprise NVMe 3.84TB","Micron",2200,10,3840,6800,"uncommon","u",{c:0x2a3139,a:0x1a8cff,T:7}],
+    ["Solidigm D5-P5430 Enterprise NVMe 7.68TB","Solidigm",8600,12,7680,6300,"very-rare","u",{c:0x2d3138,a:0x00a3e0}],
+    ["Kingston DC3000ME Enterprise NVMe 3.2TB","Kingston",1600,10,3200,6800,"uncommon","u",{c:0x1f2126,a:0xe1261c}],
+    ["WD Ultrastar DC SN861 Enterprise NVMe 15.36TB","Western Digital",25500,16,15360,7100,"ancestral","u",{c:0x1f1f22,a:0xd71920}],
+    ["Kioxia CM7 Enterprise NVMe 15.36TB","Kioxia",34000,17,15360,14000,"ancestral","e",{c:0x2b3038,a:0xe60012,T:16.8}],
+    ["Micron 9550 Enterprise NVMe 30.72TB","Micron",62000,20,30720,14000,"legendary","e",{c:0x1e2228,a:0x1a8cff,T:16.8}],
+    ["Samsung PM9D3a Enterprise NVMe 61.44TB","Samsung",88000,22,61440,13000,"legendary","e",{c:0x262a31,a:0x1b4bd8,T:16.8}],
+    ["Crucial T910 PCIe 6.0","Crucial",26000,12,4000,28000,"ancestral","f",{c:0x121316,a:0xff7a00,rgb:1}],
+    ["Samsung 9900 PRO PCIe 6.0","Samsung",19500,12,4000,27000,"ancestral","f",{c:0x0f1218,a:0x2b7bff,rgb:1}],
+    ["WD Black SN9100 PCIe 6.0","Western Digital",15200,11,4000,26500,"epic","f",{c:0x0e0e10,a:0xff2a2a,rgb:1}],
+    ["Kingston KC4000 PCIe 6.0","Kingston",8900,10,2000,25000,"very-rare","f",{c:0x15161a,a:0xe1261c}],
+    ["Kioxia CD9Q Enterprise NVMe PCIe 6.0 30.72TB","Kioxia",88000,22,30720,26000,"legendary","a",{c:0x16181d,a:0xe60012,rgb:1,fan:2}],
+    ["Solidigm D7-P5810 Enterprise PCIe 6.0 61.44TB","Solidigm",112000,25,61440,26500,"pearlescent","a",{c:0x1c2026,a:0x00a3e0,fan:0}],
+    ["Micron 9650 Enterprise NVMe PCIe 6.0 61.44TB","Micron",175000,26,61440,27000,"pearlescent","a",{c:0x13171d,a:0x1a8cff,rgb:1,fan:1}],
+    ["Samsung PM9E3 Enterprise NVMe PCIe 6.0 122.88TB","Samsung",320000,30,122880,26000,"iris","e",{c:0x15181d,a:0x45e0ff,rgb:1,T:16.8}],
+    ["SK Hynix PEB110 Enterprise QLC 122.88TB","SK Hynix",105000,28,122880,12000,"pearlescent","l",{c:0x1d1f23,a:0xea002c}],
+    ["Kioxia LC9 QLC Enterprise 245.76TB","Kioxia",190000,32,245760,11000,"iris","l",{c:0x17191e,a:0xe60012,rgb:1}],
+    ["Solidigm D5-P5336 QLC 61.44TB","Solidigm",52000,20,61440,7000,"legendary","l",{c:0x2e343c,a:0x00a3e0}],
+    ["WD Gold Enterprise NVMe 7.68TB","Western Digital",9800,13,7680,6900,"epic","u",{c:0x2a2418,a:0xf2b705}],
+    ["Kingston DC3000ME Enterprise NVMe 6.4TB","Kingston",7400,12,6400,6900,"very-rare","u",{c:0x26282d,a:0xe1261c}]
+  ].map(a => ({ model: a[0], brand: a[1], price: a[2], watts: a[3], ssd_gb: a[4], speed: a[5], rarity: a[6], tipo: a[7], o: a[8] }));
+
+  const TAM = { m: .18, h: .18, f: .18, u: .17, e: .19, l: .3, a: .26 };
+
+  function criar(m) {
+    const fn = { m: m2, h: hs, f: fanc, u: u2, e: e3s, l: e1l, a: aic }[m.tipo];
+    const g = fn(m, m.o);
+    const out = new THREE.Group(); out.add(g);
+    out.userData._tam = TAM[m.tipo] || .18;
+    out.userData._fans = g.userData.fans || [];
+    out.userData.ssdModelo = m.model;
+    return out;
+  }
+
+  /* ---------- busca por nome ---------- */
+  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '');
+  const INDEX = [];
+  DADOS.forEach((m, i) => {
+    INDEX.push({ k: norm(m.model), i });
+    const sem = norm(m.model.replace(/\(.*?\)/g, ''));
+    if (sem && sem !== norm(m.model)) INDEX.push({ k: sem, i });
+  });
+  function achar(nome, frouxo) {
+    const k = norm(nome); if (!k) return null;
+    let e = INDEX.find(x => x.k === k);
+    if (!e && frouxo) e = INDEX.filter(x => x.k.length >= 5 && k.includes(x.k)).sort((a, b) => b.k.length - a.k.length)[0];
+    return e ? DADOS[e.i] : null;
+  }
+
+  /* ---------- miniatura 3D para o inventário / hotbar ---------- */
+  const THUMBS = {};
+  let TR = null, TS = null, TC = null;
+  function miniatura(m) {
+    if (THUMBS[m.model] !== undefined) return THUMBS[m.model];
+    let url = null;
+    try {
+      if (!TR) {
+        TR = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+        TR.setSize(128, 128); TR.setPixelRatio(1); TR.setClearColor(0x000000, 0);
+        TS = new THREE.Scene();
+        TS.add(new THREE.AmbientLight(0xffffff, .9));
+        const d1 = new THREE.DirectionalLight(0xffffff, 1.3); d1.position.set(.5, 1, 1.4); TS.add(d1);
+        const d2 = new THREE.DirectionalLight(0x9aa4b2, .6); d2.position.set(-1, -.3, .6); TS.add(d2);
+        TC = new THREE.PerspectiveCamera(30, 1, .01, 8000);
+      }
+      const g = criar(m), pv = new THREE.Group();
+      pv.add(g); g.updateMatrixWorld(true);
+      const bb = new THREE.Box3().setFromObject(g), ct = bb.getCenter(new THREE.Vector3()), r = bb.getSize(new THREE.Vector3()).length() / 2;
+      g.position.sub(ct); pv.rotation.set(.35, .5, 0);
+      TS.add(pv);
+      TC.position.set(0, 0, r * 3.2); TC.lookAt(0, 0, 0);
+      TR.render(TS, TC);
+      url = TR.domElement.toDataURL('image/png');
+      TS.remove(pv);
+      pv.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+    } catch (e) { console.warn('Miniatura de SSD falhou:', e); url = null; }
+    THUMBS[m.model] = url;
+    return url;
+  }
+
+  return { DADOS, achar, criar, miniatura, fmtCap: cap };
+})();
+
 const LOJA = { painel: 1, turbina: 2, gerador: 2, rack: 2, baia: 1, cooler: 2 };   // preços em 💰
 const PRECOS = { lote: 1 };
-// ===== V6: niveis dos equipamentos de energia (1 inicial + 5 evolucoes) =====
+// ===== niveis dos equipamentos de energia (1 inicial + 5 evolucoes) =====
 const NIVEL_MAX = 6;
 // custo 💰 para CHEGAR em cada nivel (indice = nivel)
 const CUSTO_NIVEL = { painel: [0, 0, 1, 1, 2, 3, 4], gerador: [0, 0, 2, 2, 3, 4, 6], turbina: [0, 0, 2, 2, 3, 4, 6] };
@@ -3936,7 +5159,7 @@ function criarCabo(scene, pts, ativo) {
 
 
 /* =========================================================
-   PATCH V7 — SEDE CEMIG + LINHA EXTERNA DE ENERGIA
+   SEDE CEMIG + LINHA EXTERNA DE ENERGIA
    Sede perto das montanhas (oeste), postes até o lado esquerdo
    do galpão e conexão visual no quadro do data center.
 ========================================================= */
@@ -4064,13 +5287,13 @@ function criarSedeCemig(scene, galpao) {
 
 
 /* =========================================================
-   PATCH V7 — CLIMA / CHUVA ALEATÓRIA
+   CLIMA / CHUVA ALEATÓRIA
    Chuva em partículas, céu mais escuro e névoa mais densa
    quando está chovendo. Alterna sozinha em intervalos
    aleatórios (mín. ~45 s seco, chuva 20–90 s).
 ========================================================= */
 function criarClima(scene, player) {
-  const N = 2800;
+  const N = 1100;
   const pos = new Float32Array(N * 3);
   const vel = new Float32Array(N);
   for (let i = 0; i < N; i++) {
@@ -4107,8 +5330,7 @@ function criarClima(scene, player) {
   overlay.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .8s;background:linear-gradient(180deg,rgba(30,50,70,.12),rgba(20,40,60,.08));';
   document.body.appendChild(overlay);
 
-  // Indicador de clima movido para #hud-clima (painel lateral)
-  const ind = { style: { opacity: '0' }, textContent: '', _op: '' };
+  let climaAtual = '';
 
 
   const fogBaseNear = 90, fogBaseFar = 360;
@@ -4130,7 +5352,7 @@ function criarClima(scene, player) {
       const naAbertura = lx > -9.75 && lx < -7.75 && lz > 4.28 && lz < 6.53;   // buraco da escada
       if (!naAbertura) return true;
     }
-    // --- marquise da entrada do data center (V8) ---
+    // --- marquise da entrada do data center ---
     if (lx > -3.9 && lx < 3.9 && lz > 11.3 && lz < 14.0 && wy < 4.1) return true;
     // --- sede CEMIG ---
     if (Math.abs(wx + 105) < 7.2 && Math.abs(wz + 8) < 5.2 && wy < 7.6) return true;
@@ -4153,13 +5375,17 @@ function criarClima(scene, player) {
       // partículas seguem o jogador
       chuva.position.set(player.pos.x, 0, player.pos.z);
       mat.opacity = intensidade * 0.85;
+      chuva.visible = intensidade > 0.02;
 
       if (intensidade > 0.02) {
         const arr = geo.attributes.position.array;
-        for (let i = 0; i < N; i++) {
+        const n = Math.ceil(N * Math.min(1, intensidade * 1.2));
+        geo.setDrawRange(0, n);
+        for (let i = 0; i < n; i++) {
           arr[i * 3 + 1] -= vel[i] * dt * (0.7 + intensidade * 0.6);
           arr[i * 3]     -= dt * 2.5;   // vento leve
-          if (arr[i * 3 + 1] < 0 || abrigado(arr[i * 3] + player.pos.x, arr[i * 3 + 1], arr[i * 3 + 2] + player.pos.z)) {
+          const y = arr[i * 3 + 1];
+          if (y < 0 || (y < 8 && abrigado(arr[i * 3] + player.pos.x, y, arr[i * 3 + 2] + player.pos.z))) {
             arr[i * 3]     = (Math.random() - .5) * 90;
             arr[i * 3 + 1] = 28 + Math.random() * 18;
             arr[i * 3 + 2] = (Math.random() - .5) * 90;
@@ -4176,13 +5402,13 @@ function criarClima(scene, player) {
       { const op = (intensidade * 0.55).toFixed(2); if (op !== overlay._op) overlay.style.opacity = overlay._op = op; }
       if (intensidade > 0.15) {
         const tx = intensidade > 0.7 ? '🌧 Chuva forte' : '🌦 Chuva';
-        if (ind.textContent !== tx) {
-          ind.textContent = tx;
+        if (climaAtual !== tx) {
+          climaAtual = tx;
           if (window._hud) window._hud.setClima(tx);
         }
       } else {
-        if (ind.textContent !== '☁ Limpo') {
-          ind.textContent = '☁ Limpo';
+        if (climaAtual !== '☁ Limpo') {
+          climaAtual = '☁ Limpo';
           if (window._hud) window._hud.setClima('☁ Limpo');
         }
       }
@@ -4239,9 +5465,20 @@ function criarDistritoEnergia(scene, inv, hud) {
 
   function placa(l, cor, rotulo, acao) {
     const g = new THREE.Group(); g.position.set(l.x, 0, l.z - LD / 2 + 1.2); g.rotation.y = Math.PI;
-    mk(new THREE.CylinderGeometry(.06, .06, 2.2, 8), 0x5c4033, 0, 1.1, 0, g);
+    mk(new THREE.CylinderGeometry(.06, .06, 1.5, 8), 0x5c4033, 0, .75, 0, g);
     const tab = mk(B(1.5, .8, .08), 0xfef3c7, 0, 1.9, 0, g);
-    for (let i = 0; i < 4; i++) mk(B(.18, .3, .02), cor, -.45 + i * .3, 1.95, .05, g);
+    {
+      const cv = document.createElement('canvas'); cv.width = 256; cv.height = 128;
+      const c2 = cv.getContext('2d');
+      c2.fillStyle = '#fef3c7'; c2.fillRect(0, 0, 256, 128);
+      c2.fillStyle = '#' + new THREE.Color(cor).getHexString();
+      c2.fillRect(0, 0, 256, 18); c2.fillRect(0, 110, 256, 18);
+      c2.fillStyle = '#3a2a1a'; c2.font = 'bold 44px "Segoe UI", Arial, sans-serif';
+      c2.textAlign = 'center'; c2.textBaseline = 'middle';
+      c2.fillText('LOTE ' + l.n, 128, 64);
+      const pl = new THREE.Mesh(new THREE.PlaneGeometry(1.4, .7), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv) }));
+      pl.position.set(0, 1.9, .055); pl.raycast = () => {}; g.add(pl);
+    }
     tab.userData.interagir = acao; tab.userData.rotulo = rotulo;
     l.group.add(g); return g;
   }
@@ -4334,10 +5571,6 @@ function vaga(l, geo, x, y, z, tipo, cor, construir, rotX = 0) {
     return g;
   }
 
-  // ---- constantes de geração (claras e constantes) ----
-  // Solar: 1.2 kW (nv1) → 1.8 (nv2) → 2.5 (nv3) por painel
-  // Eólica: 6 kW × fator de vento (varia suavemente, mas sempre gera)
-  // Gerador: 10 kW (nv1) → 15 (nv2) → 22 (nv3) quando ligado
   const SOLAR_KW = [0, 1.2, 1.8, 2.5, 3.4, 4.6, 6.2];
   const GER_KW   = [0, 10, 15, 22, 30, 40, 55];
 
@@ -4471,7 +5704,6 @@ function usarEolica(l) {
     }));
   }
 
-/* PATCH-GERADOR-COMBUSTIVEL */
   // ===== GERADOR A GASOLINA — ajuste os valores aqui =====
   const COMB = {
     precoLitro: 0.05,                  // 💰 por litro de gasolina
@@ -4680,9 +5912,6 @@ function usarGerador(l) {
     });
   }
 
-  // Contador de geração/lotes agora vive no painel lateral (#hud-lateral)
-  // (mantém lotesComprados disponível para o HUD)
-
 
   revelar(2, 0);   // primeiro lote à venda (meio); os vizinhos aparecem conforme você compra
   return { lotes };
@@ -4712,43 +5941,78 @@ function criarLoteExpansao(scene, galpao, racks, inventario, hud, offsetX, nome)
   placaVenda.position.set(lote.lx, 0, lote.lz + loteD/2 + 1.5);
   lote.group.add(placaVenda);
   
-  const postePlaca = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 2.2, 8), new THREE.MeshStandardMaterial({color: 0x5c4033}));
-  postePlaca.position.y = 1.1; placaVenda.add(postePlaca);
+  const postePlaca = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 1.5, 8), new THREE.MeshStandardMaterial({color: 0x5c4033}));
+  postePlaca.position.y = .75; placaVenda.add(postePlaca);
   const tabuleta = new THREE.Mesh(new THREE.BoxGeometry(1.5, .8, .08), new THREE.MeshStandardMaterial({color: 0xfef3c7}));
   tabuleta.position.y = 1.9; placaVenda.add(tabuleta);
-  const matTexto = new THREE.MeshStandardMaterial({ color: 0x7d3525 });
-  for (let i = 0; i < 4; i++) {
-    const letra = new THREE.Mesh(new THREE.BoxGeometry(.18, .3, .02), matTexto);
-    letra.position.set(-0.45 + i * 0.3, 1.95, 0.05);
-    placaVenda.add(letra);
-  }
+  const preco = 10000 * (galpao.expansoes + 1);
+  const precoTxt = preco.toLocaleString('pt-BR');
+  const texPlaca = (() => {
+    const cv = document.createElement('canvas'); cv.width = 512; cv.height = 256;
+    const c2 = cv.getContext('2d');
+    c2.fillStyle = '#fef3c7'; c2.fillRect(0, 0, 512, 256);
+    c2.strokeStyle = '#7d3525'; c2.lineWidth = 8; c2.strokeRect(6, 6, 500, 244);
+    c2.fillStyle = '#7d3525'; c2.textAlign = 'center'; c2.textBaseline = 'middle';
+    c2.font = 'bold 64px "Segoe UI", Arial, sans-serif'; c2.fillText('À VENDA', 256, 80);
+    c2.font = 'bold 72px "Segoe UI", Arial, sans-serif'; c2.fillText('💰 ' + precoTxt, 256, 180);
+    return new THREE.CanvasTexture(cv);
+  })();
+  [[.055, 0], [-.055, Math.PI]].forEach(([pz, ry]) => {
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(1.4, .72), new THREE.MeshBasicMaterial({ map: texPlaca }));
+    pl.position.set(0, 1.9, pz); pl.rotation.y = ry; pl.raycast = () => {};
+    placaVenda.add(pl);
+  });
   
+  tabuleta.userData.rotulo = `Comprar ${nome} (${precoTxt} 💰)`;
   tabuleta.userData.interagir = () => {
     if (lote.comprado) { hud.toast('Lote já comprado.'); return; }
-    const dinheiro = inventario.saldo() >= PRECOS.lote;
-    if (!dinheiro) {
-      Modal.abrir(ModalTemplates.lote(nome, '220 m²', PRECOS.lote));
-      const btn = document.getElementById('btn-confirmar-lote');
-      if (btn) btn.addEventListener('click', () => comprarLote());
-      return;
-    }
-    comprarLote();
+    Modal.abrir(`
+      <div class="modal">
+        <div class="modal-header">
+          <h3>${nome}</h3>
+          <button class="modal-fecha" data-fecha-modal>×</button>
+        </div>
+        <div class="modal-body">
+          <h4>Expansão do Data Center</h4>
+          <p>Adquira este terreno para ampliar o galpão do data center.</p>
+          <div class="metricas">
+            <div class="metrica"><div class="label">Área</div><div class="valor">220 m²</div></div>
+            <div class="metrica"><div class="label">Custo</div><div class="valor">${precoTxt} 💰</div></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn" data-fecha-modal>Cancelar</button>
+          <button class="btn btn-primario" id="btn-confirmar-expansao">Comprar</button>
+        </div>
+      </div>`);
+    const btn = document.getElementById('btn-confirmar-expansao');
+    if (btn) btn.addEventListener('click', () => comprarLote());
   };
-  tabuleta.userData.rotulo = `Comprar ${nome} (1 💰)`;
-  
-  function comprarLote() {
-    const dinheiro = inventario.saldo() >= PRECOS.lote;
-    if (!dinheiro) { hud.toast('Dinheiro insuficiente!'); Modal.fechar(); return; }
-    pagar(inventario, PRECOS.lote, true);
+
+  let comprando = false;
+  async function comprarLote() {
+    if (comprando || lote.comprado) return;
+    comprando = true;
+    const ok = await chamarApi(API.expandirDatacenter, null, 'Não foi possível comprar a expansão');
+    comprando = false;
+    if (!ok) { Modal.fechar(); return; }
     lote.comprado = true;
     hud.toast(`${nome} comprado! Expandindo...`);
     Modal.fechar();
-    
+
     expandirGalpao(galpao, scene, racks, inventario, hud);
     lote.group.remove(placaVenda);
     if (galpao.expansoes < 4) criarLoteExpansao(scene, galpao, racks, inventario, hud, galpao.xDir + 5, `Expansão Leste ${galpao.expansoes + 1}`);
   }
-  
+  // aplica a expansão sem cobrar (usado para refletir o estado do backend)
+  lote.aplicarGratis = () => {
+    if (lote.comprado) return null;
+    lote.comprado = true;
+    expandirGalpao(galpao, scene, racks, inventario, hud);
+    lote.group.remove(placaVenda);
+    if (galpao.expansoes < 4) return criarLoteExpansao(scene, galpao, racks, inventario, hud, galpao.xDir + 5, `Expansão Leste ${galpao.expansoes + 1}`);
+    return null;
+  };
   return lote;
 }
 
@@ -4826,8 +6090,8 @@ const HOTBAR_SIZE = 9;
 let hotbarSlots = new Array(HOTBAR_SIZE).fill(null);  // refs para itens do inventário (por tipo)
 let hotbarIndex = 0;
 
-function criarModeloMao(tipo) {
-  if (PECAS_PC[tipo]) return criarModeloPeca(tipo);
+function criarModeloMao(tipo, ref) {
+  if (ref && ref.gpuModelo) { const gm = GPUM.achar(ref.gpuModelo); if (gm) return GPUM.criar(gm); } if (ref && ref.cpuModelo) { const cm = CPUM.achar(ref.cpuModelo); if (cm) return CPUM.criar(cm); } if (ref && ref.ramModelo) { const rm = RAMM.achar(ref.ramModelo); if (rm) return RAMM.criar(rm); } if (ref && ref.ssdModelo) { const sm = SSDM.achar(ref.ssdModelo); if (sm) return SSDM.criar(sm); } if (PECAS_PC[tipo]) return criarModeloPeca(tipo);
   return criarModeloMaoBase(tipo);
 }
 function criarModeloMaoBase(tipo) {
@@ -4880,12 +6144,9 @@ function criarModeloMaoBase(tipo) {
 function criarHotbar({ camera, inventario }) {
   const el = document.getElementById('hotbar');
   const mao = new THREE.Group();   // item na mão
-  mao.position.set(0.27, -0.18, -0.64);   // V9: na ponta da mão
-  mao.rotation.set(0.15, -0.4, 0.1);
-  camera.add(mao);
   const luzMao = new THREE.PointLight(0xffffff, .5, 3); luzMao.position.set(0, .3, .2); mao.add(luzMao);
 
-  // ===== V10: braço estilo Minecraft (menor, no canto inferior direito) + item na ponta =====
+  // ===== braço estilo Minecraft (menor, no canto inferior direito) + item na ponta =====
   // >>> Para ajustar o visual, mexa só nestes números <<<
   const V10 = {
     ponta: { x: 0.44, y: -0.35, z: -0.62 },   // ponta da mão, no espaço da câmera (+x direita · -y baixo · -z frente)
@@ -4923,7 +6184,7 @@ function criarHotbar({ camera, inventario }) {
     m.scale.setScalar(1); m.position.set(0, 0, 0); m.rotation.set(0, 0, 0); m.updateMatrixWorld(true);
     const bb = new THREE.Box3().setFromObject(m), tm = new THREE.Vector3(), ct = new THREE.Vector3();
     bb.getSize(tm); bb.getCenter(ct);
-    const alvo = V10.tam[tipo] || V10.tam.padrao;
+    const alvo = (m.userData && m.userData._tam) || V10.tam[tipo] || V10.tam.padrao;
     const k = alvo / Math.max(tm.x, tm.y, tm.z, 1e-4);
     m.scale.setScalar(k);
     m.position.copy(ct).multiplyScalar(-k);
@@ -4944,8 +6205,6 @@ function criarHotbar({ camera, inventario }) {
     braco.rotation.set(V10.rot.x + s * .40, V10.rot.y, V10.rot.z);
     if (maoMesh && maoMesh.userData._fans) maoMesh.userData._fans.forEach(f => { f.rotation.z -= dt * 6; });   // ventoinhas da placa de vídeo
   });
-   // V8: item visível também à noite
-  // precisa que a câmera esteja na scene (já está via player)
 
   let maoMesh = null;
   let maoTipo = null;
@@ -4973,13 +6232,13 @@ function criarHotbar({ camera, inventario }) {
     itemAtual = s ? { ...s } : null;
     // modelo na mão
     const tipo = itemAtual ? itemAtual.tipo : null;
-    if (tipo !== maoTipo) {
+    const chaveMao = tipo ? tipo + '|' + ((itemAtual.ref && (itemAtual.ref.gpuModelo || itemAtual.ref.cpuModelo || itemAtual.ref.ramModelo || itemAtual.ref.ssdModelo)) || '') : null; if (chaveMao !== maoTipo) {
       if (maoMesh) { mao.remove(maoMesh); maoMesh = null; }
-      maoTipo = tipo;
+      maoTipo = chaveMao;
       if (tipo) {
-        maoMesh = criarModeloMao(tipo);
+        maoMesh = criarModeloMao(tipo, itemAtual.ref);
         V10_ajustarItem(maoMesh, tipo);
-        maoMesh.traverse(o => { o.raycast = () => {}; o.castShadow = false; });   // V8: o item na mão não intercepta F/G
+        maoMesh.traverse(o => { o.raycast = () => {}; o.castShadow = false; });   // o item na mão não intercepta F/G
         mao.add(maoMesh);
       }
     }
@@ -5030,16 +6289,10 @@ function criarHotbar({ camera, inventario }) {
     else selecionarSlot((hotbarIndex + HOTBAR_SIZE - 1) % HOTBAR_SIZE);
   }, { passive: true });
 
-  // animação leve do item na mão
   ATUALIZAVEIS.push(dt => {
-    if (maoMesh) {
-      /* V10: o balanço vem do braço */   // V8: balanço suave em vez de girar sem parar
-      if (maoMesh.userData._rotor) maoMesh.userData._rotor.rotation.z -= dt * 3;
-      if (maoMesh.userData._rotorY) maoMesh.userData._rotorY.rotation.y -= dt * 6;
-      // bob suave
-      const t = performance.now() / 1000;
-      /* V9: o balanço agora é feito junto com o braço */
-    }
+    if (!maoMesh) return;
+    if (maoMesh.userData._rotor) maoMesh.userData._rotor.rotation.z -= dt * 3;
+    if (maoMesh.userData._rotorY) maoMesh.userData._rotorY.rotation.y -= dt * 6;
   });
 
   // preenche hotbar inicial com primeiros itens do inventário
@@ -5083,12 +6336,11 @@ function criarHUD() {
 ========================================================= */
 function criarInventario({ canvas, aoAbrir, aoFechar }) {
   const painel = document.getElementById('inventario'), grade = painel.querySelector('.grade'), infoBar = painel.querySelector('.info-bar');
-  const navSaldo = document.getElementById('navbar-saldo'), invSaldo = document.getElementById('inv-saldo');
+  const invSaldo = document.getElementById('inv-saldo');
   const pilhas = [];                 // sem limite de espaço e sem limite de quantidade por pilha
   let saldo = DINHEIRO_INICIAL;      // dinheiro: só um número (aparece na navbar)
   let aberto = false, selecionado = null;
   const fmt = n => Number(n).toLocaleString('pt-BR');
-  const igual = (a, b) => a.tipo === b.tipo && (a.nivel || 1) === (b.nivel || 1) && (a.djangoId ?? null) === (b.djangoId ?? null);
   const sincHotbar = () => { if (window._hotbar) window._hotbar.sincronizar(); };
 
   /* inventário é carregado do servidor toda vez que for aberto */
@@ -5110,6 +6362,34 @@ function criarInventario({ canvas, aoAbrir, aoFechar }) {
       icone: (typeof s.icone === 'string' && s.icone.length > 60) ? s.icone : base.icone,
       servidor: true
     };
+    { const gm = GPUM.achar(item.nome, tipo === 'gpu');
+      if (gm) {
+        item.gpuModelo = gm.model;
+        const th = GPUM.miniatura(gm);
+        if (th) item.icone = `<img class="gpu-mini" src="${th}" alt="">`;
+        item.desc = (s.desc ? s.desc + ' · ' : '') + `${gm.vram} GB · ${gm.mhz} MHz · ${gm.watts} W`;
+      } }
+    { const cm = item.gpuModelo ? null : CPUM.achar(item.nome, tipo === 'cpu');
+      if (cm) {
+        item.cpuModelo = cm.model;
+        const th = CPUM.miniatura(cm);
+        if (th) item.icone = `<img class="cpu-mini" src="${th}" alt="">`;
+        item.desc = (s.desc ? s.desc + ' · ' : '') + `${cm.cores}C/${cm.threads}T · ${cm.ghz.toFixed(1)} GHz · ${cm.watts} W`;
+      } }
+    { const rm = (item.gpuModelo || item.cpuModelo) ? null : RAMM.achar(item.nome, tipo === 'ram');
+      if (rm) {
+        item.ramModelo = rm.model;
+        const th = RAMM.miniatura(rm);
+        if (th) item.icone = `<img class="ram-mini" src="${th}" alt="">`;
+        item.desc = (s.desc ? s.desc + ' · ' : '') + `${RAMM.fmtGB(rm.ram_gb)} · ${rm.ram_mhz} MHz · ${rm.watts} W`;
+      } }
+    { const sm = (item.gpuModelo || item.cpuModelo || item.ramModelo) ? null : SSDM.achar(item.nome, tipo === 'ssd');
+      if (sm) {
+        item.ssdModelo = sm.model;
+        const th = SSDM.miniatura(sm);
+        if (th) item.icone = `<img class="ssd-mini" src="${th}" alt="">`;
+        item.desc = (s.desc ? s.desc + ' · ' : '') + `${SSDM.fmtCap(sm.ssd_gb)} · ${sm.speed} MB/s · ${sm.watts} W`;
+      } }
     if (tipo === 'rack') {
       item.djangoId = s.id;
       item.rackNome = s.nome || ('Rack ' + s.id);
@@ -5153,7 +6433,6 @@ function criarInventario({ canvas, aoAbrir, aoFechar }) {
 
   function pintarSaldo() {
     const t = fmt(saldo);
-    if (navSaldo) navSaldo.textContent = t;
     if (invSaldo) invSaldo.textContent = `💰 ${t}`;
     if (window._hud) window._hud.setSaldo(saldo);
   }
@@ -5175,7 +6454,7 @@ function criarInventario({ canvas, aoAbrir, aoFechar }) {
 
   function redesenhar() {
     grade.innerHTML = '';
-    const total = Math.max(16, Math.ceil((pilhas.length + 1) / 8) * 8);   // sempre sobra espaço vazio
+    const total = Math.max(80, Math.ceil(pilhas.length / 10) * 10);   // sempre sobra espaço vazio
     for (let i = 0; i < total; i++) {
       const item = pilhas[i], slot = document.createElement('button');
       slot.className = 'slot' + (item && item === selecionado ? ' ativo' : '');
@@ -5286,7 +6565,7 @@ function criarInteracao({ camera, scene, hud }) {
 }
 
 /* =========================================================
-   V5 — venda / remoção de itens, sentar, utilitários
+   venda / remoção de itens, sentar, utilitários
 ========================================================= */
 const PRECO_SERVIDOR = {};   // preços vindos do Django, chave 'tipo:id'
 const FATOR_VENDA = 1;            // 1 = vende pelo preço de compra · 0.5 = metade do preço
@@ -5350,7 +6629,7 @@ Player.prototype._atualizarSentado = function (dt, travado) {
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 800);
 camera.rotation.order = 'YXZ';
-scene.add(camera);   // V8: sem isso, o item na mão (filho da câmera) nunca era desenhado
+scene.add(camera);   // sem isso, o item na mão (filho da câmera) nunca era desenhado
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight); 
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
@@ -5398,7 +6677,6 @@ hotbar.bootstrap();
 
 // Racks em fila no galpão (espaçados adequadamente, longe do escritório)
 const racks = [];
-// (racks iniciais removidos: o data center começa vazio)
 
 // Distrito de energia (norte da rua) — 20 lotes reservados
 const distrito = criarDistritoEnergia(scene, inventario, hud);
@@ -5410,9 +6688,22 @@ const sedeCemig = criarSedeCemig(scene, galpao);
 // Lote de expansão (à direita do galpão)
 const loteExpansao1 = criarLoteExpansao(scene, galpao, racks, inventario, hud, galpao.xDir + 5, 'Expansão Leste');
 
+(function aplicarTamanhoDatacenter() {
+  const dc = (typeof data !== 'undefined' && data && data.datacenter) ? data.datacenter : null;
+  if (!dc) return;
+  const alvo = Math.max(0, Math.min(4, Math.floor(Number(dc.updates) - 0) || 0));
+  const toastOrig = hud.toast;
+  hud.toast = () => {};
+  try {
+    let l = loteExpansao1;
+    for (let i = 0; i < alvo && l; i++) l = l.aplicarGratis();
+  } finally {
+    hud.toast = toastOrig;
+  }
+})();
+
 const interacao = criarInteracao({ camera, scene, hud });
 
-/* PATCH-DJANGO-RACKS: monta os racks e baias existentes vindos do Django */
 function carregarMundoDoDjango() {
   const lista = (typeof data !== 'undefined' && data && Array.isArray(data.racks)) ? data.racks.slice() : [];
   if (!lista.length) return;
@@ -5471,7 +6762,6 @@ function carregarMundoDoDjango() {
   }
 }
 carregarMundoDoDjango();
-
 
 
 /* ===== HUD lateral unificado — atualização em tempo real ===== */

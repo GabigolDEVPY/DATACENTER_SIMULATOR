@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Rack, Bay, StorageAllocation
+from .models import Rack, Bay, StorageAllocation, Datacenter
 
 # Register your models here.
 @admin.register(Rack)
@@ -13,3 +13,7 @@ class BayAdmin(admin.ModelAdmin):
 @admin.register(StorageAllocation)
 class StorageAllocationAdmin(admin.ModelAdmin):
     list_display = ["bay", "ai_model", "allocated_gb"]
+    
+@admin.register(Datacenter)
+class DatacenterAdmin(admin.ModelAdmin):
+    list_display = ["name", "updates", "user"]

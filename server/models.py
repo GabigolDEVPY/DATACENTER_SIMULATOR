@@ -3,6 +3,13 @@ from user.models import InventoryItem
 from user.models import User
 
 
+class Datacenter(models.Model):
+    name = models.CharField(max_length=80, blank=False)
+    updates = models.IntegerField(blank=False, null=False, default=1)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="datacenter")
+
+    def __str__(self):
+        return f" {self.name}"
 
 # Create your models here.
 class Rack(models.Model):

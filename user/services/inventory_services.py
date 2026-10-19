@@ -84,7 +84,7 @@ class InventoryService:
 
                 inventory.append({
                     "id": item.id,
-                    "nome": f"{hardware.brand.name} {hardware.model}",
+                    "nome": f"{hardware.model}",
                     "icone": "<svg>...</svg>",
                     "desc": hardware.type,
                     "qtd": 1,

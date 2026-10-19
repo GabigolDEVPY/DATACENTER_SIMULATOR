@@ -2,6 +2,7 @@ from django.urls import path
 from .views.views import HomeView
 from .views.bays_views import ChangeStatusBay, GetBayDetail, ChangeComponent, RemoveComponent
 from .views.rack_views import RemoveRack, InstallRack, InstallBay, RemoveBay
+from .views.datacenter_views import DatacenterUpgradeView
 
 app_name = "server"
 
@@ -21,6 +22,8 @@ urlpatterns = [
     
     path('api/bay/remove/', RemoveBay.as_view(), name="remove_bay"),
     path('api/bay/install/', InstallBay.as_view(), name="install_bay"),
+    
+    path('datacenter/upgrade/', DatacenterUpgradeView.as_view(), name="upgrade_datacenter"),
 ]
 
 
