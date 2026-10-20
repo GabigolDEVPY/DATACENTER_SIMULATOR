@@ -1,63 +1,35 @@
 #!/usr/bin/env python3
 import sys, re, shutil, os
 
-CSS = r"""
-    /* ===== PATCH: inventário 10x8 sem scroll + hotbar visível no inventário ===== */
-    .painel-inv { width: min(920px, 96vw) !important; max-height: 96vh !important; }
-    .painel-inv .grade {
-      display: grid !important;
-      grid-template-columns: repeat(10, min(64px, 7.2vh)) !important;
-      grid-auto-rows: min(64px, 7.2vh) !important;
-      justify-content: center !important;
-      align-content: start !important;
-      gap: 6px !important;
-      padding: 14px 18px !important;
-      max-height: none !important;
-      overflow-x: hidden !important;
-      overflow-y: auto !important;
-      scrollbar-width: none !important;
-    }
-    .painel-inv .grade::-webkit-scrollbar { display: none !important; }
-    .painel-inv .slot {
-      width: 100% !important; height: 100% !important; min-width: 0 !important;
-      flex-shrink: initial !important;
-    }
-    .painel-inv .slot svg { width: 55% !important; height: 55% !important; }
-    body:has(#inventario:not(.oculto)) #hotbar {
-      opacity: 1 !important; pointer-events: auto !important; z-index: 25 !important;
-    }
-"""
-
-FUMACA = r"""  // ---- fumacinha fria saindo dos difusores (só com refrigeração instalada) ----
-  {
-    const cvF = document.createElement('canvas'); cvF.width = cvF.height = 64;
-    const cxF = cvF.getContext('2d'), grF = cxF.createRadialGradient(32, 32, 0, 32, 32, 32);
-    grF.addColorStop(0, 'rgba(255,255,255,.9)'); grF.addColorStop(.5, 'rgba(255,255,255,.35)'); grF.addColorStop(1, 'rgba(255,255,255,0)');
-    cxF.fillStyle = grF; cxF.fillRect(0, 0, 64, 64);
-    const texF = new THREE.CanvasTexture(cvF);
-    const fumos = [];
-    xs.forEach(x => zs.forEach(z => {
-      for (let i = 0; i < 3; i++) {
-        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: texF, color: 0xbdefff, transparent: true, opacity: 0, depthWrite: false, fog: false }));
-        sp.raycast = () => {}; sp.visible = false; grp.add(sp);
-        fumos.push({ sp, x, z, t: i / 3 + Math.random() * .1, vel: .22 + Math.random() * .08, dx: (Math.random() - .5) * .5, dz: (Math.random() - .5) * .5 });
-      }
-    }));
-    ATUALIZAVEIS.push(dt => {
-      const k = Math.min(1, coolingTotal() / 8);
-      fumos.forEach(f => {
-        if (k <= 0) { f.sp.visible = false; return; }
-        f.t = (f.t + dt * f.vel) % 1;
-        const u = f.t;
-        f.sp.visible = true;
-        f.sp.position.set(f.x + f.dx * u, 3.6 - u * 1.1, f.z + f.dz * u);
-        f.sp.scale.setScalar(.35 + u * .9);
-        f.sp.material.opacity = .5 * k * Math.sin(Math.PI * u);
-      });
-    });
+HELPERS = r"""const PRECO_SERVIDOR = {};   // preços vindos do Django, chave 'tipo:id'
+const EQUIPADOS_SRV = new Set();   // itens do servidor (energia/cooler) instalados no mundo: não voltam ao inventário na sincronização
+const NIVEL_SRV = {};              // nível evoluído localmente de itens do servidor, chave 'tipo:id'
+const chaveSrv = it => (it && it.djangoId !== undefined && it.djangoId !== null) ? it.tipo + ':' + it.djangoId : null;
+function marcarEquipado(it) {
+  const k = chaveSrv(it); if (!k) return;
+  EQUIPADOS_SRV.add(k);
+  if (API.equiparEnergia) apiFetch(API.equiparEnergia, { data: { id: it.djangoId, type: it.tipo } });
+}
+function devolverItem(tipo, nivel, srvId) {
+  const extra = {};
+  if (srvId !== undefined && srvId !== null) {
+    const k = tipo + ':' + srvId;
+    EQUIPADOS_SRV.delete(k);
+    NIVEL_SRV[k] = nivel;
+    extra.djangoId = srvId; extra.servidor = true;
+    if (PRECO_SERVIDOR[k] !== undefined) extra.preco = PRECO_SERVIDOR[k];
+    if (API.desequiparEnergia) apiFetch(API.desequiparEnergia, { data: { id: srvId, type: tipo } });
   }
+  inventario.adicionarItem({ ...ITENS[tipo], tipo, qtd: 1, nivel, ...extra });
+}"""
 
-  """
+ALIASES = r"""
+  Object.assign(TIPO_SRV, {
+    solar: 'painel', panel: 'painel', solar_panel: 'painel', painel_solar: 'painel',
+    wind: 'turbina', wind_turbine: 'turbina', turbine: 'turbina', eolica: 'turbina', turbina_eolica: 'turbina',
+    generator: 'gerador', gasoline_generator: 'gerador',
+    ceiling_cooler: 'cooler', roof_cooler: 'cooler', ceilingcooler: 'cooler', refrigerador: 'cooler'
+  });"""
 
 
 def main():
@@ -75,6 +47,10 @@ def main():
         print(f"Erro ao ler o arquivo: {e}")
         sys.exit(1)
 
+    if "EQUIPADOS_SRV" in html:
+        print("Erro: este arquivo já contém a correção.")
+        sys.exit(1)
+
     base, ext = os.path.splitext(src)
     bak = base + ".bak" + ext
     out = base + "_corrigido" + ext
@@ -85,28 +61,53 @@ def main():
         print(f"Erro ao criar backup: {e}")
         sys.exit(1)
 
-    # 1) fumaça fria nos difusores
-    m = re.search(r"[ \t]*// ---- animacao: o fluxo e o brilho dependem da refrigeracao instalada ----", html)
-    if not m:
-        print("Erro: trecho de animação do dutoClima não encontrado.")
-        sys.exit(1)
-    html = html[:m.start()] + FUMACA + html[m.start():].lstrip(" \t") if False else html[:m.start()] + FUMACA + html[m.start():]
+    def sub(pattern, repl, label, count=1, flags=0):
+        nonlocal html
+        html, n = re.subn(pattern, lambda m: m.expand(repl) if False else repl_fn(m, repl), html, count=0 if count == 0 else count, flags=flags)
+        if n < 1 or (count and n != count):
+            print(f"Erro: trecho não encontrado ({label}): {n} ocorrência(s), esperado {count}.")
+            sys.exit(1)
 
-    # 2) inventário com 80 slots (10x8)
-    html, n = re.subn(
-        r"const total = Math\.max\(16, Math\.ceil\(\(pilhas\.length \+ 1\) / 8\) \* 8\);",
-        "const total = Math.max(80, Math.ceil(pilhas.length / 10) * 10);",
-        html, count=1)
-    if n != 1:
-        print("Erro: trecho do inventário (total de slots) não encontrado.")
-        sys.exit(1)
+    def repl_fn(m, repl):
+        # suporta \1 manualmente, sem interpretar outros escapes
+        return re.sub(r"\\(\d)", lambda g: m.group(int(g.group(1))), repl)
 
-    # 3) CSS
-    idx = html.find("</style>")
-    if idx < 0:
-        print("Erro: </style> não encontrado.")
-        sys.exit(1)
-    html = html[:idx] + CSS + "  " + html[idx:]
+    # 1) helpers globais
+    sub(r"const PRECO_SERVIDOR = \{\};[^\n]*", HELPERS, "PRECO_SERVIDOR")
+
+    # 2) API (hooks opcionais no backend)
+    sub(r"inventario: '/user/inventory/',",
+        "inventario: '/user/inventory/',\n  equiparEnergia: null, desequiparEnergia: null,   // opcional: URLs para persistir equipar/desequipar",
+        "API.inventario")
+
+    # 3) tipos vindos do servidor (aliases + normalização)
+    sub(r"(const TIPO_SRV = \{[^\n]*\};)", "\\1" + ALIASES, "TIPO_SRV")
+    sub(r"String\(s\.type \|\| s\.tipo \|\| ''\)\.toLowerCase\(\)",
+        "String(s.type || s.tipo || '').toLowerCase().replace(/[\\s-]+/g, '_')", "normalização type")
+
+    # 4) sincronização: não recriar no inventário o que já está instalado
+    sub(r"const item = montarItemServidor\(s\);\s*if \(!item\) return;",
+        "const item = montarItemServidor(s);\n        if (!item) return;\n"
+        "        { const k = chaveSrv(item); if (k) { if (EQUIPADOS_SRV.has(k)) return; if ((NIVEL_SRV[k] || 0) > (item.nivel || 1)) item.nivel = NIVEL_SRV[k]; } }",
+        "sincronizarComServidor")
+
+    # 5) vaga do lote: passa o item do inventário para o construtor
+    sub(r"ordenarVagasLote\(l\); construir\(x, z, recriar, nivel\);",
+        "ordenarVagasLote(l); marcarEquipado(it); construir(x, z, recriar, Math.min(NIVEL_MAX, nivel), it);",
+        "vaga.construir")
+    sub(r"\(x, z, recriar, nivelIni\) =>", "(x, z, recriar, nivelIni, itSrv) =>", "construtores", count=3)
+
+    # 6) remoção (G): devolve o item do servidor com o mesmo id/nível
+    sub(r"inv\.adicionarItem\(\{ \.\.\.ITENS\.(painel|turbina|gerador), tipo: '(?:painel|turbina|gerador)', qtd: 1, nivel: obj\.nivel \}\);",
+        "devolverItem('\\1', obj.nivel, itSrv && itSrv.djangoId);", "remover energia", count=3)
+
+    # 7) cooler de teto
+    sub(r"criarCoolerTeto\(g, x, z, nivel\);",
+        "marcarEquipado(it); criarCoolerTeto(g, x, z, Math.min(COOLER.max, nivel), it);", "vaga cooler")
+    sub(r"function criarCoolerTeto\(g, x, z, nivelInicial = 1\) \{",
+        "function criarCoolerTeto(g, x, z, nivelInicial = 1, itSrv = null) {", "criarCoolerTeto")
+    sub(r"inventario\.adicionarItem\(\{ \.\.\.ITENS\.cooler, tipo: 'cooler', qtd: 1, nivel: obj\.nivel \}\);",
+        "devolverItem('cooler', obj.nivel, itSrv && itSrv.djangoId);", "remover cooler")
 
     try:
         with open(out, "w", encoding="utf-8", newline="") as f:

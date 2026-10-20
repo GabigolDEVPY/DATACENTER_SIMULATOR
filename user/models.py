@@ -24,6 +24,7 @@ class InventoryItem(models.Model):
     inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE)
     item = models.ForeignKey(Hardware, on_delete=models.CASCADE)
     is_equiped = models.BooleanField(default=False)
+    type = models.CharField(max_length=20, blank=False, default="inventory_item")
 
     def __str__(self):
         return f"{self.item.model} (Equipped: {self.is_equiped})"

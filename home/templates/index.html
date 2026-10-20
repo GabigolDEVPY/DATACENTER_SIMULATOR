@@ -2376,7 +2376,7 @@ function criarVagaCooler(g, x, z) {
     if (!it) { hud.toast('Sem Refrigerador no inventário — compre na Loja do terminal.'); return; }
     const nivel = it.nivel || 1;
     inventario.removerItem(i => i === it); g.group.remove(vaga); liberar(vaga);
-    criarCoolerTeto(g, x, z, nivel);
+    marcarEquipado(it); criarCoolerTeto(g, x, z, Math.min(COOLER.max, nivel), it);
     hud.toast('Refrigerador instalado — F evolui · G remove');
   };
 }
@@ -2492,7 +2492,7 @@ function dutoClima(g, xs, zs, xsRiser, xIni, xFim) {
   return grp;
 }
 
-function criarCoolerTeto(g, x, z, nivelInicial = 1) {
+function criarCoolerTeto(g, x, z, nivelInicial = 1, itSrv = null) {
   const raio = COOLER_RAIO;
   const idCol = novoId('cooler');
   const grp = new THREE.Group(); grp.position.set(x, 5.475, z); g.group.add(grp);
@@ -2533,7 +2533,7 @@ function criarCoolerTeto(g, x, z, nivelInicial = 1) {
     const ic = COOLERS.indexOf(obj); if (ic >= 0) COOLERS.splice(ic, 1);
     g.group.remove(grp); liberar(grp);
     criarVagaCooler(g, x, z);
-    inventario.adicionarItem({ ...ITENS.cooler, tipo: 'cooler', qtd: 1, nivel: obj.nivel });
+    devolverItem('cooler', obj.nivel, itSrv && itSrv.djangoId);
     hud.toast('Refrigerador removido — foi para o inventário');
   };
 
@@ -3140,6 +3140,7 @@ const API = {
   removerRack: '/server/api/rack/remove/', instalarRack: '/server/api/rack/install/',
   removerBaia: '/server/api/bay/remove/',  instalarBaia: '/server/api/bay/install/',
   inventario: '/user/inventory/',
+  equiparEnergia: null, desequiparEnergia: null,   // opcional: URLs para persistir equipar/desequipar
   expandirDatacenter: '/server/datacenter/upgrade/',
   detalheBaia: '/server/get-bay-detail/'   // + id  (ajuste o prefixo se necessário)
 };
@@ -5566,7 +5567,7 @@ function vaga(l, geo, x, y, z, tipo, cor, construir, rotX = 0) {
       const nivel = it.nivel || 1;
       inv.removerItem(i => i === it); l.group.remove(g);
       { const k = l.vagasAtivas.findIndex(e => e.g === g); if (k >= 0) l.vagasAtivas.splice(k, 1); }
-      ordenarVagasLote(l); construir(x, z, recriar, nivel);
+      ordenarVagasLote(l); marcarEquipado(it); construir(x, z, recriar, Math.min(NIVEL_MAX, nivel), it);
     };
     return g;
   }
@@ -5606,7 +5607,7 @@ function usarSolar(l) {
     l.paineisObjs = [];   // { mesh, nivel }
     l.kw = () => l.paineisObjs.reduce((s, p) => s + SOLAR_KW[p.nivel || 1], 0);
     for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++)
-      vaga(l, B(2.2, .08, 1.5), l.x - 2.8 + i * 2.8, .7, l.z - 3.4 + j * 3.4, 'painel', 0x67b0ff, (x, z, recriar, nivelIni) => {
+      vaga(l, B(2.2, .08, 1.5), l.x - 2.8 + i * 2.8, .7, l.z - 3.4 + j * 3.4, 'painel', 0x67b0ff, (x, z, recriar, nivelIni, itSrv) => {
         const g = new THREE.Group(); g.position.set(x, 0, z); l.group.add(g);
         const placa = mk(B(2.2, .08, 1.5), 0x1a2744, 0, .7, 0, g, { metalness: .5, roughness: .25, emissive: 0x0a1525, emissiveIntensity: .2 });
         placa.rotation.x = -.35;
@@ -5627,7 +5628,7 @@ function usarSolar(l) {
           const k = l.paineisObjs.indexOf(obj); if (k >= 0) l.paineisObjs.splice(k, 1);
           l.paineis = l.paineisObjs.length;
           recriar();
-          inv.adicionarItem({ ...ITENS.painel, tipo: 'painel', qtd: 1, nivel: obj.nivel });
+          devolverItem('painel', obj.nivel, itSrv && itSrv.djangoId);
           hud.toast(`Painel removido — foi para o inventário · ${l.kw().toFixed(1)} kW`);
         };
         aplicarVisualEvolucao(g, nivelIni, 'painel');
@@ -5646,7 +5647,7 @@ function usarEolica(l) {
     // Eólica: 6 kW (nv1) → 8.5 (nv2) → 12 (nv3) × fator de vento
     const EOLICA_KW = [0, 6, 8.5, 12, 16, 21, 28];
     l.kw = () => l.turbinasObjs.reduce((s, t) => s + EOLICA_KW[t.nivel || 1] * vento(), 0);
-    [-3.6, 0, 3.6].forEach(dz => vaga(l, new THREE.CylinderGeometry(.9, .9, .06, 20), l.x, .1, l.z + dz, 'turbina', 0x67e0ff, (x, z, recriar, nivelIni) => {
+    [-3.6, 0, 3.6].forEach(dz => vaga(l, new THREE.CylinderGeometry(.9, .9, .06, 20), l.x, .1, l.z + dz, 'turbina', 0x67e0ff, (x, z, recriar, nivelIni, itSrv) => {
       const idCol = novoId('turbina');
       const g = new THREE.Group(); g.position.set(x, 0, z); g.scale.setScalar(.01); l.group.add(g);
       const torre = mk(new THREE.CylinderGeometry(.16, .34, 11, 12), 0xf2f4f5, 0, 5.5, 0, g);
@@ -5694,7 +5695,7 @@ function usarEolica(l) {
         l.turbinas = l.turbinasObjs.map(o => o.mesh);
         l.group.remove(g); liberar(g);
         recriar();
-        inv.adicionarItem({ ...ITENS.turbina, tipo: 'turbina', qtd: 1, nivel: obj.nivel });
+        devolverItem('turbina', obj.nivel, itSrv && itSrv.djangoId);
         hud.toast(`Turbina removida — foi para o inventário · ${l.kw().toFixed(1)} kW`);
       };
 
@@ -5723,7 +5724,7 @@ function usarEolica(l) {
 
 function usarGerador(l) {
     l.uso = 'gerador';
-    vaga(l, B(3.2, .2, 1.8), l.x, .1, l.z, 'gerador', 0xffb060, (x, z, recriar, nivelIni) => {
+    vaga(l, B(3.2, .2, 1.8), l.x, .1, l.z, 'gerador', 0xffb060, (x, z, recriar, nivelIni, itSrv) => {
       const idCol = novoId('gerador');
       const g = new THREE.Group(); g.position.set(l.x, 0, l.z); l.group.add(g);
       const corpo = mk(B(3, 1.6, 1.6), 0xd98e04, 0, 1, 0, g);
@@ -5902,7 +5903,7 @@ function usarGerador(l) {
         const ia = ATUALIZAVEIS.indexOf(anim); if (ia >= 0) ATUALIZAVEIS.splice(ia, 1);
         l.group.remove(g); liberar(g);
         recriar();
-        inv.adicionarItem({ ...ITENS.gerador, tipo: 'gerador', qtd: 1, nivel: obj.nivel });
+        devolverItem('gerador', obj.nivel, itSrv && itSrv.djangoId);
         if (reembolso > 0) inv.ganhar(reembolso);
         hud.toast('Gerador removido — foi para o inventário' + (reembolso > 0 ? ` (+${reembolso} 💰 pela gasolina)` : ''));
       };
@@ -6347,9 +6348,15 @@ function criarInventario({ canvas, aoAbrir, aoFechar }) {
   const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const achaTipo = txt => Object.keys(ITENS).find(k => txt.includes(norm(ITENS[k].nome)) || txt.includes(k)) || null;
   const TIPO_SRV = { bay: 'baia', bays: 'baia', server: 'baia', ...Object.fromEntries(Object.keys(ITENS).map(k => [k, k])) };
+  Object.assign(TIPO_SRV, {
+    solar: 'painel', panel: 'painel', solar_panel: 'painel', painel_solar: 'painel',
+    wind: 'turbina', wind_turbine: 'turbina', turbine: 'turbina', eolica: 'turbina', turbina_eolica: 'turbina',
+    generator: 'gerador', gasoline_generator: 'gerador',
+    ceiling_cooler: 'cooler', roof_cooler: 'cooler', ceilingcooler: 'cooler', refrigerador: 'cooler'
+  });
 
   function montarItemServidor(s) {
-    const tipo = TIPO_SRV[String(s.type || s.tipo || '').toLowerCase()] || ((s.tipo && ITENS[s.tipo]) ? s.tipo : (achaTipo(norm(s.nome)) || achaTipo(norm(s.desc))));
+    const tipo = TIPO_SRV[String(s.type || s.tipo || '').toLowerCase().replace(/[\s-]+/g, '_')] || ((s.tipo && ITENS[s.tipo]) ? s.tipo : (achaTipo(norm(s.nome)) || achaTipo(norm(s.desc))));
     if (!tipo) { console.warn('Item do servidor sem tipo reconhecido:', s); return null; }
     const base = ITENS[tipo];
     const desc = s.desc || base.desc;
@@ -6421,6 +6428,7 @@ function criarInventario({ canvas, aoAbrir, aoFechar }) {
       r.data.inventory_summary.forEach(s => {
         const item = montarItemServidor(s);
         if (!item) return;
+        { const k = chaveSrv(item); if (k) { if (EQUIPADOS_SRV.has(k)) return; if ((NIVEL_SRV[k] || 0) > (item.nivel || 1)) item.nivel = NIVEL_SRV[k]; } }
         for (let n = 0, q = Math.max(1, Math.floor(item.qtd || 1)); n < q; n++) pilhas.push({ ...item, qtd: 1 });
       });
       if (selecionado && !pilhas.includes(selecionado)) selecionado = null;
@@ -6568,6 +6576,26 @@ function criarInteracao({ camera, scene, hud }) {
    venda / remoção de itens, sentar, utilitários
 ========================================================= */
 const PRECO_SERVIDOR = {};   // preços vindos do Django, chave 'tipo:id'
+const EQUIPADOS_SRV = new Set();   // itens do servidor (energia/cooler) instalados no mundo: não voltam ao inventário na sincronização
+const NIVEL_SRV = {};              // nível evoluído localmente de itens do servidor, chave 'tipo:id'
+const chaveSrv = it => (it && it.djangoId !== undefined && it.djangoId !== null) ? it.tipo + ':' + it.djangoId : null;
+function marcarEquipado(it) {
+  const k = chaveSrv(it); if (!k) return;
+  EQUIPADOS_SRV.add(k);
+  if (API.equiparEnergia) apiFetch(API.equiparEnergia, { data: { id: it.djangoId, type: it.tipo } });
+}
+function devolverItem(tipo, nivel, srvId) {
+  const extra = {};
+  if (srvId !== undefined && srvId !== null) {
+    const k = tipo + ':' + srvId;
+    EQUIPADOS_SRV.delete(k);
+    NIVEL_SRV[k] = nivel;
+    extra.djangoId = srvId; extra.servidor = true;
+    if (PRECO_SERVIDOR[k] !== undefined) extra.preco = PRECO_SERVIDOR[k];
+    if (API.desequiparEnergia) apiFetch(API.desequiparEnergia, { data: { id: srvId, type: tipo } });
+  }
+  inventario.adicionarItem({ ...ITENS[tipo], tipo, qtd: 1, nivel, ...extra });
+}
 const FATOR_VENDA = 1;            // 1 = vende pelo preço de compra · 0.5 = metade do preço
 const DINHEIRO_INICIAL = 12;
 let SEQ_ID = 0, RACK_SEQ = 0;

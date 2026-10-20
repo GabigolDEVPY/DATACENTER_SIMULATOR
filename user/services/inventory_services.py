@@ -1,6 +1,6 @@
 from model.models import AIInstance
 from user.models import Inventory, InventoryItem
-from server.models import Rack, Bay
+from server.models import Rack, Bay,  UserCeilingCooler, UserEnergyEquipment
 
 class InventoryService:
     def __init__(self, user_id):
@@ -93,4 +93,27 @@ class InventoryService:
                     "price": hardware.price,
                 })
                 
+        for cooler in UserCeilingCooler.objects.filter(user_id=self.user_id).select_related("cooler"):
+            inventory.append({
+                "id": cooler.id,
+                "nome": f"Cooler",
+                "icone": "<svg>...</svg>",
+                "desc": "Cooler de teto",
+                "qtd": 1,
+                "nivel": cooler.level,
+                "type": "cooler",
+                "price": cooler.cooler.price,
+            })
+        for equipment in UserEnergyEquipment.objects.filter(user_id=self.user_id).select_related("equipment"):
+            inventory.append({
+                "id": equipment.id,
+                "nome": f"{equipment.name}",
+                "icone": "<svg>...</svg>",
+                "desc": "Equipamento de energia",
+                "qtd": 1,
+                "nivel": equipment.level,
+                "type": equipment.type,
+                "price": equipment.equipment.price,
+            })
+        
         return inventory
