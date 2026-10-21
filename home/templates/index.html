@@ -617,6 +617,10 @@
         <span class="hud-label">Temp. baia</span>
         <span class="hud-valor" id="hud-temp">—</span>
       </div>
+      <div class="hud-linha">
+        <span class="hud-label">Água COPASA</span>
+        <span class="hud-valor" id="hud-agua">0.0 L/min</span>
+      </div>
       <div class="hud-barra"><i id="hud-barra-cooling"></i></div>
     </div>
     <div class="hud-bloco">
@@ -953,7 +957,10 @@ function zonaProibida(x, z, m = 0) {
       || R(2, -36, 80, -3)           // data center + 4 expansões + lotes de expansão
       || R(-26, 6, 32, 60)           // distrito de energia (20 lotes reservados)
       || R(-4, -2, 10, 10)          // ponto de entrada do jogador
-      || R(-120, -20, -90, 12);        // sede CEMIG
+      || R(-120, -20, -90, 12)
+      || R(-114, -52, -84, -26)
+      || R(-100, -38, 10, -34)
+      || R(0, -38, 9, -12);        // sede CEMIG
 }
 
 /* =========================================================
@@ -2078,28 +2085,27 @@ function criarGalpao(scene, px = 18, pz = -18) {
   addColisor(px - 10.1, pz - 10.75, px - 8.5, pz - 10.25); // armário
 
   // ====== SALA DE RACKS (fechada, com porta; cresce junto com o galpão) ======
-  const SALA = { x0: -2.0, zFundo: -3.6, zFrente: 8.0, portaX0: -1.8, portaX1: -0.1, esp: .25 };
+  const SALA = { x0: -2.0, zFundo: -10.7, zFrente: 7.4, portaZ0: -1.95, portaZ1: -.35, esp: .25 };
   g.sala = SALA;
   // constrói as paredes de fundo e frente da sala entre x=xa e x=xb (n = nº da expansão; 0 = trecho original)
   g.salaTrecho = function (xa, xb, n) {
     const e = SALA.esp;
     caixa(xb - xa, 5.2, e, matParede, (xa + xb) / 2, 2.6, SALA.zFundo);
     addColisor(px + xa, pz + SALA.zFundo - .2, px + xb, pz + SALA.zFundo + .2, `sala-fundo-${n}`);
-    if (n === 0) {
-      const xl = SALA.portaX0, xr = SALA.portaX1;
-      caixa(xl - xa, 5.2, e, matParede, (xa + xl) / 2, 2.6, SALA.zFrente);
-      caixa(xb - xr, 5.2, e, matParede, (xr + xb) / 2, 2.6, SALA.zFrente);
-      caixa(xr - xl, 1.6, e, matParede, (xl + xr) / 2, 4.4, SALA.zFrente);          // verga da porta
-      addColisor(px + xa, pz + SALA.zFrente - .2, px + xl, pz + SALA.zFrente + .2, 'sala-frente-e');
-      addColisor(px + xr, pz + SALA.zFrente - .2, px + xb, pz + SALA.zFrente + .2, 'sala-frente-d');
-    } else {
+    {
       caixa(xb - xa, 5.2, e, matParede, (xa + xb) / 2, 2.6, SALA.zFrente);
       addColisor(px + xa, pz + SALA.zFrente - .2, px + xb, pz + SALA.zFrente + .2, `sala-frente-${n}`);
     }
   };
   // parede oeste da sala (lado do corredor/escritório)
-  caixa(SALA.esp, 5.2, SALA.zFrente - SALA.zFundo + SALA.esp, matParede, SALA.x0, 2.6, (SALA.zFundo + SALA.zFrente) / 2);
-  addColisor(px + SALA.x0 - .2, pz + SALA.zFundo - .2, px + SALA.x0 + .2, pz + SALA.zFrente + .2, 'sala-oeste');
+  {
+    const zA = SALA.zFundo - SALA.esp / 2, zB = SALA.zFrente + SALA.esp / 2, z0 = SALA.portaZ0, z1 = SALA.portaZ1;
+    caixa(SALA.esp, 5.2, z0 - zA, matParede, SALA.x0, 2.6, (zA + z0) / 2);
+    caixa(SALA.esp, 5.2, zB - z1, matParede, SALA.x0, 2.6, (z1 + zB) / 2);
+    caixa(SALA.esp, 1.6, z1 - z0, matParede, SALA.x0, 4.4, (z0 + z1) / 2);
+    addColisor(px + SALA.x0 - .2, pz + zA, px + SALA.x0 + .2, pz + z0, 'sala-oeste-a');
+    addColisor(px + SALA.x0 - .2, pz + z1, px + SALA.x0 + .2, pz + zB, 'sala-oeste-b');
+  }
 
   // Piso técnico elevado (falso piso) com textura mais escura
   const matPisoDC = new THREE.MeshStandardMaterial({ color: 0x1b1f25, roughness: .55, metalness: .25 });
@@ -2110,7 +2116,7 @@ function criarGalpao(scene, px = 18, pz = -18) {
   };
   g.pisoTrecho(-g.W / 2 + .15, g.W / 2 - .15);
   // Painéis de LED no teto da sala (iluminação técnica)
-  for (let zi = -2; zi <= 6; zi += 2.5) {
+  for (let zi = -9.5; zi <= 8.1; zi += 2.5) {
     for (let xi = 0; xi <= 8; xi += 2.6) {
       const led = new THREE.Mesh(new THREE.BoxGeometry(1.8, .06, .35), matLuz);
       led.position.set(xi, 5.05, zi); g.group.add(led);
@@ -2134,25 +2140,27 @@ function criarGalpao(scene, px = 18, pz = -18) {
     c2.fillText('SALA DE RACKS', 128, 32);
     const tex = new THREE.CanvasTexture(cv);
     const pl = new THREE.Mesh(new THREE.PlaneGeometry(1.4, .35), new THREE.MeshBasicMaterial({ map: tex }));
-    pl.position.set((SALA.portaX0 + SALA.portaX1) / 2, 4.55, SALA.zFrente + .18);
+    pl.position.set(SALA.x0 - .19, 4.55, (SALA.portaZ0 + SALA.portaZ1) / 2); pl.rotation.y = -Math.PI / 2;
     pl.raycast = () => {}; g.group.add(pl);
   })();
 
   g.salaTrecho(SALA.x0 - SALA.esp / 2, g.xDir, 0);
-  // batentes + letreiro
-  caixa(.12, 3.5, .32, matMetal, SALA.portaX0, 2.05, SALA.zFrente);
-  caixa(.12, 3.5, .32, matMetal, SALA.portaX1, 2.05, SALA.zFrente);
-  caixa(1.5, .34, .05, matLetreiro, (SALA.portaX0 + SALA.portaX1) / 2, 4.3, SALA.zFrente + .16);
+  // batentes + letreiro (porta na parede oeste da sala)
+  const zPc = (SALA.portaZ0 + SALA.portaZ1) / 2;
+  caixa(.32, 3.5, .12, matMetal, SALA.x0, 2.05, SALA.portaZ0);
+  caixa(.32, 3.5, .12, matMetal, SALA.x0, 2.05, SALA.portaZ1);
+  caixa(.05, .34, 1.5, matLetreiro, SALA.x0 - .16, 4.3, zPc);
   // porta da sala (F para abrir/fechar)
   const portaSala = new THREE.Group();
-  portaSala.position.set(SALA.portaX0 + .05, 0, SALA.zFrente);
+  portaSala.position.set(SALA.x0, 0, SALA.portaZ0 + .05);
+  portaSala.rotation.y = -Math.PI / 2;
   g.group.add(portaSala);
-  const larguraPorta = SALA.portaX1 - SALA.portaX0 - .1;
+  const larguraPorta = SALA.portaZ1 - SALA.portaZ0 - .1;
   const folhaSala = caixa(larguraPorta, 3.3, .08, matMetalClaro, larguraPorta / 2, 1.95, 0, portaSala);
   const macSala = new THREE.Mesh(new THREE.SphereGeometry(.05, 8, 8), new THREE.MeshStandardMaterial({ color: 0xd9b23c, metalness: .8, roughness: .3 }));
   macSala.position.set(larguraPorta - .12, 1.9, .08); portaSala.add(macSala);
   let salaAberta = false, salaAng = 0;
-  const colPortaSala = () => addColisor(px + SALA.portaX0, pz + SALA.zFrente - .2, px + SALA.portaX1, pz + SALA.zFrente + .2, 'porta-sala');
+  const colPortaSala = () => addColisor(px + SALA.x0 - .2, pz + SALA.portaZ0, px + SALA.x0 + .2, pz + SALA.portaZ1, 'porta-sala');
   colPortaSala();
   folhaSala.userData.rotulo = () => salaAberta ? 'Fechar Porta da Sala de Racks' : 'Abrir Porta da Sala de Racks';
   folhaSala.userData.interagir = () => {
@@ -2162,7 +2170,7 @@ function criarGalpao(scene, px = 18, pz = -18) {
   };
   ATUALIZAVEIS.push(dt => {
     salaAng += ((salaAberta ? -1.65 : 0) - salaAng) * Math.min(1, dt * 5);
-    portaSala.rotation.y = salaAng;
+    portaSala.rotation.y = -Math.PI / 2 + salaAng;
   });
 
   // ====== ESCADA → TERRAÇO TÉCNICO (andar superior) ======
@@ -2202,12 +2210,12 @@ function criarGalpao(scene, px = 18, pz = -18) {
   criarGuardaCorpo(g, -rx, rz, rx, rz, ESC.topo, 'rail-frente-0');
   criarGuardaCorpo(g, -rx, -rz, -rx, rz, ESC.topo, 'rail-oeste');
   g.guardaLeste = criarGuardaCorpo(g, rx, -rz, rx, rz, ESC.topo, 'rail-leste');
-  vagasCooler(g, [[1, 0], [4.5, 0], [8, 0], [1, 4], [4.5, 4], [8, 4]]);
+  vagasCooler(g, [[1, -7.75], [4.5, -7.75], [8, -7.75], [1, -1.15], [4.5, -1.15], [8, -1.15], [1, 5.45], [4.5, 5.45], [8, 5.45]]);
   const luzTec = new THREE.PointLight(0xaaccff, 0.45, 16);
   luzTec.position.set(0, 6.8, 2); g.group.add(luzTec);
 
-  vagasRack(g, [0, 2.6, 5.2, 7.8], [-1.5, 1.0, 3.5, 6.0], () => true);
-  dutoClima(g, [0, 2.6, 5.2, 7.8], [-1.5, 1.0, 3.5, 6.0], [1, 4.5, 8], -1.5, 9.8);
+  vagasRack(g, [0, 2.6, 5.2, 7.8], [-9.4, -6.1, -2.8, .5, 3.8], () => true);
+  dutoClima(g, [0, 2.6, 5.2, 7.8], [-9.4, -6.1, -2.8, .5, 3.8], [1, 4.5, 8], -1.5, 9.8);
 
   // faixa azul nas paredes (a frente respeita a abertura do portão; a parede leste anda com a expansão)
   const matAcento = new THREE.MeshStandardMaterial({ color: 0x1f6fb5, emissive: 0x0a3a66, emissiveIntensity: .5, roughness: .5, metalness: .3 });
@@ -2228,7 +2236,7 @@ function criarGalpao(scene, px = 18, pz = -18) {
   // faixas amarelas de segurança nos corredores da sala de racks
   const matFaixaChao = new THREE.MeshStandardMaterial({ color: 0xd9b23c, emissive: 0xd9b23c, emissiveIntensity: .18, roughness: .7 });
   g.faixasTrecho = function (xa, xb) {
-    [-.25, 2.25, 4.75, 7.2].forEach(z => {
+    [-7.75, -4.45, -1.15, 2.15, 5.6].forEach(z => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(xb - xa, .012, .08), matFaixaChao);
       m.position.set((xa + xb) / 2, .312, z); m.raycast = () => {}; g.group.add(m);
     });
@@ -2386,110 +2394,243 @@ function criarVagaCooler(g, x, z) {
    tronco (2 linhas em X) -> ramais em Z (um por coluna de racks) -> difusores sobre cada rack
    risers sobem do tronco ate cada vaga de refrigerador no terraco
 ========================================================= */
-function dutoClima(g, xs, zs, xsRiser, xIni, xFim) {
-  const PI = Math.PI, Y_TR = 4.75, Y_BR = 4.2, R_TR = .17, R_BR = .11, Z_TR = [0, 4];
-  const grp = new THREE.Group(); g.group.add(grp);
-  const matDuto = new THREE.MeshStandardMaterial({ color: 0xcfd6de, metalness: .7, roughness: .32, side: THREE.DoubleSide });
-  const matEsc = new THREE.MeshStandardMaterial({ color: 0x3a424c, metalness: .7, roughness: .4 });
-  const matGrade = new THREE.MeshStandardMaterial({ color: 0x14181d, metalness: .6, roughness: .5 });
-  const matAzul = new THREE.MeshStandardMaterial({ color: 0x0a1a24, emissive: 0x67e0ff, emissiveIntensity: .15 });
-  const aditivo = cor => new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
-  const matSopro = aditivo(0x67e0ff);
+/* ===== REFRIGERAÇÃO v2: AR (teto + paredes) e ÁGUA (canos por fileira + COPASA) ===== */
+const AGUA = { feed: { x: -10.8, z: 0 }, circuitos: 0 };
+AGUA.vel = () => { let b = 0; try { b = totalBaias(); } catch (e) {} return .5 + 2 * Math.min(1, b / 12); };
+function consumoAgua() { let b = 0; try { b = totalBaias(); } catch (e) {} return Math.round(b * 9) / 10; }
 
-  // eixo: 'x' | 'z' (cilindro deitado) | null (vertical)
-  const mk = (geo, mat, x, y, z, eixo, sombra) => {
-    const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z);
-    if (eixo === 'x') m.rotation.z = PI / 2; else if (eixo === 'z') m.rotation.x = PI / 2;
-    m.castShadow = !!sombra; m.raycast = () => {}; grp.add(m); return m;
+const AG = (() => {
+  const mats = {
+    cano: new THREE.MeshStandardMaterial({ color: 0x2b88e6, metalness: .55, roughness: .3, emissive: 0x0a3d80, emissiveIntensity: .3 }),
+    junta: new THREE.MeshStandardMaterial({ color: 0xc9d3de, metalness: .85, roughness: .3 }),
+    bolha: new THREE.MeshBasicMaterial({ color: 0x9be8ff, transparent: true, opacity: .9, blending: THREE.AdditiveBlending, depthWrite: false })
   };
-  const tubo = (r, len, mat, x, y, z, eixo) => mk(new THREE.CylinderGeometry(r, r, len, 20), mat, x, y, z, eixo, true);
-  // anel (torus) em volta de um tubo: 'x' | 'z' | 'y'
-  const banda = (r, x, y, z, eixo, mat) => {
-    const m = mk(new THREE.TorusGeometry(r, .022, 8, 28), mat, x, y, z);
-    if (eixo === 'x') m.rotation.y = PI / 2; else if (eixo === 'y') m.rotation.x = PI / 2;
-    return m;
-  };
-
-  const zA = zs[0] - .7, zB = zs[zs.length - 1] + .7, cz = (zA + zB) / 2;
-
-  // ---- troncos (em X) ----
-  Z_TR.forEach(zt => {
-    tubo(R_TR, xFim - xIni, matDuto, (xIni + xFim) / 2, Y_TR, zt, 'x');
-    [xIni, xFim].forEach(x => tubo(R_TR * 1.12, .1, matEsc, x, Y_TR, zt, 'x'));
-    for (let x = xIni + 1.1; x < xFim - .4; x += 2.2) {
-      banda(R_TR * 1.03, x, Y_TR, zt, 'x', matAzul);
-      if (x + 1.1 < xFim - .3) tubo(R_TR * 1.09, .08, matEsc, x + 1.1, Y_TR, zt, 'x');
-    }
-  });
-
-  // ---- ramais (em Z), um por coluna de racks ----
-  xs.forEach(x => {
-    tubo(R_BR, zB - zA, matDuto, x, Y_BR, cz, 'z');
-    [zA, zB].forEach(z => tubo(R_BR * 1.12, .1, matEsc, x, Y_BR, z, 'z'));
-    Z_TR.forEach(zt => {                                // conexao vertical ramal <-> tronco
-      tubo(R_BR * .8, Y_TR - Y_BR, matEsc, x, (Y_TR + Y_BR) / 2, zt, null);
-      mk(new THREE.SphereGeometry(R_BR * 1.2, 14, 10), matEsc, x, Y_BR, zt, null, true);
-    });
-
-    // ---- difusores de ar sobre cada rack ----
-    zs.forEach(z => {
-      tubo(.05, .22, matEsc, x, 3.98, z, null);                                              // pescoco
-      mk(new THREE.CylinderGeometry(.05, .19, .2, 24, 1, true), matDuto, x, 3.77, z, null, true);          // cone
-      banda(.19, x, 3.67, z, 'y', matAzul);                                                               // aro neon
-      banda(.11, x, 3.69, z, 'y', matGrade); banda(.055, x, 3.69, z, 'y', matGrade);                         // aletas circulares
-      mk(new THREE.BoxGeometry(.36, .02, .03), matGrade, x, 3.69, z);
-      mk(new THREE.BoxGeometry(.03, .02, .36), matGrade, x, 3.69, z);
-      mk(new THREE.CircleGeometry(.18, 24), matSopro, x, 3.66, z, 'z');                                   // brilho do ar saindo
-    });
-  });
-
-  // ---- risers: do tronco ate cada refrigerador do teto ----
-  xsRiser.forEach(xr => Z_TR.forEach(zt => {
-    mk(new THREE.SphereGeometry(R_TR * 1.15, 16, 12), matEsc, xr, Y_TR, zt, null, true);
-    tubo(R_TR * .85, .77, matDuto, xr, 5.135, zt, null);                // atravessa a laje ate a base do refrigerador
-    tubo(R_TR * 1.15, .1, matEsc, xr, 5.18, zt, null);                  // colar na laje
-    banda(R_TR * 1.15, xr, 5.1, zt, 'y', matAzul);
-    banda(R_TR * .9, xr, 4.95, zt, 'y', matAzul);
-  }));
-
-  // ---- fumacinha fria saindo dos difusores (só com refrigeração instalada) ----
-  {
-    const cvF = document.createElement('canvas'); cvF.width = cvF.height = 64;
-    const cxF = cvF.getContext('2d'), grF = cxF.createRadialGradient(32, 32, 0, 32, 32, 32);
-    grF.addColorStop(0, 'rgba(255,255,255,.9)'); grF.addColorStop(.5, 'rgba(255,255,255,.35)'); grF.addColorStop(1, 'rgba(255,255,255,0)');
-    cxF.fillStyle = grF; cxF.fillRect(0, 0, 64, 64);
-    const texF = new THREE.CanvasTexture(cvF);
-    const fumos = [];
-    xs.forEach(x => zs.forEach(z => {
-      for (let i = 0; i < 3; i++) {
-        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: texF, color: 0xbdefff, transparent: true, opacity: 0, depthWrite: false, fog: false }));
-        sp.raycast = () => {}; sp.visible = false; grp.add(sp);
-        fumos.push({ sp, x, z, t: i / 3 + Math.random() * .1, vel: .22 + Math.random() * .08, dx: (Math.random() - .5) * .5, dz: (Math.random() - .5) * .5 });
+  const geoJ = new THREE.SphereGeometry(1, 12, 10), geoB = new THREE.SphereGeometry(1, 8, 6), Y = new THREE.Vector3(0, 1, 0);
+  function cano(parent, pts, r, mat) {
+    const grp = new THREE.Group(); parent.add(grp);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i], b = pts[i + 1], d = new THREE.Vector3().subVectors(b, a), len = d.length();
+      if (len < .01) continue;
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 12), mat || mats.cano);
+      m.position.copy(a).add(b).multiplyScalar(.5);
+      m.quaternion.setFromUnitVectors(Y, d.clone().normalize());
+      m.raycast = () => {}; grp.add(m);
+      const n = Math.floor(len / 2.2);
+      for (let k = 1; k <= n; k++) {
+        const f = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.25, r * 1.25, .09, 12), mats.junta);
+        f.position.copy(a).addScaledVector(d, k / (n + 1)); f.quaternion.copy(m.quaternion); f.raycast = () => {}; grp.add(f);
       }
-    }));
+    }
+    pts.forEach(p => { const j = new THREE.Mesh(geoJ, mats.junta); j.scale.setScalar(r * 1.3); j.position.copy(p); j.raycast = () => {}; grp.add(j); });
+    return grp;
+  }
+  function fluxo(parent, pts, n, fechado) {
+    const P = fechado ? pts.concat([pts[0]]) : pts, seg = [], L0 = [0]; let L = 0;
+    for (let i = 0; i < P.length - 1; i++) { const d = P[i + 1].clone().sub(P[i]); seg.push(d); L += d.length(); L0.push(L); }
+    if (L < .1) return;
+    const im = new THREE.InstancedMesh(geoB, mats.bolha, n); im.frustumCulled = false; im.raycast = () => {}; parent.add(im);
+    const o = new THREE.Object3D(); let t = 0;
     ATUALIZAVEIS.push(dt => {
-      const k = Math.min(1, coolingTotal() / 8);
-      fumos.forEach(f => {
-        if (k <= 0) { f.sp.visible = false; return; }
-        f.t = (f.t + dt * f.vel) % 1;
-        const u = f.t;
-        f.sp.visible = true;
-        f.sp.position.set(f.x + f.dx * u, 3.6 - u * 1.1, f.z + f.dz * u);
-        f.sp.scale.setScalar(.35 + u * .9);
-        f.sp.material.opacity = .5 * k * Math.sin(Math.PI * u);
-      });
+      t += dt * AGUA.vel();
+      for (let i = 0; i < n; i++) {
+        const s = (((t + i * L / n) % L) + L) % L; let k = 1;
+        while (k < L0.length - 1 && L0[k] <= s) k++;
+        const f = (s - L0[k - 1]) / Math.max(1e-6, L0[k] - L0[k - 1]);
+        o.position.copy(P[k - 1]).addScaledVector(seg[k - 1], f); o.scale.setScalar(.15); o.updateMatrix(); im.setMatrixAt(i, o.matrix);
+      }
+      im.instanceMatrix.needsUpdate = true;
     });
   }
+  return { mats, cano, fluxo: function () {} };
+})();
 
-    // ---- animacao: o fluxo e o brilho dependem da refrigeracao instalada ----
-  const T = { t: 0 };
-  ATUALIZAVEIS.push(dt => {
-    T.t += dt;
-    const k = Math.min(1, coolingTotal() / 12), pulso = .85 + .15 * Math.sin(T.t * 3);
-    matSopro.opacity = .05 + .3 * k * pulso;
-    matAzul.emissiveIntensity = .15 + 1.1 * k * pulso;
+const ARM = {
+  corpo: new THREE.MeshStandardMaterial({ color: 0xe4e8ec, roughness: .5, metalness: .25 }),
+  escuro: new THREE.MeshStandardMaterial({ color: 0x14181d, roughness: .6, metalness: .5 }),
+  led: new THREE.MeshStandardMaterial({ color: 0x0a1a24, emissive: 0x3adfff, emissiveIntensity: 1 }),
+  ar: new THREE.MeshBasicMaterial({ color: 0x9be8ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+  geoCorpo: new THREE.BoxGeometry(.72, .2, .72), geoPlaca: new THREE.BoxGeometry(.6, .02, .6),
+  geoHaste: new THREE.CylinderGeometry(.025, .025, .35, 6),
+  geoLedX: new THREE.BoxGeometry(.5, .012, .02), geoLedZ: new THREE.BoxGeometry(.02, .012, .5),
+  geoAr: new THREE.CylinderGeometry(.3, .9, 1.2, 18, 1, true),
+  geoSplit: new THREE.BoxGeometry(1.1, .3, .24), geoFenda: new THREE.BoxGeometry(.95, .05, .02), geoLedS: new THREE.BoxGeometry(.05, .04, .01),
+  anim: false, t: 0
+};
+
+/** Ar-condicionado de teto (cassete) nos corredores sem rack, 1 a cada 2 m */
+function arCondicionadoTeto(g, zs, xIni, xFim) {
+  const zc = [zs[0] - 1.25];
+  for (let i = 0; i < zs.length - 1; i++) zc.push((zs[i] + zs[i + 1]) / 2);
+  zc.push(zs[zs.length - 1] + 1.25); zc.unshift(zs[0] - 4.0, zs[0] - 6.75);
+  for (let k = 0; ; k++) {
+    const x = -.5 + 2 * k;
+    if (x > xFim) break;
+    if (x < xIni) continue;
+    zc.forEach(z => {
+      const u = new THREE.Group(); u.position.set(x, 4.78, z); g.group.add(u);
+      const add = (geo, mat, px, py, pz) => { const m = new THREE.Mesh(geo, mat); m.position.set(px, py, pz); m.raycast = () => {}; u.add(m); return m; };
+      add(ARM.geoCorpo, ARM.corpo, 0, 0, 0);
+      add(ARM.geoPlaca, ARM.escuro, 0, -.105, 0);
+      [[.3, .3], [-.3, .3], [.3, -.3], [-.3, -.3]].forEach(([a, b]) => add(ARM.geoHaste, ARM.escuro, a, .275, b));
+      add(ARM.geoLedX, ARM.led, 0, -.118, .26); add(ARM.geoLedX, ARM.led, 0, -.118, -.26);
+      add(ARM.geoLedZ, ARM.led, .26, -.118, 0); add(ARM.geoLedZ, ARM.led, -.26, -.118, 0);
+      add(ARM.geoAr, ARM.ar, 0, -.7, 0);
+    });
+  }
+  if (!ARM.anim) {
+    ARM.anim = true;
+    ATUALIZAVEIS.push(dt => {
+      ARM.t += dt;
+      const k = Math.min(1, coolingTotal() / 10), p = .8 + .2 * Math.sin(ARM.t * 2);
+      ARM.ar.opacity = .02 + .09 * k * p;
+      ARM.led.emissiveIntensity = .4 + .9 * k * p;
+    });
+  }
+}
+
+/** Splits nas paredes de fundo e frente da sala de racks */
+function splitsParede(g, xIni, xFim) {
+  const S = g.sala;
+  const lados = [[S.zFundo + S.esp / 2 + .13, 0, 1], [S.zFrente - S.esp / 2 - .13, Math.PI, -1]];
+  const fontes = [];
+  for (let k = 0; ; k++) {
+    const x = 1.5 + 4 * k;
+    if (x > xFim - .3) break;
+    if (x < xIni + .3) continue;
+    lados.forEach(([z, ry, dir]) => {
+      const u = new THREE.Group(); u.position.set(x, 4.1, z); u.rotation.y = ry; g.group.add(u);
+      const add = (geo, mat, px, py, pz) => { const m = new THREE.Mesh(geo, mat); m.position.set(px, py, pz); m.raycast = () => {}; u.add(m); };
+      add(ARM.geoSplit, ARM.corpo, 0, 0, 0);
+      add(ARM.geoFenda, ARM.escuro, 0, -.07, .125);
+      add(ARM.geoLedS, ARM.led, .45, .06, .125);
+      fontes.push({ x, z, dir });
+    });
+  }
+  if (!fontes.length) return;
+
+  // ar frio: nuvem macia (partículas com alpha individual), sai da fenda, abre em leque e cai devagar
+  const NP = 18, N = fontes.length * NP;
+  const pos = new Float32Array(N * 3), alp = new Float32Array(N), siz = new Float32Array(N);
+  const rA = new Float32Array(N), rB = new Float32Array(N), rC = new Float32Array(N);
+  for (let i = 0; i < N; i++) { rA[i] = Math.random(); rB[i] = Math.random(); rC[i] = Math.random(); }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('aAlpha', new THREE.BufferAttribute(alp, 1));
+  geo.setAttribute('aSize', new THREE.BufferAttribute(siz, 1));
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uScale: { value: 600 } },
+    transparent: true, depthWrite: false,
+    vertexShader: `
+      attribute float aAlpha; attribute float aSize; uniform float uScale; varying float vA;
+      void main() {
+        vA = aAlpha;
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = min(aSize * uScale / max(-mv.z, 0.1), 220.0);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `
+      varying float vA;
+      void main() {
+        vec2 c = gl_PointCoord - 0.5;
+        float d = length(c) * 2.0;
+        float a = exp(-d * d * 3.2) * smoothstep(1.0, 0.82, d) * vA;
+        gl_FragColor = vec4(0.90, 0.96, 1.0, a);
+      }`
   });
-  return grp;
+  const pts = new THREE.Points(geo, mat);
+  pts.frustumCulled = false; pts.raycast = () => {}; g.group.add(pts);
+  let t = 0;
+  ATUALIZAVEIS.push(dt => {
+    t += dt;
+    let kf = .35;
+    try { kf = coolingTotal() > 0 ? 1 : .35; } catch (e) {}
+    try { mat.uniforms.uScale.value = window.innerHeight * Math.min(window.devicePixelRatio || 1, 1.5) * .652; } catch (e) {}
+    let n = 0;
+    fontes.forEach((f, fi) => {
+      for (let p = 0; p < NP; p++, n++) {
+        const s = (t * .16 + p / NP + rA[n] * .08 + fi * .137) % 1;
+        const e = 1 - Math.pow(1 - s, 1.7);
+        const leque = (rB[n] - .5) * 2 * (.15 + s * 1.7);
+        const sway = Math.sin(t * .9 + rC[n] * 6.28 + s * 3) * .22 * s;
+        pos[n * 3]     = f.x + leque + sway;
+        pos[n * 3 + 1] = 3.98 - e * .55 - s * s * 1.15 + (rC[n] - .5) * .25 * s;
+        pos[n * 3 + 2] = f.z + f.dir * (.18 + e * 3.6);
+        siz[n] = .28 + s * 1.5 + rA[n] * .25;
+        alp[n] = Math.min(1, s / .1) * Math.pow(1 - s, 1.4) * .30 * kf;
+      }
+    });
+    geo.attributes.position.needsUpdate = true;
+    geo.attributes.aAlpha.needsUpdate = true;
+    geo.attributes.aSize.needsUpdate = true;
+  });
+}
+
+/** Refrigeração líquida: 1 cano de água por fileira de rack, subindo ao terraço ao lado dos refrigeradores de teto */
+function aguaRefrigeracao(g, xs, zs, xsCooler, xIni, xFim) {
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const xa = xIni + .2, xb = xFim - .2, yI = 4.15, yT = 5.6, R = .1, CZS = [-7.75, -1.15, 5.45];
+  const grp = new THREE.Group(); g.group.add(grp);
+  const prev = g._aguaFim || null;
+  const tzs = zs.map(zr => {
+    const cz = CZS.reduce((m, c) => Math.abs(c - zr) < Math.abs(m - zr) ? c : m, CZS[0]);
+    return cz + (zr >= cz ? 1.65 : -1.65);
+  });
+  const col = () => {};
+
+  zs.forEach((zr, i) => {
+    const zi = zr - .45, tz = tzs[i];
+    const laco = [V(xa, yI, zi), V(xb, yI, zi), V(xb, yT, zi), V(xb, yT, tz), V(xa, yT, tz), V(xa, yT, zi)];
+    AG.cano(grp, laco.concat([laco[0]]), R);
+    let L = 0; for (let k = 0; k < laco.length; k++) L += laco[k].distanceTo(laco[(k + 1) % laco.length]);
+    AG.fluxo(grp, laco, Math.max(8, Math.round(L / 1.5)), true);
+    col(xa, tz, xb, tz); col(xb, zi, xb, tz); col(xa, zi, xa, tz);
+    if (prev && xa > prev.xb) AG.cano(grp, [V(prev.xb, yT, tz), V(xa, yT, tz)], R);
+    AGUA.circuitos++;
+  });
+
+  // aletas de troca de calor: o refrigerador de teto resfria o cano de água
+  const nf = tzs.length * xsCooler.length * 7;
+  const fins = new THREE.InstancedMesh(new THREE.BoxGeometry(.03, .56, .34), AG.mats.junta, nf);
+  const o = new THREE.Object3D(); let q = 0;
+  tzs.forEach(tz => xsCooler.forEach(cx => {
+    for (let k = -3; k <= 3; k++) { o.position.set(cx + k * .16, 5.78, tz); o.updateMatrix(); fins.setMatrixAt(q++, o.matrix); }
+  }));
+  fins.frustumCulled = false; fins.raycast = () => {}; grp.add(fins);
+
+  // coletor + alimentação vinda da COPASA (somente no primeiro trecho)
+  if (!prev) {
+    const hx = xa - .9, fx = AGUA.feed.x, fz = AGUA.feed.z;
+    const zmin = Math.min(fz, ...tzs), zmax = Math.max(fz, ...tzs);
+    AG.cano(grp, [V(hx, yT, zmin), V(hx, yT, zmax)], R);
+    tzs.forEach(tz => AG.cano(grp, [V(hx, yT, tz), V(xa, yT, tz)], R));
+    const feed = [V(fx, .15, fz), V(fx, yT, fz), V(hx, yT, fz)];
+    AG.cano(grp, feed, R * 1.2);
+    AG.fluxo(grp, feed, 10, false);
+    col(hx, zmin, hx, zmax); col(fx, fz, hx, fz);
+    addColisor(g.px + fx - .2, g.pz + fz - .2, g.px + fx + .2, g.pz + fz + .2, novoId('agua'), -1, 5.0);
+  }
+
+  // conectores de água descendo para cada rack instalado (atrás do rack)
+  const geoDrop = new THREE.CylinderGeometry(.06, .06, yI - 3.62, 10), geoCup = new THREE.CylinderGeometry(.18, .18, .1, 12);
+  const drops = [];
+  zs.forEach(zr => xs.forEach(x => {
+    const d = new THREE.Group(); d.position.set(x, 0, zr - .45); d.visible = false; grp.add(d);
+    const pa = (geo, mat, y) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; m.raycast = () => {}; d.add(m); };
+    pa(geoDrop, AG.mats.cano, (yI + 3.62) / 2); pa(geoCup, AG.mats.junta, 3.66); pa(geoCup, AG.mats.junta, yI - .08);
+    drops.push({ d, x, z: zr });
+  }));
+  let ta = 1;
+  ATUALIZAVEIS.push(dt => {
+    ta += dt; if (ta < .3) return; ta = 0;
+    drops.forEach(e => { e.d.visible = racks.some(r => r.vx === e.x && r.vz === e.z); });
+  });
+  g._aguaFim = { xb };
+}
+
+function dutoClima(g, xs, zs, xsRiser, xIni, xFim) {
+  /* ar-condicionado de teto removido */
+  splitsParede(g, xIni, xFim);
+  aguaRefrigeracao(g, xs, zs, xsRiser, xIni, xFim);
 }
 
 function criarCoolerTeto(g, x, z, nivelInicial = 1, itSrv = null) {
@@ -3101,11 +3242,11 @@ function expandirGalpao(galpao, scene, racks, inventario, hud) {
   galpao.guardaLeste = criarGuardaCorpo(galpao, xB + .15, -rz, xB + .15, rz, yR, 'rail-leste');
 
   // iluminação
-  [-1.5, 1.0, 3.5, 6.0].forEach(z => caixa(2.5, .12, .5, matLuz, cx, 5.0, z));
+  [-8.5, -5.5, -1.5, 1.0, 3.5, 6.0, 8.5].forEach(z => caixa(2.5, .12, .5, matLuz, cx, 5.0, z));
   const luz = new THREE.PointLight(0xeaf4ff, .6, 14); luz.position.set(cx, 4.5, 2); galpao.group.add(luz);
 
   // 4 fileiras de vagas de rack na nova ala
-  const FILEIRAS = [-1.5, 1.0, 3.5, 6.0];
+  const FILEIRAS = [-9.4, -6.1, -2.8, .5, 3.8];
   // padding interno: as 4 colunas ficam centralizadas na ala (≈0,6 m de folga das paredes);
   // antes o espaçamento fixo de 2,6 m fazia a última coluna encostar na parede leste.
   const xs = [1.1, 3.7, 6.3, 8.9].map(d => xA + d);
@@ -3113,11 +3254,11 @@ function expandirGalpao(galpao, scene, racks, inventario, hud) {
     vagasRack(galpao, xs, FILEIRAS, () => true);   // galpão novo vem sem rack
 
   // novas VAGAS de refrigerador no terraço da expansão (vazias)
-  vagasCooler(galpao, [[xA + 2.5, 0], [xA + 7.5, 0], [xA + 2.5, 4], [xA + 7.5, 4]]);
+  vagasCooler(galpao, [[xA + 2.5, -7.75], [xA + 7.5, -7.75], [xA + 2.5, -1.15], [xA + 7.5, -1.15], [xA + 2.5, 5.45], [xA + 7.5, 5.45]]);
   dutoClima(galpao, xs, FILEIRAS, [xA + 2.5, xA + 7.5], xA - .3, xB - .2);
 
   galpao.W += novoW; galpao.xDir = xB; galpao.expansoes = n;
-  hud.toast(`Galpão ampliado (${n}/4)! A sala de racks cresceu junto — 4 fileiras de vagas marcadas.`);
+  hud.toast(`Galpão ampliado (${n}/4)! A sala de racks cresceu junto — 5 fileiras de vagas marcadas.`);
 }
 
 /* =========================================================
@@ -3468,7 +3609,7 @@ function criarVagaRack(g, x, z, posFixa) {
       scene, posicao: new THREE.Vector3(g.px + x, .3, g.pz + z), inventario, hud, nomeBase: (typeof nomeDjango === 'string' && nomeDjango) ? nomeDjango : proximoNomeRack(),
       aoRemover: () => { const k = racks.indexOf(obj); if (k >= 0) racks.splice(k, 1); criarVagaRack(g, x, z, pos); }
     });
-    obj.position = pos;
+    obj.position = pos; obj.vx = x; obj.vz = z;
     racks.push(obj);
     hud.toast('Rack instalado (vazio) — instale baias nele. Aperte G na mira para remover.');
     return obj;
@@ -5288,6 +5429,117 @@ function criarSedeCemig(scene, galpao) {
 
 
 /* =========================================================
+   COPASA: estação de tratamento + adutora até o data center
+========================================================= */
+function criarCopasa(scene, galpao) {
+  const CX = -100, CZ = -38;
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const B = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+  const Cy = (a, b, h, s) => new THREE.CylinderGeometry(a, b, h, s || 24);
+  const root = new THREE.Group(); root.position.set(CX, 0, CZ); scene.add(root);
+  const mk = (geo, color, x, y, z, p, extra) => {
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial(Object.assign({ color: color, roughness: .65 }, extra || {})));
+    m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; (p || root).add(m); return m;
+  };
+  const placa = (txt, sub, w, h, x, y, z, ry, p) => {
+    const cv = document.createElement('canvas'); cv.width = 512; cv.height = Math.round(512 * h / w);
+    const c = cv.getContext('2d'); c.fillStyle = '#0a5ca8'; c.fillRect(0, 0, cv.width, cv.height);
+    c.fillStyle = '#ffffff'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = 'bold ' + Math.round(cv.height * (sub ? .5 : .6)) + 'px "Segoe UI", Arial, sans-serif';
+    c.fillText(txt, 256, cv.height * (sub ? .4 : .5));
+    if (sub) { c.font = '600 ' + Math.round(cv.height * .17) + 'px "Segoe UI", Arial, sans-serif'; c.fillStyle = '#bfe6ff'; c.fillText(sub, 256, cv.height * .82); }
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv) }));
+    m.position.set(x, y, z); m.rotation.y = ry || 0; m.raycast = () => {}; (p || root).add(m); return m;
+  };
+  const colW = (x1, z1, x2, z2, id) => addColisor(x1, z1, x2, z2, id);
+
+  // pátio, prédio administrativo
+  mk(B(30, .12, 24), 0x6a6e72, 0, .06, 0);
+  mk(B(12, 6, 8), 0xeef2f5, -6, 3, 6);
+  mk(B(12.6, .3, 8.6), 0x4a5a6a, -6, 6.15, 6);
+  mk(B(12.1, 1, .1), 0x0a5ca8, -6, 5.3, 10.02);
+  placa('COPASA', 'Companhia de Saneamento de Minas Gerais', 7, 1.7, -6, 3.2, 10.06, 0);
+  mk(B(2, 3, .1), 0x1a1d24, -1.8, 1.5, 10.03);
+  const vid = { transparent: true, opacity: .55, emissive: 0x1a4060, emissiveIntensity: .35 };
+  [-10, -8.4, -3.6].forEach(x => mk(B(1.4, 1.6, .1), 0x7eb8d4, x, 3.4, 10.03, null, vid));
+  colW(CX - 12.2, CZ + 1.8, CX + .2, CZ + 10.2, 'copasa-predio');
+
+  // decantadores
+  const aguaMat = new THREE.MeshStandardMaterial({ color: 0x2b88e6, emissive: 0x0a4a99, emissiveIntensity: .5, roughness: .2, metalness: .2, transparent: true, opacity: .9 });
+  [[-8, -6], [1, -6]].forEach(([x, z], i) => {
+    mk(Cy(4.2, 4.2, 2.4, 40), 0xb9c2cb, x, 1.2, z);
+    const w = new THREE.Mesh(new THREE.CircleGeometry(3.9, 40), aguaMat);
+    w.rotation.x = -Math.PI / 2; w.position.set(x, 2.42, z); w.raycast = () => {}; root.add(w);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(4.2, .12, 8, 48), AG.mats.junta);
+    rim.rotation.x = Math.PI / 2; rim.position.set(x, 2.4, z); rim.raycast = () => {}; root.add(rim);
+    colW(CX + x - 4.2, CZ + z - 4.2, CX + x + 4.2, CZ + z + 4.2, 'copasa-tanque-' + i);
+  });
+  ATUALIZAVEIS.push(() => { aguaMat.emissiveIntensity = .5 + .2 * Math.sin(performance.now() / 700); });
+
+  // casa de bombas
+  mk(B(5, 3, 4), 0xc9d0d6, 9, 1.5, -4);
+  mk(B(5.3, .25, 4.3), 0x4a5a6a, 9, 3.1, -4);
+  colW(CX + 6.5, CZ - 6, CX + 11.5, CZ - 2, 'copasa-bombas');
+  AG.cano(root, [V(-3.8, .7, -6), V(-3.2, .7, -6)], .12);
+  AG.cano(root, [V(5.0, .7, -5), V(6.5, .7, -5)], .12);
+
+  // caixa d'água elevada
+  [[1.2, 1.2], [-1.2, 1.2], [1.2, -1.2], [-1.2, -1.2]].forEach(([a, b]) => mk(Cy(.15, .15, 11, 8), 0x9aa4ae, 9.5 + a, 5.5, 9 + b));
+  mk(Cy(.9, .9, 12, 16), 0xd0d6dc, 9.5, 6, 9);
+  mk(Cy(3, 3, 3.6, 32), 0xeaf2f8, 9.5, 13.2, 9);
+  mk(Cy(3.02, 3.02, .6, 32), 0x0a5ca8, 9.5, 12.2, 9);
+  mk(new THREE.ConeGeometry(3.2, 1.4, 32), 0x0a5ca8, 9.5, 15.7, 9);
+  placa('COPASA', null, 3.6, 1.1, 9.5, 13.3, 12.05, 0);
+  placa('COPASA', null, 3.6, 1.1, 9.5, 13.3, 5.95, Math.PI);
+  colW(CX + 7.9, CZ + 7.4, CX + 11.1, CZ + 10.6, 'copasa-torre');
+
+  const luz = new THREE.PointLight(0xbfe6ff, .6, 28); luz.position.set(0, 8, 4); root.add(luz);
+
+  // saída da casa de bombas + adutora enterrada (tampas de inspeção)
+  AG.cano(root, [V(9, .14, -2), V(9, .14, 2)], .12);
+  const ADU_Y = 3.2;
+  const adutora = [V(CX + 9, .14, CZ - 2), V(CX + 9, ADU_Y, CZ - 2), V(CX + 9, ADU_Y, CZ + 2), V(4, ADU_Y, CZ + 2), V(4, ADU_Y, -21), V(4, 2.4, -21)];
+  AG.cano(scene, adutora, .14);
+  AG.fluxo(scene, adutora, 90, false);
+  // suportes ao longo da adutora (equivalente aos postes da CEMIG)
+  const matSup = new THREE.MeshStandardMaterial({ color: 0x8a9098, roughness: .6, metalness: .5 });
+  const matSupAz = new THREE.MeshStandardMaterial({ color: 0x0a5ca8, roughness: .5, metalness: .4 });
+  const suporte = (x, z, eixo) => {
+    const s = new THREE.Group(); s.position.set(x, 0, z); scene.add(s);
+    const add = (geo, mat, y, ry) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; if (ry) m.rotation.y = ry; m.castShadow = true; m.raycast = () => {}; s.add(m); return m; };
+    add(B(.6, .12, .6), matSup, .06);
+    add(Cy(.1, .13, ADU_Y - .2, 10), matSup, (ADU_Y - .2) / 2);
+    add(B(.5, .1, .5), matSupAz, ADU_Y - .2);
+    add(new THREE.TorusGeometry(.2, .035, 8, 20), matSupAz, ADU_Y, eixo === 'x' ? Math.PI / 2 : 0);
+    addColisor(x - .25, z - .25, x + .25, z + .25, novoId('adutora'));
+  };
+  for (let x = CX + 9; x <= -1; x += 10) suporte(x, CZ + 2, 'x');
+  suporte(4, CZ + 2, 'x');
+  suporte(4, -29, 'z');
+
+  // estação de entrada de água junto ao data center
+  const st = new THREE.Group(); st.position.set(galpao.px - 14, 0, galpao.pz); scene.add(st);
+  const sx = galpao.px - 14, sz = galpao.pz;
+  mk(Cy(1.3, 1.3, 2.6, 24), 0xb9c2cb, 0, 1.3, -2.2, st);
+  mk(Cy(1.34, 1.34, .4, 24), 0x0a5ca8, 0, 1.9, -2.2, st);
+  placa('COPASA', 'ENTRADA DE ÁGUA', 2.4, .9, 0, 3.3, -2.2, 0, st);
+  mk(Cy(.05, .05, 1.0, 6), 0x5c4033, -.9, 2.9, -2.2, st);
+  mk(Cy(.05, .05, 1.0, 6), 0x5c4033, .9, 2.9, -2.2, st);
+  mk(B(1.4, 1, 1.2), 0x2a2d33, 1.2, .5, 1.6, st);
+  mk(B(.6, .5, .4), 0x1a1d24, 2.6, .55, 1.0, st, { emissive: 0x0a3d80, emissiveIntensity: .6 });
+  const roda = new THREE.Mesh(new THREE.TorusGeometry(.22, .035, 8, 20), new THREE.MeshStandardMaterial({ color: 0xd9342a, roughness: .5 }));
+  roda.position.set(1.2, 1.25, 1.6); roda.rotation.x = Math.PI / 2; roda.raycast = () => {}; st.add(roda);
+  colW(sx - 1.4, sz - 3.6, sx + 1.4, sz - .8, 'copasa-est-tanque');
+  colW(sx + .5, sz + 1, sx + 1.9, sz + 2.2, 'copasa-est-bomba');
+  const entrada = [V(0, .14, -.9), V(0, .14, .5), V(1.2, .14, .5), V(1.2, .14, 1.0)];
+  AG.cano(st, entrada, .12); AG.fluxo(st, entrada, 6, false);
+  const saida = [V(1.9, .14, 1.6), V(3.2, .14, 1.6), V(3.2, .14, 0)];
+  AG.cano(st, saida, .12); AG.fluxo(st, saida, 6, false);
+
+  return { root, estacao: st };
+}
+
+/* =========================================================
    CLIMA / CHUVA ALEATÓRIA
    Chuva em partículas, céu mais escuro e névoa mais densa
    quando está chovendo. Alterna sozinha em intervalos
@@ -6711,6 +6963,7 @@ const distrito = criarDistritoEnergia(scene, inventario, hud);
 
 // Sede CEMIG + linha externa de postes até o galpão (energia da rede)
 const sedeCemig = criarSedeCemig(scene, galpao);
+const copasa = criarCopasa(scene, galpao);
 
 
 // Lote de expansão (à direita do galpão)
@@ -6864,6 +7117,7 @@ carregarMundoDoDjango();
       el.barraC.className = r > 1 ? 'alerta' : r > 0.75 ? '' : 'ok';
     }
 
+    { const ea = document.getElementById('hud-agua'); if (ea) ea.textContent = (typeof consumoAgua === 'function' ? consumoAgua() : 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' L/min'; }
     // Lotes / racks
     if (el.lotes) {
       let comprados = 0, limite = 20;
