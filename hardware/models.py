@@ -1,78 +1,72 @@
+from django.conf import settings
 from django.db import models
 
 
-class Brand(models.Model):
-    name = models.CharField(max_length=100, null=False)
+class HardwareBrand(models.Model):
+    name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.name
 
 
 class Hardware(models.Model):
-    type = models.CharField(max_length=300)
-    model = models.CharField(max_length=100, unique=True)
-    brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
-    price = models.IntegerField()
+    
+    class Type(models.TextChoices):
+        GPU = "cpu", "CPU"
+        SSD = "ssd", "SSD"
+        RAM = "ram", "RAM"
+        CPU = "cpu", "CPU"
+    
+    name = models.CharField(max_length=100, unique=True)
+    brand = models.ForeignKey('HardwareBrand', on_delete=models.PROTECT)
+    type = models.CharField(max_length=10, choices=Type.choices)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
     watts = models.IntegerField()
     rarity = models.CharField(max_length=30)
     
+    class Meta:
+        ordering = ["type", "price"]
+
         
     def __str__(self):
-        return f"{self.brand.name} {self.model}"
+        return f"{self.brand.name} {self.name}"
 
 
-class CPU(Hardware):
-    cores = models.IntegerField()
-    threads = models.IntegerField()
-    cpu_ghz = models.FloatField()
+class CPU(models.Model):
+    hardware = models.OneToOneField(Hardware, on_delete=models.CASCADE, related_name="cpu_specs")
+    cores = models.PositiveIntegerField()
+    threads = models.PositiveIntegerField()
+    cpu_ghz = models.IntegerField()
     cpu_score_bottleneck = models.IntegerField()
 
-    @property
-    def get_power(self):
-        return (
-            self.cores * 50 +
-            self.threads * 80 +
-            self.cpu_ghz * 100 +
-            self.cpu_score_bottleneck * 300
-        )
+
+
+class GPU(models.Model):
+    hardware = models.OneToOneField(Hardware, on_delete=models.CASCADE, related_name="gpu_specs")
+    gpu_score_bottleneck = models.PositiveIntegerField()
+    vram_gb = models.PositiveIntegerField()
+    gpu_mhz = models.PositiveIntegerField()
+
     
 
-
-class GPU(Hardware):
-    gpu_score_bottleneck = models.IntegerField()
-    vram = models.IntegerField()
-    gpu_mhz = models.FloatField()
-
-    @property
-    def get_power(self):
-        return (
-            self.vram * 200 +
-            self.gpu_mhz +
-            self.gpu_score_bottleneck * 500
-        )
-    
-
-class RAM(Hardware):
-    ram_gb = models.IntegerField()
-    ram_mhz = models.IntegerField()
-
-    @property
-    def get_power(self):
-        return (
-            self.ram_gb * 300 +
-            self.ram_mhz * 2
-        )
+class RAM(models.Model):
+    hardware = models.OneToOneField(Hardware, on_delete=models.CASCADE, related_name="ram_specs")
+    capacity_gb = models.IntegerField()
+    frequency_mhz = models.IntegerField()
 
 
 
-class SSD(Hardware):
-    ssd_gb = models.IntegerField()
-    speed = models.IntegerField()
+class SSD(models.Model):
+    hardware = models.OneToOneField(Hardware, on_delete=models.CASCADE, related_name="ssd_specs")
+    capacity_gb = models.PositiveIntegerField()
+    speed = models.PositiveIntegerField()
 
-    @property
-    def get_power(self):
-        return (
-            self.ssd_gb * 5 +
-            self.speed * 3
-        )
-    
+
+class HardwareInstance(models.Model):
+    owner = models.ForeignKey("user.User", on_delete=models.CASCADE, related_name="hardware_instances")
+    hardware = models.ForeignKey(Hardware,on_delete=models.PROTECT,related_name="instances",)
+    is_equiped = models.BooleanField(default=False)
+    type = models.CharField(max_length=20, blank=False, default="inventory_item")
+
+    def __str__(self):
+        return f"{self.item.model} (Equipped: {self.is_equiped})"

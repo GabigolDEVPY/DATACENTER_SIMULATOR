@@ -878,7 +878,7 @@ const ModalTemplates = {
           <div class="metrica"><div class="label">Racks Online</div><div class="valor">${racks.length} / ${racks.length}</div></div>
           <div class="metrica"><div class="label">Consumo</div><div class="valor">${typeof consumoEletrico==='function'?consumoEletrico():0} kW</div></div>
           <div class="metrica"><div class="label">Geração</div><div class="valor">${energiaTotal()} kW</div></div>
-          <div class="metrica"><div class="label">Rede</div><div class="valor">1 Gbps</div></div>
+          <div class="metrica"><div class="label">Rede</div><div class="valor">${typeof redeTexto==='function'?redeTexto():'1 Gbps'}</div></div>
           <div class="metrica"><div class="label">Refrigeração (${COOLERS.length} un.)</div><div class="valor">${coolingTotal().toFixed(1)} kW</div></div>
           <div class="metrica"><div class="label">Carga térmica</div><div class="valor">${cargaTermica().toFixed(1)} kW</div></div>
         </div>
@@ -7158,6 +7158,234 @@ carregarMundoDoDjango();
   };
 })();
 
+
+/* ===== INTERNET v1 ===== */
+(function () {
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const PL = [null,
+    { nome: 'Fibra Start',      mbps: 200,   lat: 18, custo: 0 },
+    { nome: 'Fibra Plus',       mbps: 500,   lat: 14, custo: 1 },
+    { nome: 'Fibra Pro',        mbps: 1000,  lat: 10, custo: 2 },
+    { nome: 'Fibra Business',   mbps: 2000,  lat: 7,  custo: 3 },
+    { nome: 'Fibra Enterprise', mbps: 5000,  lat: 4,  custo: 5 },
+    { nome: 'Link Dedicado',    mbps: 10000, lat: 2,  custo: 8 }
+  ];
+  window.INTERNET = { plano: 1, mbpsBaia: 40, planos: PL };
+  const fmtV = m => m >= 1000 ? (m / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' Gbps' : Math.round(m) + ' Mbps';
+  const demanda = () => { let b = 0; try { b = totalBaias(); } catch (e) {} return b * INTERNET.mbpsBaia; };
+  const banda = () => PL[INTERNET.plano].mbps;
+  window.redeTexto = () => fmtV(banda());
+  window.redeDemanda = demanda;
+  window.redeBanda = banda;
+  window.redeEficiencia = () => Math.min(1, banda() / Math.max(demanda(), 1));
+
+  const gx = galpao.px, gz = galpao.pz, G = galpao.group;
+  const W = (lx, y, lz) => V(gx + lx, y, gz + lz);
+  const MX = -9.3, MY = 1.9, MZ = -10.5;
+  const cvTex = (w, h, fn) => { const c = document.createElement('canvas'); c.width = w; c.height = h; fn(c.getContext('2d'), w, h); return new THREE.CanvasTexture(c); };
+
+  const MAT_FIBRA = new THREE.MeshStandardMaterial({ color: 0x2f9bff, emissive: 0x0a4a99, emissiveIntensity: .9, roughness: .35 });
+  const MAT_PULSO = new THREE.MeshBasicMaterial({ color: 0xbff6ff });
+  const MAT_ESC = new THREE.MeshStandardMaterial({ color: 0x1b1f26, roughness: .5, metalness: .5 });
+  const YV = V(0, 1, 0);
+
+  function tubo(parent, pts, r) {
+    const g = new THREE.Group(); parent.add(g);
+    const gj = new THREE.SphereGeometry(r, 6, 5);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i], b = pts[i + 1], d = b.clone().sub(a), len = d.length();
+      if (len < .005) continue;
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 6), MAT_FIBRA);
+      m.position.copy(a).add(b).multiplyScalar(.5);
+      m.quaternion.setFromUnitVectors(YV, d.normalize());
+      m.raycast = () => {}; g.add(m);
+    }
+    pts.forEach(p => { const j = new THREE.Mesh(gj, MAT_FIBRA); j.position.copy(p); j.raycast = () => {}; g.add(j); });
+    return g;
+  }
+  function pulsos(parent, pts, n, ctl) {
+    const seg = [], acc = [0]; let L = 0;
+    for (let i = 0; i < pts.length - 1; i++) { const d = pts[i + 1].clone().sub(pts[i]); seg.push(d); L += d.length(); acc.push(L); }
+    if (L < .1) return null;
+    n = Math.max(2, n);
+    const im = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 6, 5), MAT_PULSO, n);
+    im.frustumCulled = false; im.raycast = () => {}; parent.add(im);
+    const o = new THREE.Object3D(); let t = 0;
+    const fn = dt => {
+      t += dt * (ctl ? ctl() : 1);
+      for (let i = 0; i < n; i++) {
+        const s = (((t * 3 + i * L / n) % L) + L) % L; let k = 1;
+        while (k < acc.length - 1 && acc[k] <= s) k++;
+        const f = (s - acc[k - 1]) / Math.max(1e-6, acc[k] - acc[k - 1]);
+        o.position.copy(pts[k - 1]).addScaledVector(seg[k - 1], f);
+        o.scale.setScalar(.065); o.updateMatrix(); im.setMatrixAt(i, o.matrix);
+      }
+      im.instanceMatrix.needsUpdate = true;
+    };
+    ATUALIZAVEIS.push(fn);
+    return fn;
+  }
+  const fatorTrafego = () => .5 + Math.min(1, demanda() / Math.max(1, banda())) * 1.5;
+
+  /* ---------- modem de distribuição (escritório, em cima do armário) ---------- */
+  const modem = new THREE.Group(); modem.position.set(MX, MY, MZ); G.add(modem);
+  const mm = (geo, mat, x, y, z) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); o.castShadow = true; modem.add(o); return o; };
+  mm(new THREE.BoxGeometry(.55, .2, .3), MAT_ESC, 0, .1, 0);
+  mm(new THREE.BoxGeometry(.55, .02, .3), new THREE.MeshStandardMaterial({ color: 0x2f9bff, emissive: 0x0a4a99, emissiveIntensity: .8 }), 0, .205, 0);
+  [-.22, .22].forEach(x => mm(new THREE.CylinderGeometry(.012, .012, .36, 6), MAT_ESC, x, .38, -.08));
+  const ledMat = c => new THREE.MeshStandardMaterial({ color: 0x111111, emissive: c, emissiveIntensity: 1.5 });
+  const ledPow = ledMat(0x3dff7c), ledFib = ledMat(0x2f9bff), ledTraf = ledMat(0x3dff7c), ledLan = ledMat(0x3dff7c);
+  [ledPow, ledFib, ledTraf, ledLan].forEach((m, i) => mm(new THREE.BoxGeometry(.04, .03, .01), m, -.2 + i * .1, .1, .152));
+  const alvoModem = new THREE.Mesh(new THREE.BoxGeometry(.8, .6, .5), new THREE.MeshBasicMaterial({ visible: false }));
+  alvoModem.position.set(0, .3, 0); modem.add(alvoModem);
+  modem.userData.rotulo = 'Acessar Modem de Internet';
+  modem.userData.interagir = () => abrirModalInternet();
+
+  /* ---------- gabinete da provedora (fora da área da CEMIG) ---------- */
+  const PBX = -90.5, PBZ = -6.5, YF = 6.9;
+  const prov = new THREE.Group(); prov.position.set(PBX, 0, PBZ); scene.add(prov);
+  const pb = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, .6), new THREE.MeshStandardMaterial({ color: 0x1f4f8f, roughness: .6, metalness: .3 }));
+  pb.position.y = .75; pb.castShadow = true; prov.add(pb);
+  const pl = new THREE.Mesh(new THREE.PlaneGeometry(.9, .45), new THREE.MeshBasicMaterial({ map: cvTex(256, 128, (c, w, h) => {
+    c.fillStyle = '#0a2a52'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#bfe6ff'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = 'bold 54px "Segoe UI",Arial,sans-serif'; c.fillText('FIBRA', w / 2, 46);
+    c.font = '600 26px "Segoe UI",Arial,sans-serif'; c.fillText('PROVEDORA', w / 2, 94);
+  }) }));
+  pl.position.set(0, 1.0, .305); prov.add(pl);
+  const ledProv = ledMat(0x3dff7c);
+  const lp = new THREE.Mesh(new THREE.BoxGeometry(.08, .08, .02), ledProv); lp.position.set(.3, .4, .31); prov.add(lp);
+  prov.userData.rotulo = 'Provedora de Internet';
+  prov.userData.interagir = () => abrirModalInternet();
+  addColisor(PBX - .6, PBZ - .4, PBX + .6, PBZ + .4, 'provedora-gab');
+
+  /* ---------- fibra aérea emendada nos postes da CEMIG até o modem ---------- */
+  (function fibraAerea() {
+    const postes = (typeof sedeCemig !== 'undefined' && sedeCemig && sedeCemig.postes) ? sedeCemig.postes : [];
+    if (!postes.length) return;
+    const ult = postes[postes.length - 1];
+    const zM = gz + MZ, xL = ult.x + .25;
+    try { criarPoste(scene, ult.x, zM, 8.2); } catch (e) {}
+    const wp = [V(PBX + .3, 1.45, PBZ), V(PBX + .3, YF, PBZ)];
+    postes.forEach(p => wp.push(V(p.x + .25, YF, p.z + .25)));
+    wp.push(V(xL, YF, zM));
+    wp.push(V(xL, 2.4, zM));
+    wp.push(W(-10.4, 2.4, MZ));
+    wp.push(W(-9.55, 2.4, MZ));
+    wp.push(W(-9.55, MY + .1, MZ));
+    const pts = [wp[0]];
+    for (let i = 1; i < wp.length; i++) {
+      const a = wp[i - 1], b = wp[i];
+      if (a.y === YF && b.y === YF && a.distanceTo(b) > 3) {
+        const n = Math.ceil(a.distanceTo(b) / 3);
+        for (let k = 1; k <= n; k++) { const t = k / n, p = a.clone().lerp(b, t); p.y -= .35 * 4 * t * (1 - t); pts.push(p); }
+      } else pts.push(b.clone());
+    }
+    const grp = new THREE.Group(); scene.add(grp);
+    tubo(grp, pts, .03);
+    postes.concat([{ x: ult.x, z: zM }]).forEach(p => {
+      const cx = new THREE.Mesh(new THREE.BoxGeometry(.2, .14, .14), MAT_ESC);
+      cx.position.set(p.x + .25, YF, p.z + .25); cx.raycast = () => {}; grp.add(cx);
+      const an = new THREE.Mesh(new THREE.TorusGeometry(.09, .018, 6, 14), MAT_FIBRA);
+      an.position.copy(cx.position); an.raycast = () => {}; grp.add(an);
+    });
+    let L = 0; for (let i = 0; i < pts.length - 1; i++) L += pts[i].distanceTo(pts[i + 1]);
+    pulsos(grp, pts, Math.round(L / 5), fatorTrafego);
+  })();
+
+  /* ---------- distribuição modem -> racks (cabos finos azuis) ---------- */
+  const din = new THREE.Group(); scene.add(din);
+  let dinFns = [], sig = '';
+  function reconstruir() {
+    dinFns.forEach(f => { const i = ATUALIZAVEIS.indexOf(f); if (i >= 0) ATUALIZAVEIS.splice(i, 1); });
+    dinFns = [];
+    while (din.children.length) { const c = din.children[0]; din.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+    if (!racks.length) return;
+    const CZ = -1.15, YT = 3.45, YA = 3.85;
+    const xMax = Math.max(...racks.map(r => r.vx + .76));
+    const tronco = [W(MX + .15, MY + .2, MZ), W(MX + .15, 4.0, MZ), W(MX + .15, 4.0, CZ), W(-4, 4.0, CZ), W(-4, YT, CZ), W(xMax, YT, CZ)];
+    tubo(din, tronco, .025);
+    let L = 0; for (let i = 0; i < tronco.length - 1; i++) L += tronco[i].distanceTo(tronco[i + 1]);
+    const f0 = pulsos(din, tronco, Math.round(L / 3), fatorTrafego); if (f0) dinFns.push(f0);
+    racks.forEach(r => {
+      const xb = r.vx + .76;
+      const pts = [W(xb, YT, CZ), W(xb, YA, CZ), W(xb, YA, r.vz), W(xb, 3.63, r.vz)];
+      tubo(din, pts, .018);
+      const con = new THREE.Mesh(new THREE.SphereGeometry(.05, 8, 6), new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0x2f9bff, emissiveIntensity: 1.6 }));
+      con.position.copy(pts[3]); con.raycast = () => {}; din.add(con);
+      let Lb = 0; for (let i = 0; i < pts.length - 1; i++) Lb += pts[i].distanceTo(pts[i + 1]);
+      const f = pulsos(din, pts, Math.max(2, Math.round(Lb / 2.5)), fatorTrafego); if (f) dinFns.push(f);
+    });
+  }
+
+  /* ---------- HUD ---------- */
+  let hudEl = document.getElementById('hud-internet');
+  if (!hudEl) {
+    const ag = document.getElementById('hud-agua');
+    if (ag && ag.parentNode && ag.parentNode.parentNode) {
+      const row = document.createElement('div'); row.className = 'hud-linha';
+      row.innerHTML = '<span class="hud-label">Internet</span><span class="hud-valor" id="hud-internet">—</span>';
+      ag.parentNode.parentNode.insertBefore(row, ag.parentNode.nextSibling);
+      hudEl = document.getElementById('hud-internet');
+    }
+  }
+
+  let ta = 0, cong = false;
+  ATUALIZAVEIS.push(dt => {
+    const t = performance.now() / 1000;
+    ledFib.emissiveIntensity = Math.sin(t * 9) * Math.sin(t * 5.3) > .1 ? 2 : .2;
+    ledProv.emissiveIntensity = Math.sin(t * 7) > .2 ? 2 : .3;
+    ta += dt; if (ta < .4) return; ta = 0;
+    const s = racks.map(r => r.vx + ',' + r.vz).join('|');
+    if (s !== sig) { sig = s; reconstruir(); }
+    const dem = demanda(), ban = banda(), uso = dem / ban;
+    const cor = uso > 1 ? 0xff3b30 : uso > .8 ? 0xffa31a : 0x3dff7c;
+    ledTraf.emissive.setHex(cor);
+    if (hudEl) { hudEl.textContent = fmtV(dem) + ' / ' + fmtV(ban); hudEl.className = 'hud-valor ' + (uso > 1 ? 'alerta' : uso > .8 ? '' : 'ok'); }
+    if (uso > 1 && !cong) { cong = true; hud.toast('🌐 Internet congestionada! Faça upgrade do plano no modem do escritório.'); }
+    else if (uso <= 1) cong = false;
+  });
+
+  /* ---------- pop-up do modem ---------- */
+  window.abrirModalInternet = function (msg) {
+    const pl = INTERNET.plano, P = PL[pl], max = PL.length - 1, prox = pl < max ? PL[pl + 1] : null;
+    const dem = demanda(), uso = dem / P.mbps, efic = Math.min(1, P.mbps / Math.max(dem, 1));
+    const nB = totalBaias(), nR = racks.length, cap = Math.floor(P.mbps / INTERNET.mbpsBaia);
+    const cor = uso > 1 ? '#ff3b30' : uso > .8 ? '#ffd77a' : '#3dff7c';
+    const status = uso > 1 ? 'Congestionado' : uso > .8 ? 'Quase no limite' : 'Estável';
+    Modal.abrir(`<div class="modal"><div class="modal-header"><h3>Modem de Distribuição · Internet</h3><button class="modal-fecha" data-fecha-modal>×</button></div>
+      <div class="modal-body">
+        <h4><span class="status-dot"></span>NetMundo Fibra · GPON · ${status}</h4>
+        <p>A fibra da provedora vem emendada nos postes da CEMIG até este modem, que distribui a rede por cabos finos até cada rack instalado na sala de racks.</p>
+        <div class="metricas">
+          <div class="metrica"><div class="label">Plano atual</div><div class="valor">${P.nome}</div></div>
+          <div class="metrica"><div class="label">Velocidade (↓ / ↑)</div><div class="valor">${fmtV(P.mbps)}</div></div>
+          <div class="metrica"><div class="label">Latência</div><div class="valor">${P.lat} ms</div></div>
+          <div class="metrica"><div class="label">Demanda das baias</div><div class="valor">${fmtV(dem)}</div></div>
+          <div class="metrica"><div class="label">Racks / Baias conectados</div><div class="valor">${nR} / ${nB}</div></div>
+          <div class="metrica"><div class="label">Baias suportadas</div><div class="valor">${cap}</div></div>
+          <div class="metrica"><div class="label">Eficiência da rede</div><div class="valor">${(efic * 100).toFixed(0)}%</div></div>
+          <div class="metrica"><div class="label">Próximo plano</div><div class="valor">${prox ? prox.nome + ' · ' + fmtV(prox.mbps) : '—'}</div></div>
+        </div>
+        <div style="height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-bottom:12px">
+          <div style="height:100%;width:${Math.min(100, uso * 100).toFixed(1)}%;background:${cor}"></div>
+        </div>
+        <p style="opacity:.75">Cada baia consome ${INTERNET.mbpsBaia} Mbps. Se a demanda passar da banda contratada, as baias ficam limitadas a ${(efic * 100).toFixed(0)}% da velocidade.</p>
+        ${prox ? `<p>Upgrade para <b>${prox.nome}</b>: ${fmtV(prox.mbps)} · latência ${prox.lat} ms · suporta ${Math.floor(prox.mbps / INTERNET.mbpsBaia)} baias — custo <b>${prox.custo} 💰</b>.</p>` : '<p>Você já está no plano máximo.</p>'}
+        ${msg ? `<p style="color:var(--accent)">${msg}</p>` : ''}
+      </div>
+      <div class="modal-footer"><button class="btn" data-fecha-modal>Fechar</button>
+        ${prox ? `<button class="btn btn-primario" id="btn-net-up">Fazer upgrade (${prox.custo} 💰)</button>` : ''}
+      </div></div>`);
+    const b = document.getElementById('btn-net-up');
+    if (b) b.addEventListener('click', () => {
+      if (!pagar(inventario, prox.custo)) return;
+      INTERNET.plano++;
+      hud.toast('🌐 Plano atualizado para ' + PL[INTERNET.plano].nome + ' (' + fmtV(PL[INTERNET.plano].mbps) + ')');
+      window.abrirModalInternet('Plano atualizado com sucesso.');
+    });
+  };
+})();
 
 const relogio = new THREE.Clock();
 function animar() {
