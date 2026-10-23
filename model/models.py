@@ -16,6 +16,7 @@ class AIModel(models.Model):
     base_revenue = models.DecimalField(max_digits=10, decimal_places=2)
     params = models.BigIntegerField() 
     
+    
     def __str__(self):
         return f"{self.name} level: {self.level}"
     

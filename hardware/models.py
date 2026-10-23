@@ -15,7 +15,7 @@ class Hardware(models.Model):
         GPU = "cpu", "CPU"
         SSD = "ssd", "SSD"
         RAM = "ram", "RAM"
-        CPU = "cpu", "CPU"
+        CPU = "gpu", "GPU"
     
     name = models.CharField(max_length=100, unique=True)
     brand = models.ForeignKey('HardwareBrand', on_delete=models.PROTECT)
@@ -23,6 +23,10 @@ class Hardware(models.Model):
     price = models.DecimalField(max_digits=12, decimal_places=2)
     watts = models.IntegerField()
     rarity = models.CharField(max_length=30)
+    
+    @property
+    def specs(self):
+        return getattr(self, f"{self.type}_specs", None)
     
     class Meta:
         ordering = ["type", "price"]
